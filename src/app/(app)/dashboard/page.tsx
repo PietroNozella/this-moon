@@ -236,7 +236,7 @@ function ProgressRow({
   return (
     <div className="flex items-start gap-3">
       <span
-        className={`mt-1 size-3 rounded-full ${done ? "bg-candy-blue-500" : "bg-slate-300"}`}
+        className={`mt-1 size-3 rounded-full ${done ? "bg-emerald-500" : "bg-slate-300"}`}
       />
       <span className={done ? "text-onyx" : "text-slate-500"}>
         {children}
