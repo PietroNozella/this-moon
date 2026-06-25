@@ -4,7 +4,6 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/client";
 
@@ -58,98 +57,97 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-slate-50 px-4 py-8">
-      <div className="grid w-full max-w-5xl gap-8 md:grid-cols-[1fr_420px] md:items-center">
-        <section>
-          <p className="text-sm font-semibold uppercase text-emerald-700">
-            ChunkFlow
-          </p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl">
-            Ingles falavel a partir das frases que voce ja encontra.
-          </h1>
-          <p className="mt-4 max-w-xl text-lg leading-8 text-slate-600">
-            Capture frases reais, extraia chunks e pratique com repeticão
-            espacada. Seus dados ficam salvos no Supabase.
-          </p>
-        </section>
+    <main className="grid min-h-dvh place-items-center bg-slate-100 px-4 py-8">
+      <div className="w-full max-w-6xl">
+        <div className="grid gap-8 md:grid-cols-[1fr_400px] md:items-center">
+          <section className="hidden md:block">
+            <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-700">
+              ChunkFlow
+            </p>
+            <h1 className="mt-3 max-w-xl text-5xl font-semibold tracking-tight text-slate-950">
+              Inglês falável a partir das frases que você já encontra.
+            </h1>
+            <p className="mt-4 max-w-md text-sm leading-6 text-slate-500">
+              Pequenos trechos. Frases reais. Prática todos os dias.
+            </p>
+          </section>
 
-        <Card className="space-y-5">
-          <CardTitle>
-            {mode === "signin" ? "Entrar" : "Criar conta"}
-          </CardTitle>
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-xl">
+            <p className="text-base font-semibold text-slate-900 md:hidden">
+              ChunkFlow
+            </p>
+            <p className="mt-1 text-sm text-slate-500 md:hidden">
+              Continue sua prática diária de inglês.
+            </p>
+            <h2 className="hidden text-xl font-semibold text-slate-900 md:block">
+              {mode === "signin" ? "Entrar" : "Criar conta"}
+            </h2>
+            <p className="mt-1 hidden text-sm text-slate-500 md:block">
+              {mode === "signin"
+                ? "Continue sua prática diária de inglês."
+                : "Crie sua conta e comece hoje."}
+            </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "signup" ? (
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              {mode === "signup" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome</Label>
+                  <Input id="name" name="name" required />
+                </div>
+              ) : null}
+
               <div className="space-y-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input id="name" name="name" required />
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required />
               </div>
-            ) : null}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input id="password" name="password" type="password" minLength={6} required />
+              </div>
 
-                required
-              />
-            </div>
+              {error ? (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {error}
+                </p>
+              ) : null}
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
+              <Button type="submit" className="w-full" size="lg" disabled={pending}>
+                {pending
+                  ? "Aguarde..."
+                  : mode === "signin"
+                    ? "Entrar"
+                    : "Criar conta"}
+              </Button>
+            </form>
 
-                minLength={6}
-                required
-              />
-            </div>
-
-            {error ? (
-              <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </p>
-            ) : null}
-
-            <Button type="submit" className="w-full" size="lg" disabled={pending}>
-              {pending
-                ? "Aguarde..."
-                : mode === "signin"
-                  ? "Entrar"
-                  : "Criar conta"}
-            </Button>
-          </form>
-
-          <p className="text-sm text-slate-500">
-            {mode === "signin" ? (
-              <>
-                Não tem conta?{" "}
-                <button
-                  type="button"
-                  onClick={() => setMode("signup")}
-                  className="font-medium text-emerald-700 hover:underline"
-                >
-                  Criar conta
-                </button>
-              </>
-            ) : (
-              <>
-                Ja tem conta?{" "}
-                <button
-                  type="button"
-                  onClick={() => setMode("signin")}
-                  className="font-medium text-emerald-700 hover:underline"
-                >
-                  Fazer login
-                </button>
-              </>
-            )}
-          </p>
-        </Card>
+            <p className="mt-5 text-center text-sm text-slate-500">
+              {mode === "signin" ? (
+                <>
+                  Não tem conta?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setMode("signup")}
+                    className="font-medium text-candy-blue-700 hover:underline"
+                  >
+                    Criar conta
+                  </button>
+                </>
+              ) : (
+                <>
+                  Já tem conta?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setMode("signin")}
+                    className="font-medium text-candy-blue-700 hover:underline"
+                  >
+                    Fazer login
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
       </div>
     </main>
   );

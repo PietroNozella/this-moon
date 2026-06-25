@@ -1,11 +1,12 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
+import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/utils";
 import type { EntryRow } from "@/types/database";
@@ -14,7 +15,7 @@ const PAGE_SIZE = 5;
 const GOAL = 3;
 
 export default function ReviewPage() {
-  const [entries, setEntries] = useState<EntryRow[]>([]);
+  const [entries, setEntries] = useState<(EntryRow & { status?: string | null })[]>([]);
   const [sentencesToday, setSentencesToday] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -29,12 +30,10 @@ export default function ReviewPage() {
 
       const [countRes, { data: allEntries }, { data: goal }] =
         await Promise.all([
+          supabase.from("learning_entries").select("*", { count: "exact", head: true }),
           supabase
             .from("learning_entries")
-            .select("*", { count: "exact", head: true }),
-          supabase
-            .from("learning_entries")
-            .select("id, original_phrase, entry_type")
+            .select("id, original_phrase, translation, entry_type, status")
             .order("created_at", { ascending: false })
             .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
           supabase
@@ -46,7 +45,7 @@ export default function ReviewPage() {
 
       const total = countRes.count ?? 0;
       setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
-      setEntries((allEntries ?? []) as EntryRow[]);
+      setEntries((allEntries ?? []) as (EntryRow & { status?: string | null })[]);
       setSentencesToday(goal?.personal_sentences_created ?? 0);
       setLoading(false);
     }
@@ -55,82 +54,124 @@ export default function ReviewPage() {
   }, [page]);
 
   if (loading) {
-    return <Card className="text-slate-500">Carregando...</Card>;
+    return (
+      <div className="space-y-6">
+        <div className="h-20 animate-pulse rounded-2xl bg-slate-200" />
+        <div className="h-16 animate-pulse rounded-2xl bg-slate-200" />
+        <div className="h-64 animate-pulse rounded-2xl bg-slate-200" />
+      </div>
+    );
   }
 
   const done = sentencesToday >= GOAL;
+  const progress = Math.min(sentencesToday / GOAL, 1);
 
   const prompts = [
-    "Use a frase em um contexto do seu dia.",
-    "Mude o sujeito da frase.",
-    "Transforme para negativa ou pergunta.",
+    "Transforme chunks em frases suas.",
+    "Use isso em jogo, rotina ou programação.",
+    "Não precisa ser perfeita. Precisa ser sua.",
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold text-candy-blue-700">Revisão</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-normal text-onyx">
-          Criar frases próprias
-        </h1>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="Review"
+        subtitle="Crie frases suas com os chunks que você salvou."
+      />
 
-      <Card className={done ? "border-candy-blue-500/30 bg-candy-blue-500/10" : ""}>
-        <CardTitle>Progresso de hoje</CardTitle>
-        <p className="mt-2 text-sm text-slate-600">
-          {done
-            ? "Você já criou 3 frases próprias hoje!"
-            : `${sentencesToday} de ${GOAL} frases próprias criadas hoje.`}
+      <Card important>
+        <CardTitle>Frases próprias hoje</CardTitle>
+        <div className="mt-3">
+          <div className="flex items-end justify-between">
+            <p className="text-sm text-slate-600">
+              {done ? "Você já criou 3 frases próprias hoje!" : `${sentencesToday}/${GOAL}`}
+            </p>
+            <span className="text-xs text-slate-400">
+              {Math.round(progress * 100)}%
+            </span>
+          </div>
+          <div className="mt-2 h-2 w-full rounded-full bg-slate-200">
+            <div
+              className="h-full rounded-full bg-onyx transition-all duration-500"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-slate-500">
+          Use jogo, rotina ou programação como contexto.
         </p>
       </Card>
 
       <Card>
         <CardTitle>Inspiração</CardTitle>
-        <ul className="mt-3 space-y-2">
+        <div className="mt-4 space-y-3">
           {prompts.map((prompt) => (
-            <li key={prompt} className="flex items-start gap-2 text-sm text-slate-600">
+            <p key={prompt} className="flex items-start gap-2 text-sm text-slate-600">
               <span className="mt-0.5 shrink-0 text-candy-blue-500">→</span>
               {prompt}
-            </li>
-          ))}
-        </ul>
-      </Card>
-
-      <Card>
-        <CardTitle>Suas entradas</CardTitle>
-        <div className="mt-4 divide-y divide-slate-100">
-          {entries.length > 0 ? (
-            entries.map((entry) => (
-              <Link
-                key={entry.id}
-                href={`/library/${entry.id}`}
-                className="flex items-center gap-2 py-3 transition hover:text-candy-blue-700"
-              >
-                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500">
-                  {entry.entry_type === "verb" ? "V" : "C"}
-                </span>
-                <p className="font-medium text-onyx">
-                  {entry.original_phrase}
-                </p>
-              </Link>
-            ))
-          ) : (
-            <p className="py-6 text-sm text-slate-500">
-              Nenhuma entrada capturada ainda.
             </p>
-          )}
+          ))}
         </div>
-
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
       </Card>
 
-      <ButtonLink href="/library" className="w-full">
-        Ir para biblioteca
-      </ButtonLink>
+      {entries.length > 0 ? (
+        <div className="space-y-4">
+          {entries.map((entry) => (
+            <a
+              key={entry.id}
+              href={`/library/${entry.id}`}
+              className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <TypeBadge value={entry.entry_type} />
+                {entry.status ? <StatusBadge value={entry.status} /> : null}
+              </div>
+              <p className="mt-3 text-lg font-medium text-onyx">
+                {entry.original_phrase}
+              </p>
+              {entry.translation ? (
+                <p className="mt-1 text-sm text-slate-500 italic">
+                  {entry.translation}
+                </p>
+              ) : null}
+              <div className="mt-3 flex gap-2">
+                <ButtonLink
+                  href={`/library/${entry.id}`}
+                  variant="secondary"
+                  size="sm"
+                >
+                  Criar frase
+                </ButtonLink>
+                <ButtonLink
+                  href={`/speaking`}
+                  variant="ghost"
+                  size="sm"
+                >
+                  Speaking
+                </ButtonLink>
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-base font-semibold text-slate-900">
+            Nada aqui ainda
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Capture uma frase real para começar.
+          </p>
+          <ButtonLink href="/capture" variant="primary" className="mt-6">
+            Capturar chunk
+          </ButtonLink>
+        </div>
+      )}
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

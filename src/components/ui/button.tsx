@@ -3,21 +3,26 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
+const base =
+  "inline-flex items-center justify-center rounded-xl font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-candy-blue-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]";
+
 const variants = {
   primary:
-    "bg-onyx text-white hover:bg-onyx/90 focus-visible:outline-candy-blue-500",
+    "bg-onyx text-white shadow-sm hover:bg-slate-800",
   secondary:
-    "border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 focus-visible:outline-slate-400",
+    "border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-400",
   ghost:
-    "text-slate-700 hover:bg-slate-100 focus-visible:outline-slate-400",
+    "bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100",
+  success:
+    "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100",
   danger:
-    "bg-red-600 text-white hover:bg-red-700 focus-visible:outline-red-600",
+    "bg-red-600 text-white hover:bg-red-700",
 };
 
 const sizes = {
-  sm: "h-9 px-3 text-sm",
+  sm: "h-8 px-3 text-xs",
   md: "h-10 px-4 text-sm",
-  lg: "h-11 px-5 text-base",
+  lg: "h-11 px-5 text-sm",
 };
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -33,12 +38,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-60",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
+      className={cn(base, variants[variant], sizes[size], className)}
       {...props}
     />
   );
@@ -60,12 +60,7 @@ export function ButtonLink({
   return (
     <Link
       href={href}
-      className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
+      className={cn(base, variants[variant], sizes[size], className)}
       {...props}
     />
   );

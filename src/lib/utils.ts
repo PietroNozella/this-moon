@@ -1,7 +1,8 @@
-type ClassValue = string | false | null | undefined;
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs: ClassValue[]) {
-  return inputs.filter(Boolean).join(" ");
+export function cn(...inputs: Parameters<typeof clsx>) {
+  return twMerge(clsx(inputs));
 }
 
 export function compactText(value: FormDataEntryValue | null) {

@@ -7,13 +7,16 @@ import type {
 
 import { cn } from "@/lib/utils";
 
+const inputBase =
+  "w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 shadow-inner shadow-black/[0.02] placeholder:text-slate-400 outline-none transition-all duration-200 focus:bg-white focus:border-candy-blue-700 focus:ring-2 focus:ring-candy-blue-500/30";
+
 export function Label({
   className,
   ...props
 }: LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <label
-      className={cn("text-sm font-medium text-slate-800", className)}
+      className={cn("text-sm font-medium text-slate-700", className)}
       {...props}
     />
   );
@@ -25,10 +28,7 @@ export function Input({
 }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={cn(
-        "h-10 w-full rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-onyx outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200",
-        className,
-      )}
+      className={cn(inputBase, "h-10", className)}
       {...props}
     />
   );
@@ -40,10 +40,7 @@ export function Textarea({
 }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={cn(
-        "min-h-24 w-full resize-y rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-onyx outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-200",
-        className,
-      )}
+      className={cn(inputBase, "min-h-28 resize-y leading-6", className)}
       {...props}
     />
   );
@@ -55,10 +52,7 @@ export function Select({
 }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
-      className={cn(
-        "h-10 w-full rounded-md border border-slate-300 bg-slate-50 px-3 text-sm text-onyx outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200",
-        className,
-      )}
+      className={cn(inputBase, "h-10", className)}
       {...props}
     />
   );

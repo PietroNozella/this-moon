@@ -14,6 +14,8 @@
   --color-candy-blue-950: #1a3444;
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --radius-card: 1rem;
+  --radius-card-lg: 1.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,6 +29,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.035) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 
 button,

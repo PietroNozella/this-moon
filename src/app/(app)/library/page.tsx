@@ -1,15 +1,17 @@
 ﻿"use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input, Label, Select } from "@/components/ui/form";
+import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
 import { createClient } from "@/lib/supabase/client";
-import { entryStatuses } from "@/lib/validators/learning";
+import { difficulties, entryStatuses, sourceTypes } from "@/lib/validators/learning";
+import { formatDate } from "@/lib/utils";
 import type { EntryRow } from "@/types/database";
 
 const PAGE_SIZE = 5;
@@ -23,6 +25,26 @@ const statusLabels: Record<string, string> = {
   archived: "Arquivado",
 };
 
+const difficultyLabels: Record<string, string> = {
+  easy: "Fácil",
+  medium: "Médio",
+  hard: "Difícil",
+  unknown: "Não sei",
+};
+
+const sourceLabels: Record<string, string> = {
+  music: "Música",
+  video: "Vídeo",
+  game: "Jogo",
+  programming: "Programação",
+  conversation: "Conversa",
+  social_media: "Social media",
+  course: "Curso",
+  book: "Livro",
+  routine: "Rotina",
+  other: "Outro",
+};
+
 export default function LibraryPage() {
   const [entries, setEntries] = useState<EntryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +54,8 @@ export default function LibraryPage() {
     q?: string;
     status?: string;
     type?: string;
+    source?: string;
+    difficulty?: string;
   }>({});
 
   function setFiltersAndReset(newFilters: typeof filters) {
@@ -60,6 +84,12 @@ export default function LibraryPage() {
       }
       if (filters.type) {
         query = query.eq("entry_type", filters.type);
+      }
+      if (filters.source) {
+        query = query.eq("source_type", filters.source);
+      }
+      if (filters.difficulty) {
+        query = query.eq("difficulty", filters.difficulty);
       }
 
       const countRes = await query;
@@ -90,6 +120,12 @@ export default function LibraryPage() {
       if (filters.type) {
         dataQuery = dataQuery.eq("entry_type", filters.type);
       }
+      if (filters.source) {
+        dataQuery = dataQuery.eq("source_type", filters.source);
+      }
+      if (filters.difficulty) {
+        dataQuery = dataQuery.eq("difficulty", filters.difficulty);
+      }
 
       const dataRes = await dataQuery;
       setEntries((dataRes.data ?? []) as EntryRow[]);
@@ -99,52 +135,45 @@ export default function LibraryPage() {
     void load();
   }, [filters, page]);
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <p className="text-sm font-semibold text-candy-blue-700">Biblioteca</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-onyx">
-            Biblioteca
-          </h1>
-        </div>
-        <ButtonLink href="/capture">Nova captura</ButtonLink>
-      </div>
+  const hasFilters = filters.q || filters.status || filters.type || filters.source || filters.difficulty;
 
-      <div className="flex flex-wrap items-end gap-3">
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="Biblioteca"
+        subtitle="Encontre chunks, verbos e frases que você já salvou."
+        action={
+          <ButtonLink href="/capture" variant="primary" size="sm">
+            Capturar novo
+          </ButtonLink>
+        }
+      />
+
+      <div className="grid gap-3 md:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
         <div className="space-y-1">
           <Label htmlFor="filter-search">Buscar</Label>
           <Input
             id="filter-search"
-            name="q"
             value={filters.q ?? ""}
-            onChange={(event) =>
-              setFiltersAndReset({
-                ...filters,
-                q: event.target.value || undefined,
-              })
+            onChange={(e) =>
+              setFiltersAndReset({ ...filters, q: e.target.value || undefined })
             }
-            className="max-w-sm"
+            placeholder="Buscar por frase, tradução ou contexto..."
           />
         </div>
         <div className="space-y-1">
           <Label htmlFor="filter-status">Status</Label>
           <Select
             id="filter-status"
-            name="status"
             value={filters.status ?? ""}
-            onChange={(event) =>
-              setFiltersAndReset({
-                ...filters,
-                status: event.target.value || undefined,
-              })
+            onChange={(e) =>
+              setFiltersAndReset({ ...filters, status: e.target.value || undefined })
             }
-            className="w-40"
           >
             <option value="">Todos</option>
-            {entryStatuses.map((status) => (
-              <option key={status} value={status}>
-                {statusLabels[status]}
+            {entryStatuses.map((s) => (
+              <option key={s} value={s}>
+                {statusLabels[s]}
               </option>
             ))}
           </Select>
@@ -153,74 +182,102 @@ export default function LibraryPage() {
           <Label htmlFor="filter-type">Tipo</Label>
           <Select
             id="filter-type"
-            name="type"
             value={filters.type ?? ""}
-            onChange={(event) =>
-              setFiltersAndReset({
-                ...filters,
-                type: event.target.value || undefined,
-              })
+            onChange={(e) =>
+              setFiltersAndReset({ ...filters, type: e.target.value || undefined })
             }
-            className="w-32"
           >
             <option value="">Todos</option>
             <option value="chunk">Chunk</option>
             <option value="verb">Verbo</option>
           </Select>
         </div>
-        {filters.q || filters.status || filters.type ? (
-          <button
-            type="button"
-            onClick={() => setFiltersAndReset({})}
-            className="h-10 rounded-md bg-onyx px-4 text-sm font-medium text-white"
+        <div className="space-y-1">
+          <Label htmlFor="filter-difficulty">Dificuldade</Label>
+          <Select
+            id="filter-difficulty"
+            value={filters.difficulty ?? ""}
+            onChange={(e) =>
+              setFiltersAndReset({ ...filters, difficulty: e.target.value || undefined })
+            }
           >
-            Limpar
-          </button>
+            <option value="">Todas</option>
+            {difficulties.map((d) => (
+              <option key={d} value={d}>
+                {difficultyLabels[d]}
+              </option>
+            ))}
+          </Select>
+        </div>
+        {hasFilters ? (
+          <div className="flex items-end">
+            <button
+              type="button"
+              onClick={() => setFiltersAndReset({})}
+              className="rounded-xl bg-transparent px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              Limpar filtros
+            </button>
+          </div>
         ) : null}
       </div>
 
       {loading ? (
-        <Card className="text-slate-500">Carregando...</Card>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
+          ))}
+        </div>
+      ) : entries.length > 0 ? (
+        <div className="space-y-4">
+          {entries.map((entry) => (
+            <a
+              key={entry.id}
+              href={`/library/${entry.id}`}
+              className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge value={entry.status} />
+                <TypeBadge value={entry.entry_type} />
+                {entry.source_type ? (
+                  <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
+                    {sourceLabels[entry.source_type]}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-3 text-xl font-semibold tracking-tight text-onyx">
+                {entry.original_phrase}
+              </p>
+              {(entry.translation || entry.natural_phrase) ? (
+                <p className="mt-1 text-sm text-slate-500 italic">
+                  {entry.natural_phrase ?? entry.translation}
+                </p>
+              ) : null}
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                {entry.last_practiced_at ? (
+                  <span>Praticado {formatDate(entry.last_practiced_at)}</span>
+                ) : null}
+                {entry.times_practiced ? (
+                  <span>{entry.times_practiced}x</span>
+                ) : null}
+              </div>
+            </a>
+          ))}
+        </div>
       ) : (
-        <>
-          <div className="grid gap-4">
-            {entries.length > 0 ? (
-              entries.map((entry) => (
-                <Link key={entry.id} href={`/library/${entry.id}`}>
-                  <Card className="transition hover:border-slate-300 hover:shadow-md">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <StatusBadge value={entry.status} />
-                          <TypeBadge value={entry.entry_type} />
-                        </div>
-                        <h2 className="mt-2 text-xl font-semibold text-onyx">
-                          {entry.original_phrase}
-                        </h2>
-                        {entry.translation ? (
-                          <p className="mt-1 text-slate-600">
-                            {entry.translation}
-                          </p>
-                        ) : null}
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              ))
-            ) : (
-              <Card className="border-dashed text-center text-slate-500">
-                Nenhum resultado encontrado.
-              </Card>
-            )}
-          </div>
-
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
-        </>
+        <EmptyState
+          title="Nada aqui ainda"
+          description="Capture uma frase real para começar."
+          actionLabel="Capturar chunk"
+          actionHref="/capture"
+        />
       )}
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }
