@@ -23,7 +23,7 @@ export default function ReviewPage() {
       const [{ data: allEntries }, { data: goal }] = await Promise.all([
         supabase
           .from("learning_entries")
-          .select("id, original_phrase")
+          .select("id, original_phrase, entry_type")
           .order("created_at", { ascending: false }),
         supabase
           .from("daily_goals")
@@ -65,15 +65,18 @@ export default function ReviewPage() {
       </Card>
 
       <Card>
-        <CardTitle>Seus chunks</CardTitle>
+        <CardTitle>Suas entradas</CardTitle>
         <div className="mt-4 divide-y divide-slate-100">
           {entries.length > 0 ? (
             entries.map((entry) => (
               <Link
                 key={entry.id}
                 href={`/library/${entry.id}`}
-                className="block py-3 transition hover:text-emerald-700"
+                className="flex items-center gap-2 py-3 transition hover:text-emerald-700"
               >
+                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500">
+                  {entry.entry_type === "verb" ? "V" : "C"}
+                </span>
                 <p className="font-medium text-slate-950">
                   {entry.original_phrase}
                 </p>
@@ -81,7 +84,7 @@ export default function ReviewPage() {
             ))
           ) : (
             <p className="py-6 text-sm text-slate-500">
-              Nenhum chunk capturado ainda.
+              Nenhuma entrada capturada ainda.
             </p>
           )}
         </div>

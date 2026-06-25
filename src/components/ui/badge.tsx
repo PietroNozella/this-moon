@@ -35,3 +35,24 @@ export function StatusBadge({ value }: { value: string | null | undefined }) {
 
   return <Badge>{label}</Badge>;
 }
+
+const typeLabels: Record<string, string> = {
+  chunk: "Chunk",
+  verb: "Verbo",
+};
+
+export function TypeBadge({ value }: { value: string | null | undefined }) {
+  const label = typeLabels[value ?? ""] ?? value ?? "Chunk";
+
+  return (
+    <Badge
+      className={
+        value === "verb"
+          ? "border-violet-200 bg-violet-50 text-violet-700"
+          : "border-sky-200 bg-sky-50 text-sky-700"
+      }
+    >
+      {label}
+    </Badge>
+  );
+}

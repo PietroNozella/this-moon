@@ -11,11 +11,12 @@ import type { DailyGoalRow } from "@/types/database";
 
 type DashboardData = {
   entriesCount: number;
+  verbsCount: number;
   personalSentencesCount: number;
-  pendingReviewsCount: number;
   masteredChunksCount: number;
   dailyGoal: {
     captured_entries: number;
+    captured_verbs: number;
     personal_sentences_created: number;
     speaking_practices: number;
   };
@@ -23,11 +24,12 @@ type DashboardData = {
 
 const emptyData: DashboardData = {
   entriesCount: 0,
+  verbsCount: 0,
   personalSentencesCount: 0,
-  pendingReviewsCount: 0,
   masteredChunksCount: 0,
   dailyGoal: {
     captured_entries: 0,
+    captured_verbs: 0,
     personal_sentences_created: 0,
     speaking_practices: 0,
   },
@@ -44,11 +46,15 @@ export default function DashboardPage() {
     async function load() {
       const today = todayISO();
 
-      const [entriesRes, sentencesRes, masteredRes, goalRes] =
+      const [entriesRes, verbsRes, sentencesRes, masteredRes, goalRes] =
         await Promise.all([
           supabase
             .from("learning_entries")
             .select("*", { count: "exact", head: true }),
+          supabase
+            .from("learning_entries")
+            .select("*", { count: "exact", head: true })
+            .eq("entry_type", "verb"),
           supabase
             .from("personal_sentences")
             .select("*", { count: "exact", head: true }),
@@ -64,20 +70,22 @@ export default function DashboardPage() {
         ]);
 
       const entriesCount = entriesRes.count ?? 0;
+      const verbsCount = verbsRes.count ?? 0;
       const personalSentencesCount = sentencesRes.count ?? 0;
       const masteredCount = masteredRes.count ?? 0;
       const dailyGoals = goalRes.data as DailyGoalRow | null;
 
       const dailyGoal = {
         captured_entries: dailyGoals?.captured_entries ?? 0,
+        captured_verbs: dailyGoals?.captured_verbs ?? 0,
         personal_sentences_created: dailyGoals?.personal_sentences_created ?? 0,
         speaking_practices: dailyGoals?.speaking_practices ?? 0,
       };
 
       setData({
         entriesCount: entriesCount ?? 0,
+        verbsCount,
         personalSentencesCount: personalSentencesCount ?? 0,
-        pendingReviewsCount: 0,
         masteredChunksCount: masteredCount,
         dailyGoal,
       });
@@ -87,9 +95,11 @@ export default function DashboardPage() {
     void load();
   }, []);
 
+  const verbsDone = data.dailyGoal.captured_verbs >= 2;
   const reviewDone = data.dailyGoal.personal_sentences_created >= 5;
   const dailySteps = [
     data.dailyGoal.captured_entries > 0,
+    verbsDone,
     reviewDone,
     data.dailyGoal.speaking_practices > 0,
   ];
@@ -106,10 +116,14 @@ export default function DashboardPage() {
         <ButtonLink href="/capture">Capturar</ButtonLink>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-4">
         <Card>
-          <p className="text-sm text-slate-500">Frases salvas</p>
+          <p className="text-sm text-slate-500">Frases</p>
           <p className="mt-2 text-3xl font-semibold">{data.entriesCount}</p>
+        </Card>
+        <Card>
+          <p className="text-sm text-slate-500">Verbos</p>
+          <p className="mt-2 text-3xl font-semibold">{data.verbsCount}</p>
         </Card>
         <Card>
           <p className="text-sm text-slate-500">Frases próprias</p>
@@ -130,7 +144,12 @@ export default function DashboardPage() {
           <CardTitle>Missão diária</CardTitle>
           <div className="mt-5 space-y-3">
             <ProgressRow done={data.dailyGoal.captured_entries > 0}>
-              1 frase capturada
+              1 chunk capturado
+            </ProgressRow>
+            <ProgressRow done={verbsDone}>
+              {verbsDone
+                ? "2 verbos capturados"
+                : `${data.dailyGoal.captured_verbs}/2 verbos capturados`}
             </ProgressRow>
             <ProgressRow done={reviewDone}>
               {reviewDone
@@ -169,7 +188,7 @@ export default function DashboardPage() {
               )}
             </ProgressRow>
           </div>
-          <p className="mt-5 text-sm text-slate-500">{doneSteps}/3 concluído</p>
+          <p className="mt-5 text-sm text-slate-500">{doneSteps}/4 concluído</p>
         </Card>
 
         <Card>

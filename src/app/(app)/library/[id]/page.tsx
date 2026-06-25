@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { PersonalSentenceForm } from "@/components/forms/personal-sentence-form";
 import { StatusForm } from "@/components/forms/status-form";
-import { StatusBadge } from "@/components/ui/badge";
+import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
@@ -95,6 +95,7 @@ export default function EntryDetailPage() {
 
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge value={entry.status} />
+        <TypeBadge value={entry.entry_type} />
         {entry.source_type ? (
           <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
             {entry.source_type}

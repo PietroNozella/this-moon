@@ -124,6 +124,7 @@ export type EntryRow = {
   difficulty: string | null;
   status: string | null;
   favorite: boolean | null;
+  entry_type: string;
   created_at: string;
   updated_at: string;
 };
@@ -408,6 +409,7 @@ export type DailyGoalRow = {
   user_id: string;
   goal_date: string;
   captured_entries: number | null;
+  captured_verbs: number | null;
   reviews_completed: number | null;
   personal_sentences_created: number | null;
   speaking_practices: number | null;
@@ -421,6 +423,7 @@ export type DailyGoalInsert = {
   user_id: string;
   goal_date: string;
   captured_entries?: number | null;
+  captured_verbs?: number | null;
   reviews_completed?: number | null;
   personal_sentences_created?: number | null;
   speaking_practices?: number | null;

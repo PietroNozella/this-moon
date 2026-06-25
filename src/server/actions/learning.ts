@@ -44,7 +44,7 @@ async function ensureTag(
 async function incrementDailyGoal(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-  field: "captured_entries" | "reviews_completed" | "personal_sentences_created" | "speaking_practices",
+  field: "captured_entries" | "captured_verbs" | "reviews_completed" | "personal_sentences_created" | "speaking_practices",
 ) {
   const today = todayISO();
 
@@ -83,6 +83,7 @@ export async function createEntry(input: {
   natural_version?: string;
   casual_version?: string;
   tags: string[];
+  entry_type: string;
 }) {
   const supabase = await createClient();
   const {
@@ -103,13 +104,14 @@ export async function createEntry(input: {
       source_url: input.source_url ?? null,
       context_note: input.context_note,
       difficulty: input.difficulty,
+      entry_type: input.entry_type,
     })
     .select("id")
     .maybeSingle();
 
   if (entryError || !entry) throw entryError ?? new Error("Falha ao criar entrada.");
 
-  if (input.chunk_text) {
+  if (input.entry_type === "chunk" && input.chunk_text) {
     const { error: chunkError } = await supabase.from("chunks").insert({
       user_id: user.id,
       entry_id: entry.id,
@@ -123,25 +125,36 @@ export async function createEntry(input: {
     if (chunkError) throw chunkError;
   }
 
-  for (const tagName of input.tags) {
-    const tagId = await ensureTag(supabase, user.id, tagName);
-    await supabase.from("entry_tags").insert({ entry_id: entry.id, tag_id: tagId });
+  if (input.entry_type === "chunk") {
+    for (const tagName of input.tags) {
+      const tagId = await ensureTag(supabase, user.id, tagName);
+      await supabase.from("entry_tags").insert({ entry_id: entry.id, tag_id: tagId });
+    }
   }
 
-  const now = new Date().toISOString();
-
-  await supabase.from("reviews").insert({
-    user_id: user.id,
-    entry_id: entry.id,
-    review_type: "frase_propria",
-    prompt: "Como voce usaria isso na sua vida?",
-    expected_answer: input.original_phrase,
-    due_at: now,
-  });
-
-  await incrementDailyGoal(supabase, user.id, "captured_entries");
+  await incrementDailyGoal(
+    supabase,
+    user.id,
+    input.entry_type === "verb" ? "captured_verbs" : "captured_entries",
+  );
 
   return entry.id;
+}
+
+export async function createVerb(input: {
+  verb: string;
+  meaning: string;
+  context: string;
+}) {
+  return createEntry({
+    original_phrase: input.verb,
+    translation: input.meaning,
+    source_type: "other",
+    context_note: input.context,
+    difficulty: "unknown",
+    entry_type: "verb",
+    tags: [],
+  });
 }
 
 export async function createPersonalSentence(input: {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { StatusBadge } from "@/components/ui/badge";
+import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/form";
@@ -27,6 +27,7 @@ export default function LibraryPage() {
   const [filters, setFilters] = useState<{
     q?: string;
     status?: string;
+    type?: string;
   }>({});
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function LibraryPage() {
 
     return entries.filter((entry) => {
       if (filters.status && entry.status !== filters.status) return false;
+      if (filters.type && entry.entry_type !== filters.type) return false;
       if (!search) return true;
 
       return [entry.original_phrase, entry.translation, entry.context_note]
@@ -109,7 +111,26 @@ export default function LibraryPage() {
             ))}
           </Select>
         </div>
-        {filters.q || filters.status ? (
+        <div className="space-y-1">
+          <Label htmlFor="filter-type">Tipo</Label>
+          <Select
+            id="filter-type"
+            name="type"
+            value={filters.type ?? ""}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                type: event.target.value || undefined,
+              }))
+            }
+            className="w-32"
+          >
+            <option value="">Todos</option>
+            <option value="chunk">Chunk</option>
+            <option value="verb">Verbo</option>
+          </Select>
+        </div>
+        {filters.q || filters.status || filters.type ? (
           <button
             type="button"
             onClick={() => setFilters({})}
@@ -127,7 +148,10 @@ export default function LibraryPage() {
               <Card className="transition hover:border-slate-300 hover:shadow-md">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <StatusBadge value={entry.status} />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <StatusBadge value={entry.status} />
+                      <TypeBadge value={entry.entry_type} />
+                    </div>
                     <h2 className="mt-2 text-xl font-semibold text-slate-950">
                       {entry.original_phrase}
                     </h2>

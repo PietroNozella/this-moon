@@ -29,7 +29,7 @@ export const reviewRatings = ["easy", "good", "hard", "forgot"] as const;
 export const createEntrySchema = z.object({
   original_phrase: z
     .string()
-    .min(4, "Salve uma frase ou chunk com contexto.")
+    .min(2, "Preencha o campo.")
     .trim(),
   translation: z.string().trim().optional(),
   meaning_explanation: z.string().trim().optional(),
@@ -45,6 +45,13 @@ export const createEntrySchema = z.object({
   natural_version: z.string().trim().optional(),
   casual_version: z.string().trim().optional(),
   tags: z.array(z.string().min(1)).default([]),
+  entry_type: z.enum(["chunk", "verb"]).default("chunk"),
+});
+
+export const createVerbSchema = z.object({
+  verb: z.string().min(1, "Preencha o verbo.").trim(),
+  meaning: z.string().min(1, "Preencha o significado.").trim(),
+  context: z.string().min(3, "Explique onde usar.").trim(),
 });
 
 export const createPersonalSentenceSchema = z.object({
