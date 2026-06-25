@@ -127,14 +127,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <p className="text-sm font-semibold text-emerald-700">Hoje</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
-            Seu laboratório de inglês
-          </h1>
-        </div>
-        <ButtonLink href="/capture">Capturar frase</ButtonLink>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-emerald-700">Hoje</p>
+        <ButtonLink href="/capture">Capturar</ButtonLink>
       </div>
 
       <section className="grid gap-4 md:grid-cols-4">
