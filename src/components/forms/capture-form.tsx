@@ -180,12 +180,12 @@ export function CaptureForm() {
   return (
     <div className="space-y-6">
       {/* Toggle */}
-      <div className="mx-auto max-w-xl rounded-lg border border-slate-200 bg-slate-100 p-1">
+      <div className="inline-flex rounded-2xl bg-slate-100 p-1 ring-1 ring-slate-200">
         <button
           type="button"
           onClick={() => { setMode("chunk"); setState({}); }}
           className={cn(
-            "flex-1 rounded-md px-4 py-2 text-sm font-medium transition",
+            "rounded-xl px-8 py-3 text-sm font-medium transition",
             mode === "chunk"
               ? "bg-white text-onyx shadow-sm"
               : "text-slate-500 hover:text-onyx",
@@ -197,7 +197,7 @@ export function CaptureForm() {
           type="button"
           onClick={() => { setMode("verb"); setState({}); }}
           className={cn(
-            "flex-1 rounded-md px-4 py-2 text-sm font-medium transition",
+            "rounded-xl px-8 py-3 text-sm font-medium transition",
             mode === "verb"
               ? "bg-white text-onyx shadow-sm"
               : "text-slate-500 hover:text-onyx",
