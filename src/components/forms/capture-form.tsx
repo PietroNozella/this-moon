@@ -12,7 +12,7 @@ import {
   sourceTypes,
   type LearningActionState,
 } from "@/lib/validators/learning";
-import { createEntry } from "@/server/actions/learning";
+import { createEntry, createPersonalSentence } from "@/server/actions/learning";
 
 const sourceLabels: Record<string, string> = {
   music: "Música",
@@ -52,6 +52,12 @@ export function CaptureForm() {
 
     try {
       const entryId = await createEntry(parsed.data);
+
+      const mySentence = compactText(formData.get("my_sentence"));
+      if (mySentence) {
+        await createPersonalSentence({ entry_id: entryId, sentence: mySentence });
+      }
+
       setState({});
       router.push(`/library/${entryId}`);
     } catch (error) {
@@ -94,6 +100,11 @@ export function CaptureForm() {
         <Label htmlFor="context_note">Onde você usaria isso?</Label>
         <Textarea id="context_note" name="context_note" required placeholder="Quando estiver negociando com alguém." />
         <FieldError errors={state.errors?.context_note} />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="my_sentence">Sua frase (opcional)</Label>
+        <Textarea id="my_sentence" name="my_sentence" placeholder="I need more gold to buy equipment." />
       </div>
 
       {state.message ? (
