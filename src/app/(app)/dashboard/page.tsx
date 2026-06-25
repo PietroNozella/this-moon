@@ -51,7 +51,7 @@ export default function DashboardPage() {
         day: "2-digit",
       }).format(new Date());
 
-      const [entriesRes, sentencesRes, reviewsDueRes, chunksRes, goalRes] =
+      const [entriesRes, sentencesRes, reviewsDueRes, goalRes] =
         await Promise.all([
           supabase
             .from("learning_entries")
@@ -65,10 +65,6 @@ export default function DashboardPage() {
             .lte("due_at", now)
             .order("due_at", { ascending: true }),
           supabase
-            .from("chunks")
-            .select("*")
-            .order("usage_count", { ascending: false }),
-          supabase
             .from("daily_goals")
             .select("*")
             .eq("goal_date", today)
@@ -78,7 +74,6 @@ export default function DashboardPage() {
       const entriesCount = entriesRes.count ?? 0;
       const personalSentencesCount = sentencesRes.count ?? 0;
       const dueReviews = (reviewsDueRes.data ?? []) as ReviewRow[];
-      const allChunks = (chunksRes.data ?? []) as ChunkRow[];
       const dailyGoals = goalRes.data as DailyGoalRow | null;
 
       const dailyGoal = {
@@ -96,8 +91,7 @@ export default function DashboardPage() {
         entriesCount: entriesCount ?? 0,
         personalSentencesCount: personalSentencesCount ?? 0,
         pendingReviewsCount: dueReviews?.length ?? 0,
-        masteredChunksCount:
-          allChunks?.filter((c) => c.status === "mastered").length ?? 0,
+        masteredChunksCount: 0,
         dailyGoal,
         reviewStep: {
           done: reviewStepDone,
