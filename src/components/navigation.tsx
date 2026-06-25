@@ -9,7 +9,7 @@ const navItems = [
   { href: "/dashboard", label: "Painel" },
   { href: "/capture", label: "Captura" },
   { href: "/library", label: "Biblioteca" },
-  { href: "/review", label: "Revisão" },
+  { href: "/review", label: "Revis\u00e3o" },
 ];
 
 export function Navigation() {
@@ -33,7 +33,7 @@ export function Navigation() {
                 : "text-slate-600 hover:bg-slate-100 hover:text-onyx",
               isActive &&
                 (isDashboard
-                  ? "bg-candy-blue-500 text-onyx hover:bg-candy-blue-500 hover:text-onyx"
+                  ? "bg-candy-blue-500/15 text-candy-blue-500 hover:bg-candy-blue-500/20 hover:text-candy-blue-500"
                   : "bg-onyx text-white hover:bg-onyx hover:text-white"),
             )}
           >

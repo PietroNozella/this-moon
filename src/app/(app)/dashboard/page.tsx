@@ -36,8 +36,12 @@ const emptyData: DashboardData = {
 };
 
 const panelClass =
-  "border-candy-blue-500/15 bg-onyx/70 shadow-sm shadow-black/30";
+  "!border-candy-blue-500/15 !bg-[#061013] shadow-sm shadow-black/30";
+const softPanelClass =
+  "!border-candy-blue-500/15 !bg-[#081922] shadow-sm shadow-black/25";
 const panelTextClass = "text-candy-blue-500/65";
+const quickActionClass =
+  "justify-start !border-candy-blue-500/15 !bg-candy-blue-500/5 text-candy-blue-500 hover:!bg-candy-blue-500/10";
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>(emptyData);
@@ -113,7 +117,7 @@ export default function DashboardPage() {
   const stats = [
     { label: "Frases", value: data.entriesCount },
     { label: "Verbos", value: data.verbsCount },
-    { label: "Frases próprias", value: data.personalSentencesCount },
+    { label: "Frases pr\u00f3prias", value: data.personalSentencesCount },
     { label: "Dominados", value: data.masteredChunksCount },
   ];
 
@@ -131,12 +135,12 @@ export default function DashboardPage() {
         <div>
           <p className="text-sm font-semibold text-candy-blue-500/70">Hoje</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-normal text-candy-blue-500">
-            Painel diário
+            {"Painel di\u00e1rio"}
           </h1>
         </div>
         <ButtonLink
           href="/capture"
-          className="bg-candy-blue-500 text-onyx hover:bg-candy-blue-500/90"
+          className="!bg-candy-blue-500 text-onyx hover:!bg-candy-blue-500/90"
         >
           Capturar
         </ButtonLink>
@@ -144,10 +148,7 @@ export default function DashboardPage() {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
-          <Card
-            key={stat.label}
-            className="border-candy-blue-500/15 bg-onyx/70 shadow-sm shadow-black/30"
-          >
+          <Card key={stat.label} className={softPanelClass}>
             <p className={panelTextClass}>{stat.label}</p>
             <p className="mt-3 text-3xl font-semibold text-candy-blue-500">
               {stat.value}
@@ -161,10 +162,10 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <CardTitle className="text-candy-blue-500">
-                Missão diária
+                {"Miss\u00e3o di\u00e1ria"}
               </CardTitle>
               <p className={`mt-1 text-sm ${panelTextClass}`}>
-                {doneSteps}/4 concluído
+                {doneSteps}/4 {"conclu\u00eddo"}
               </p>
             </div>
             <span className="rounded-md border border-candy-blue-500/15 bg-candy-blue-500/10 px-2.5 py-1 text-sm font-semibold text-candy-blue-500">
@@ -176,7 +177,7 @@ export default function DashboardPage() {
             <div
               className="h-full rounded-full bg-candy-blue-500 transition-all"
               style={{ width: `${progressPercent}%` }}
-              aria-label={`${progressPercent}% da missão diária concluída`}
+              aria-label={`${progressPercent}% da missao diaria concluida`}
             />
           </div>
 
@@ -191,8 +192,8 @@ export default function DashboardPage() {
             </ProgressRow>
             <ProgressRow done={reviewDone}>
               {reviewDone
-                ? "5 frases próprias"
-                : `${data.dailyGoal.personal_sentences_created}/5 frases próprias`}
+                ? "5 frases pr\u00f3prias"
+                : `${data.dailyGoal.personal_sentences_created}/5 frases pr\u00f3prias`}
             </ProgressRow>
             <ProgressRow done={data.dailyGoal.speaking_practices > 0}>
               {data.dailyGoal.speaking_practices > 0 ? (
@@ -229,27 +230,17 @@ export default function DashboardPage() {
         </Card>
 
         <Card className={panelClass}>
-          <CardTitle className="text-candy-blue-500">Ações rápidas</CardTitle>
+          <CardTitle className="text-candy-blue-500">
+            {"A\u00e7\u00f5es r\u00e1pidas"}
+          </CardTitle>
           <div className="mt-4 grid gap-2">
-            <ButtonLink
-              href="/review"
-              variant="secondary"
-              className="justify-start border-candy-blue-500/15 bg-candy-blue-500/5 text-candy-blue-500 hover:bg-candy-blue-500/10"
-            >
+            <ButtonLink href="/review" variant="secondary" className={quickActionClass}>
               Revisar hoje
             </ButtonLink>
-            <ButtonLink
-              href="/capture"
-              variant="secondary"
-              className="justify-start border-candy-blue-500/15 bg-candy-blue-500/5 text-candy-blue-500 hover:bg-candy-blue-500/10"
-            >
+            <ButtonLink href="/capture" variant="secondary" className={quickActionClass}>
               Capturar nova frase
             </ButtonLink>
-            <ButtonLink
-              href="/library"
-              variant="secondary"
-              className="justify-start border-candy-blue-500/15 bg-candy-blue-500/5 text-candy-blue-500 hover:bg-candy-blue-500/10"
-            >
+            <ButtonLink href="/library" variant="secondary" className={quickActionClass}>
               Biblioteca
             </ButtonLink>
           </div>
