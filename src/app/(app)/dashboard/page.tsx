@@ -1,49 +1,38 @@
 ﻿"use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
-import { formatDate } from "@/lib/utils";
-import type { ChunkRow, DailyGoalRow, EntryRow, ReviewRow } from "@/types/database";
+import type { DailyGoalRow, ReviewRow } from "@/types/database";
 
 type DashboardData = {
   entriesCount: number;
   personalSentencesCount: number;
   pendingReviewsCount: number;
-  completedReviewsCount: number;
   masteredChunksCount: number;
-  activeChunksCount: number;
   dailyGoal: {
     captured_entries: number;
     personal_sentences_created: number;
     reviews_completed: number;
     speaking_practices: number;
   };
-  reviewStep: { done: boolean; label: string; hint: string };
-  chunkOfDay: ChunkRow | null;
-  recentEntries: EntryRow[];
+  reviewStep: { done: boolean; label: string };
 };
 
 const emptyData: DashboardData = {
   entriesCount: 0,
   personalSentencesCount: 0,
   pendingReviewsCount: 0,
-  completedReviewsCount: 0,
   masteredChunksCount: 0,
-  activeChunksCount: 0,
   dailyGoal: {
     captured_entries: 0,
     personal_sentences_created: 0,
     reviews_completed: 0,
     speaking_practices: 0,
   },
-  reviewStep: { done: true, label: "Sem revisão pendente hoje", hint: "" },
-  chunkOfDay: null,
-  recentEntries: [],
+  reviewStep: { done: true, label: "Sem revisão pendente hoje" },
 };
 
 export default function DashboardPage() {
@@ -62,7 +51,7 @@ export default function DashboardPage() {
         day: "2-digit",
       }).format(new Date());
 
-      const [entriesRes, sentencesRes, reviewsDueRes, reviewsDoneRes, chunksRes, recentRes, goalRes] =
+      const [entriesRes, sentencesRes, reviewsDueRes, chunksRes, goalRes] =
         await Promise.all([
           supabase
             .from("learning_entries")
@@ -76,18 +65,9 @@ export default function DashboardPage() {
             .lte("due_at", now)
             .order("due_at", { ascending: true }),
           supabase
-            .from("reviews")
-            .select("*")
-            .not("reviewed_at", "is", null),
-          supabase
             .from("chunks")
             .select("*")
             .order("usage_count", { ascending: false }),
-          supabase
-            .from("learning_entries")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(5),
           supabase
             .from("daily_goals")
             .select("*")
@@ -98,9 +78,7 @@ export default function DashboardPage() {
       const entriesCount = entriesRes.count ?? 0;
       const personalSentencesCount = sentencesRes.count ?? 0;
       const dueReviews = (reviewsDueRes.data ?? []) as ReviewRow[];
-      const allReviews = (reviewsDoneRes.data ?? []) as ReviewRow[];
       const allChunks = (chunksRes.data ?? []) as ChunkRow[];
-      const recentEntries = (recentRes.data ?? []) as EntryRow[];
       const dailyGoals = goalRes.data as DailyGoalRow | null;
 
       const dailyGoal = {
@@ -118,27 +96,15 @@ export default function DashboardPage() {
         entriesCount: entriesCount ?? 0,
         personalSentencesCount: personalSentencesCount ?? 0,
         pendingReviewsCount: dueReviews?.length ?? 0,
-        completedReviewsCount: allReviews?.length ?? 0,
         masteredChunksCount:
           allChunks?.filter((c) => c.status === "mastered").length ?? 0,
-        activeChunksCount:
-          allChunks?.filter((c) =>
-            ["new", "learning", "practicing", "almost_natural"].includes(
-              c.status ?? "",
-            ),
-          ).length ?? 0,
         dailyGoal,
         reviewStep: {
           done: reviewStepDone,
           label: isDueReviewPending
             ? "1 revisão rápida"
             : "Sem revisão pendente hoje",
-          hint: isDueReviewPending
-            ? "Conclua uma revisão disponível para fechar essa etapa."
-            : "As próximas revisões aparecem aqui quando vencerem.",
         },
-        chunkOfDay: (allChunks as ChunkRow[])?.[0] ?? null,
-        recentEntries: (recentEntries as EntryRow[]) ?? [],
       });
       setLoading(false);
     }
@@ -195,41 +161,7 @@ export default function DashboardPage() {
         </Card>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
-        <Card>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <CardTitle>Chunk do dia</CardTitle>
-              <p className="mt-1 text-sm text-slate-500">
-                Use em voz alta e crie uma variação sua.
-              </p>
-            </div>
-            <Badge>{data.activeChunksCount} em prática</Badge>
-          </div>
-
-          {data.chunkOfDay ? (
-            <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-5">
-              <p className="text-2xl font-semibold text-slate-950">
-                {data.chunkOfDay.chunk_text}
-              </p>
-              {data.chunkOfDay.translation ? (
-                <p className="mt-2 text-slate-600">
-                  {data.chunkOfDay.translation}
-                </p>
-              ) : null}
-              {data.chunkOfDay.casual_version ? (
-                <p className="mt-4 text-sm text-slate-500">
-                  Falado: {data.chunkOfDay.casual_version}
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <div className="mt-6 rounded-lg border border-dashed border-slate-300 p-5 text-slate-500">
-              Comece salvando uma frase que você ouviu hoje.
-            </div>
-          )}
-        </Card>
-
+      <section className="grid gap-5 md:grid-cols-2">
         <Card>
           <CardTitle>Missão diária</CardTitle>
           <div className="mt-5 space-y-3">
@@ -239,7 +171,7 @@ export default function DashboardPage() {
             <ProgressRow done={data.dailyGoal.personal_sentences_created >= 3}>
               3 frases próprias
             </ProgressRow>
-            <ProgressRow done={data.reviewStep.done} hint={data.reviewStep.hint}>
+            <ProgressRow done={data.reviewStep.done}>
               {data.reviewStep.label}
             </ProgressRow>
             <ProgressRow done={data.dailyGoal.speaking_practices > 0}>
@@ -248,9 +180,7 @@ export default function DashboardPage() {
           </div>
           <p className="mt-5 text-sm text-slate-500">{doneSteps}/4 concluído</p>
         </Card>
-      </section>
 
-      <section className="grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
         <Card>
           <CardTitle>Ações rápidas</CardTitle>
           <div className="mt-4 grid gap-2">
@@ -269,57 +199,12 @@ export default function DashboardPage() {
               Capturar nova frase
             </ButtonLink>
             <ButtonLink
-              href="/practice"
-              variant="secondary"
-              className="justify-start"
-            >
-              Praticar speaking
-            </ButtonLink>
-            <ButtonLink
-              href="/music"
-              variant="secondary"
-              className="justify-start"
-            >
-              Estudar música
-            </ButtonLink>
-            <ButtonLink
               href="/library"
               variant="secondary"
               className="justify-start"
             >
-              Criar frases minhas
+              Biblioteca
             </ButtonLink>
-          </div>
-        </Card>
-
-        <Card>
-          <CardTitle>Entradas recentes</CardTitle>
-          <div className="mt-4 divide-y divide-slate-100">
-            {data.recentEntries.length > 0 ? (
-              data.recentEntries.map((entry) => (
-                <Link
-                  key={entry.id}
-                  href={`/library/${entry.id}`}
-                  className="block py-3 transition hover:text-emerald-700"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="font-medium text-slate-950">
-                      {entry.original_phrase}
-                    </p>
-                    <span className="text-sm text-slate-400">
-                      {formatDate(entry.created_at)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {entry.context_note}
-                  </p>
-                </Link>
-              ))
-            ) : (
-              <p className="py-6 text-sm text-slate-500">
-                Sua biblioteca ainda está vazia. Capture sua primeira frase.
-              </p>
-            )}
           </div>
         </Card>
       </section>
@@ -329,11 +214,9 @@ export default function DashboardPage() {
 
 function ProgressRow({
   done,
-  hint,
   children,
 }: {
   done: boolean;
-  hint?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -341,12 +224,9 @@ function ProgressRow({
       <span
         className={`mt-1 size-3 rounded-full ${done ? "bg-emerald-500" : "bg-slate-300"}`}
       />
-      <div>
-        <span className={done ? "text-slate-950" : "text-slate-500"}>
-          {children}
-        </span>
-        {hint ? <p className="text-xs text-slate-400">{hint}</p> : null}
-      </div>
+      <span className={done ? "text-slate-950" : "text-slate-500"}>
+        {children}
+      </span>
     </div>
   );
 }

@@ -10,12 +10,6 @@ const navItems = [
   { href: "/capture", label: "Captura" },
   { href: "/library", label: "Biblioteca" },
   { href: "/review", label: "Revisão" },
-  { href: "/practice", label: "Prática" },
-  { href: "/music", label: "Música" },
-  { href: "/games", label: "Jogos" },
-  { href: "/programming", label: "Programação" },
-  { href: "/analytics", label: "Análises" },
-  { href: "/settings", label: "Configurações" },
 ];
 
 export function Navigation() {

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { PersonalSentenceForm } from "@/components/forms/personal-sentence-form";
 import { StatusForm } from "@/components/forms/status-form";
-import { Badge, StatusBadge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
@@ -14,13 +14,11 @@ import type {
   ChunkRow,
   EntryRow,
   PersonalSentenceRow,
-  TagRow,
 } from "@/types/database";
 
 type EntryDetailData = EntryRow & {
   chunks: ChunkRow[];
   personal_sentences: PersonalSentenceRow[];
-  tags: TagRow[];
 };
 
 export default function EntryDetailPage() {
@@ -42,31 +40,19 @@ export default function EntryDetailPage() {
         return;
       }
 
-      const [chunksResult, sentencesResult, entryTagsResult] =
-        await Promise.all([
-          supabase.from("chunks").select("*").eq("entry_id", params.id),
-          supabase
-            .from("personal_sentences")
-            .select("*")
-            .eq("entry_id", params.id),
-          supabase
-            .from("entry_tags")
-            .select("tag_id, tags(*)")
-            .eq("entry_id", params.id),
-        ]);
-
-      const rawEntryTags = (entryTagsResult.data ?? []) as unknown as {
-        tag_id: string;
-        tags: TagRow;
-      }[];
-      const tags = rawEntryTags.map((et) => et.tags).filter(Boolean);
+      const [chunksResult, sentencesResult] = await Promise.all([
+        supabase.from("chunks").select("*").eq("entry_id", params.id),
+        supabase
+          .from("personal_sentences")
+          .select("*")
+          .eq("entry_id", params.id),
+      ]);
 
       setEntry({
         ...(entryData as EntryRow),
         chunks: (chunksResult.data as ChunkRow[]) ?? [],
         personal_sentences:
           (sentencesResult.data as PersonalSentenceRow[]) ?? [],
-        tags,
       });
       setLoading(false);
     }
@@ -92,13 +78,13 @@ export default function EntryDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-semibold text-emerald-700">
-            Entrada salva em {formatDate(entry.created_at)}
+            {formatDate(entry.created_at)}
           </p>
-          <h1 className="max-w-3xl text-3xl font-semibold tracking-normal text-slate-950">
+          <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
             {entry.original_phrase}
           </h1>
         </div>
@@ -107,107 +93,56 @@ export default function EntryDetailPage() {
         </ButtonLink>
       </div>
 
-      <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card className="space-y-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge value={entry.status} />
-            <Badge>{entry.source_type}</Badge>
-            <Badge>{entry.difficulty ?? "unknown"}</Badge>
-            {entry.tags.map((tag) => (
-              <Badge key={tag.id}>#{tag.name}</Badge>
-            ))}
-          </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusBadge value={entry.status} />
+        {entry.source_type ? (
+          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+            {entry.source_type}
+          </span>
+        ) : null}
+      </div>
 
-          <Section title="Tradução">{entry.translation}</Section>
-          <Section title="Explicação simples">
-            {entry.meaning_explanation}
-          </Section>
-          <Section title="Contexto de uso">{entry.context_note}</Section>
+      <Section title="Tradução">{entry.translation}</Section>
+      <Section title="Contexto">{entry.context_note}</Section>
 
-          {entry.source_title || entry.source_url ? (
-            <div>
-              <CardTitle>Fonte</CardTitle>
-              <p className="mt-2 text-slate-700">{entry.source_title}</p>
-              {entry.source_url ? (
-                <a
-                  href={entry.source_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-1 block break-all text-sm text-emerald-700 hover:underline"
-                >
-                  {entry.source_url}
-                </a>
-              ) : null}
-            </div>
-          ) : null}
-
-          <div className="border-t border-slate-100 pt-5">
-            <CardTitle>Status</CardTitle>
-            <div className="mt-3">
-              <StatusForm entryId={entry.id} currentStatus={entry.status} />
-            </div>
-          </div>
+      {mainChunk ? (
+        <Card>
+          <CardTitle>Chunk</CardTitle>
+          <p className="mt-2 text-2xl font-semibold text-slate-950">
+            {mainChunk.chunk_text}
+          </p>
         </Card>
+      ) : null}
 
-        <div className="space-y-5">
-          <Card>
-            <CardTitle>Chunk principal</CardTitle>
-            {mainChunk ? (
-              <div className="mt-4 space-y-3">
-                <p className="text-2xl font-semibold text-slate-950">
-                  {mainChunk.chunk_text}
+      {entry.personal_sentences.length > 0 ? (
+        <Card>
+          <CardTitle>Frases próprias</CardTitle>
+          <div className="mt-4 space-y-3">
+            {entry.personal_sentences.map((sentence) => (
+              <div
+                key={sentence.id}
+                className="rounded-md border border-slate-200 p-3"
+              >
+                <p className="font-medium text-slate-950">
+                  {sentence.sentence}
                 </p>
-                {mainChunk.natural_version ? (
-                  <p className="text-sm text-slate-600">
-                    Natural: {mainChunk.natural_version}
-                  </p>
-                ) : null}
-                {mainChunk.casual_version ? (
-                  <p className="text-sm text-slate-600">
-                    Falado: {mainChunk.casual_version}
-                  </p>
-                ) : null}
-                {mainChunk.usage_note ? (
-                  <p className="text-sm text-slate-500">
-                    {mainChunk.usage_note}
+                {sentence.translation ? (
+                  <p className="mt-1 text-sm text-slate-500">
+                    {sentence.translation}
                   </p>
                 ) : null}
               </div>
-            ) : (
-              <p className="mt-4 text-sm text-slate-500">
-                Nenhum chunk cadastrado para esta entrada.
-              </p>
-            )}
-          </Card>
+            ))}
+          </div>
+        </Card>
+      ) : null}
 
-          <Card>
-            <CardTitle>Frases próprias</CardTitle>
-            <div className="mt-4 space-y-3">
-              {entry.personal_sentences.length > 0 ? (
-                entry.personal_sentences.map((sentence) => (
-                  <div
-                    key={sentence.id}
-                    className="rounded-md border border-slate-200 p-3"
-                  >
-                    <p className="font-medium text-slate-950">
-                      {sentence.sentence}
-                    </p>
-                    {sentence.translation ? (
-                      <p className="mt-1 text-sm text-slate-500">
-                        {sentence.translation}
-                      </p>
-                    ) : null}
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">
-                  Ainda falta criar sua primeira frase.
-                </p>
-              )}
-            </div>
-          </Card>
+      <Card>
+        <CardTitle>Status</CardTitle>
+        <div className="mt-3">
+          <StatusForm entryId={entry.id} currentStatus={entry.status} />
         </div>
-      </section>
+      </Card>
 
       <Card>
         <PersonalSentenceForm entryId={entry.id} chunkId={mainChunk?.id} />

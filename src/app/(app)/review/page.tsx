@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReviewItem } from "@/components/review/review-item";
 import { createClient } from "@/lib/supabase/client";
@@ -110,9 +109,6 @@ export default function ReviewPage() {
             Revisões pendentes
           </h1>
         </div>
-        <ButtonLink href="/capture" variant="secondary">
-          Capturar frase
-        </ButtonLink>
       </div>
 
       <div className="grid gap-4">

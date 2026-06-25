@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { FieldError, Input, Label } from "@/components/ui/form";
+import { Input, Label } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
