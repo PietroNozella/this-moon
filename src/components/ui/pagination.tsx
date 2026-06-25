@@ -37,7 +37,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Props) {
             className={cn(
               "min-w-[2rem] rounded-md px-2 py-1.5 text-sm transition",
               page === currentPage
-                ? "bg-slate-950 text-white"
+                ? "bg-onyx text-white"
                 : "text-slate-600 hover:bg-slate-50",
             )}
           >

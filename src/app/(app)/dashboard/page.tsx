@@ -112,28 +112,28 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-emerald-700">Hoje</p>
+        <p className="text-sm font-semibold text-candy-blue-700">Hoje</p>
         <ButtonLink href="/capture">Capturar</ButtonLink>
       </div>
 
       <section className="grid gap-4 md:grid-cols-4">
         <Card>
           <p className="text-sm text-slate-500">Frases</p>
-          <p className="mt-2 text-3xl font-semibold">{data.entriesCount}</p>
+          <p className="mt-2 text-3xl font-semibold text-onyx">{data.entriesCount}</p>
         </Card>
         <Card>
           <p className="text-sm text-slate-500">Verbos</p>
-          <p className="mt-2 text-3xl font-semibold">{data.verbsCount}</p>
+          <p className="mt-2 text-3xl font-semibold text-onyx">{data.verbsCount}</p>
         </Card>
         <Card>
           <p className="text-sm text-slate-500">Frases próprias</p>
-          <p className="mt-2 text-3xl font-semibold">
+          <p className="mt-2 text-3xl font-semibold text-onyx">
             {data.personalSentencesCount}
           </p>
         </Card>
         <Card>
           <p className="text-sm text-slate-500">Dominados</p>
-          <p className="mt-2 text-3xl font-semibold">
+          <p className="mt-2 text-3xl font-semibold text-onyx">
             {data.masteredChunksCount}
           </p>
         </Card>
@@ -180,7 +180,7 @@ export default function DashboardPage() {
                         setSpeakingPending(false);
                       }
                     }}
-                    className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200 disabled:opacity-50"
+                    className="rounded bg-candy-blue-500/20 px-2 py-0.5 text-xs font-medium text-candy-blue-700 hover:bg-candy-blue-500/30 disabled:opacity-50"
                   >
                     {speakingPending ? "..." : "Falar agora"}
                   </button>
@@ -232,9 +232,9 @@ function ProgressRow({
   return (
     <div className="flex items-start gap-3">
       <span
-        className={`mt-1 size-3 rounded-full ${done ? "bg-emerald-500" : "bg-slate-300"}`}
+        className={`mt-1 size-3 rounded-full ${done ? "bg-candy-blue-500" : "bg-slate-300"}`}
       />
-      <span className={done ? "text-slate-950" : "text-slate-500"}>
+      <span className={done ? "text-onyx" : "text-slate-500"}>
         {children}
       </span>
     </div>

@@ -103,8 +103,8 @@ export default function LibraryPage() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-semibold text-emerald-700">Biblioteca</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
+          <p className="text-sm font-semibold text-candy-blue-700">Biblioteca</p>
+          <h1 className="text-3xl font-semibold tracking-normal text-onyx">
             Biblioteca
           </h1>
         </div>
@@ -172,7 +172,7 @@ export default function LibraryPage() {
           <button
             type="button"
             onClick={() => setFiltersAndReset({})}
-            className="h-10 rounded-md bg-slate-950 px-4 text-sm font-medium text-white"
+            className="h-10 rounded-md bg-onyx px-4 text-sm font-medium text-white"
           >
             Limpar
           </button>
@@ -194,7 +194,7 @@ export default function LibraryPage() {
                           <StatusBadge value={entry.status} />
                           <TypeBadge value={entry.entry_type} />
                         </div>
-                        <h2 className="mt-2 text-xl font-semibold text-slate-950">
+                        <h2 className="mt-2 text-xl font-semibold text-onyx">
                           {entry.original_phrase}
                         </h2>
                         {entry.translation ? (

@@ -58,8 +58,8 @@ export function ReviewItem({
 
   if (done) {
     return (
-      <Card className="border-emerald-200 bg-emerald-50">
-        <p className="text-sm font-medium text-emerald-700">
+      <Card className="border-candy-blue-500/30 bg-candy-blue-500/10">
+        <p className="text-sm font-medium text-candy-blue-700">
           Revisão concluída!
         </p>
         {review.expected_answer ? (
@@ -74,10 +74,10 @@ export function ReviewItem({
   return (
     <Card className="space-y-4">
       <div>
-        <p className="text-sm font-medium text-emerald-700">
+        <p className="text-sm font-medium text-candy-blue-700">
           {reviewTypeLabels[review.review_type] ?? review.review_type}
         </p>
-        <h2 className="mt-1 text-lg font-semibold text-slate-950">{phrase}</h2>
+        <h2 className="mt-1 text-lg font-semibold text-onyx">{phrase}</h2>
         {review.entry?.translation ? (
           <p className="mt-1 text-sm text-slate-500">
             {review.entry.translation}

@@ -20,7 +20,7 @@ export function CardTitle({
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h2
-      className={cn("text-base font-semibold text-slate-950", className)}
+      className={cn("text-base font-semibold text-onyx", className)}
       {...props}
     />
   );

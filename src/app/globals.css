@@ -8,6 +8,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-onyx: #020202;
+  --color-candy-blue-500: #b2d5e5;
+  --color-candy-blue-700: #3a7594;
+  --color-candy-blue-950: #1a3444;
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }

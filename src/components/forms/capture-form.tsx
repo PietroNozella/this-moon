@@ -119,8 +119,8 @@ export function CaptureForm() {
           className={cn(
             "flex-1 rounded-md px-4 py-2 text-sm font-medium transition",
             mode === "chunk"
-              ? "bg-white text-slate-950 shadow-sm"
-              : "text-slate-500 hover:text-slate-950",
+              ? "bg-white text-onyx shadow-sm"
+              : "text-slate-500 hover:text-onyx",
           )}
         >
           Chunk
@@ -131,8 +131,8 @@ export function CaptureForm() {
           className={cn(
             "flex-1 rounded-md px-4 py-2 text-sm font-medium transition",
             mode === "verb"
-              ? "bg-white text-slate-950 shadow-sm"
-              : "text-slate-500 hover:text-slate-950",
+              ? "bg-white text-onyx shadow-sm"
+              : "text-slate-500 hover:text-onyx",
           )}
         >
           Verbo

@@ -62,13 +62,13 @@ export default function ReviewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-emerald-700">Revisão</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-normal text-slate-950">
+        <p className="text-sm font-semibold text-candy-blue-700">Revisão</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-normal text-onyx">
           Criar frases próprias
         </h1>
       </div>
 
-      <Card className={done ? "border-emerald-200 bg-emerald-50" : ""}>
+      <Card className={done ? "border-candy-blue-500/30 bg-candy-blue-500/10" : ""}>
         <CardTitle>Progresso de hoje</CardTitle>
         <p className="mt-2 text-sm text-slate-600">
           {done
@@ -85,12 +85,12 @@ export default function ReviewPage() {
               <Link
                 key={entry.id}
                 href={`/library/${entry.id}`}
-                className="flex items-center gap-2 py-3 transition hover:text-emerald-700"
+                className="flex items-center gap-2 py-3 transition hover:text-candy-blue-700"
               >
                 <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500">
                   {entry.entry_type === "verb" ? "V" : "C"}
                 </span>
-                <p className="font-medium text-slate-950">
+                <p className="font-medium text-onyx">
                   {entry.original_phrase}
                 </p>
               </Link>

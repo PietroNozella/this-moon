@@ -81,10 +81,10 @@ export default function EntryDetailPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-semibold text-emerald-700">
+          <p className="text-sm font-semibold text-candy-blue-700">
             {formatDate(entry.created_at)}
           </p>
-          <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
+          <h1 className="text-3xl font-semibold tracking-normal text-onyx">
             {entry.original_phrase}
           </h1>
         </div>

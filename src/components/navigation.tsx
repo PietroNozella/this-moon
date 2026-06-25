@@ -26,8 +26,8 @@ export function Navigation() {
             key={item.href}
             href={item.href}
             className={cn(
-              "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950",
-              isActive && "bg-slate-950 text-white hover:bg-slate-950 hover:text-white",
+              "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-onyx",
+              isActive && "bg-onyx text-white hover:bg-onyx hover:text-white",
             )}
           >
             {item.label}

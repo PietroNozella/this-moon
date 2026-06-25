@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 const variants = {
   primary:
-    "bg-slate-950 text-white hover:bg-slate-800 focus-visible:outline-slate-950",
+    "bg-onyx text-white hover:bg-onyx/90 focus-visible:outline-candy-blue-500",
   secondary:
     "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 focus-visible:outline-slate-400",
   ghost:
