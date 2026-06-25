@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { entryStatuses } from "@/lib/validators/learning";
 import type { EntryRow } from "@/types/database";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 5;
 
 const statusLabels: Record<string, string> = {
   new: "Novo",

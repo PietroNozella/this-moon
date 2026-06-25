@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/utils";
 import type { EntryRow } from "@/types/database";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 5;
 
 export default function ReviewPage() {
   const [entries, setEntries] = useState<EntryRow[]>([]);
