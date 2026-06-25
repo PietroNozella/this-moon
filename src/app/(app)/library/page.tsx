@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { StatusBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input, Select } from "@/components/ui/form";
+import { Input, Label, Select } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/client";
 import { entryStatuses } from "@/lib/validators/learning";
 import type { EntryRow } from "@/types/database";
@@ -74,34 +74,41 @@ export default function LibraryPage() {
         <ButtonLink href="/capture">Nova captura</ButtonLink>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Input
-          name="q"
-         
-          value={filters.q ?? ""}
-          onChange={(event) =>
-            setFilters((current) => ({ ...current, q: event.target.value }))
-          }
-          className="max-w-sm"
-        />
-        <Select
-          name="status"
-          value={filters.status ?? ""}
-          onChange={(event) =>
-            setFilters((current) => ({
-              ...current,
-              status: event.target.value || undefined,
-            }))
-          }
-          className="w-40"
-        >
-          <option value="">Status</option>
-          {entryStatuses.map((status) => (
-            <option key={status} value={status}>
-              {statusLabels[status]}
-            </option>
-          ))}
-        </Select>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <Label htmlFor="filter-search">Buscar</Label>
+          <Input
+            id="filter-search"
+            name="q"
+            value={filters.q ?? ""}
+            onChange={(event) =>
+              setFilters((current) => ({ ...current, q: event.target.value }))
+            }
+            className="max-w-sm"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="filter-status">Status</Label>
+          <Select
+            id="filter-status"
+            name="status"
+            value={filters.status ?? ""}
+            onChange={(event) =>
+              setFilters((current) => ({
+                ...current,
+                status: event.target.value || undefined,
+              }))
+            }
+            className="w-40"
+          >
+            <option value="">Todos</option>
+            {entryStatuses.map((status) => (
+              <option key={status} value={status}>
+                {statusLabels[status]}
+              </option>
+            ))}
+          </Select>
+        </div>
         {filters.q || filters.status ? (
           <button
             type="button"
