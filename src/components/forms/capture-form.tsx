@@ -65,17 +65,17 @@ export function CaptureForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-xl space-y-5">
-      <CardTitle>Captura rápida</CardTitle>
+      <CardTitle>Capturar chunk</CardTitle>
 
       <div className="space-y-2">
-        <Label htmlFor="original_phrase">Frase original</Label>
-        <Textarea id="original_phrase" name="original_phrase" required />
+        <Label htmlFor="original_phrase">Chunk / expressão</Label>
+        <Textarea id="original_phrase" name="original_phrase" required placeholder="I need more gold." />
         <FieldError errors={state.errors?.original_phrase} />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="translation">Tradução (opcional)</Label>
-        <Input id="translation" name="translation" />
+        <Input id="translation" name="translation" placeholder="Preciso de mais ouro." />
       </div>
 
       <div className="space-y-2">
@@ -92,7 +92,7 @@ export function CaptureForm() {
 
       <div className="space-y-2">
         <Label htmlFor="context_note">Onde você usaria isso?</Label>
-        <Textarea id="context_note" name="context_note" required />
+        <Textarea id="context_note" name="context_note" required placeholder="Quando estiver negociando com alguém." />
         <FieldError errors={state.errors?.context_note} />
       </div>
 
@@ -103,7 +103,7 @@ export function CaptureForm() {
       ) : null}
 
       <Button type="submit" className="w-full" size="lg" disabled={pending}>
-        Salvar frase
+        Salvar chunk
       </Button>
     </form>
   );
