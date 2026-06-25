@@ -90,6 +90,20 @@ export const completeReviewSchema = z.object({
   rating: z.enum(reviewRatings),
 });
 
+export const guidedListeningSchema = z.object({
+  entryId: z.string().uuid(),
+  confidenceLevel: z.coerce.number().min(1).max(5),
+  listeningRepetitions: z.coerce.number().min(1).max(20).optional(),
+  notes: z.string().trim().optional(),
+  personalSentence: z.string().trim().min(4).optional(),
+});
+
+export const dailyTrainingSchema = z.object({
+  chunkId: z.string().uuid().optional(),
+  connectorSentence: z.string().trim().min(4).optional(),
+  narrationText: z.string().trim().optional(),
+});
+
 export type LearningActionState = {
   message?: string;
   errors?: Record<string, string[] | undefined>;

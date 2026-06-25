@@ -201,6 +201,7 @@ export async function createPracticeSession(input: {
       user_id: user.id,
       mode: input.practice_type,
       duration_seconds: input.duration_seconds ?? 0,
+      entry_id: input.entry_id,
       notes: input.note ?? null,
     })
     .select("id")
@@ -226,7 +227,13 @@ export async function createPracticeSession(input: {
   return session.id;
 }
 
-export async function completeListeningPractice(entryId: string) {
+export async function completeListeningPractice(input: {
+  entryId: string;
+  confidenceLevel?: number;
+  listeningRepetitions?: number;
+  notes?: string;
+  personalSentence?: string;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -234,7 +241,26 @@ export async function completeListeningPractice(entryId: string) {
 
   if (!user) throw new Error("Não autorizado.");
 
-  await createPracticeSession({ entry_id: entryId, practice_type: "listening" });
+  const noteParts: string[] = [];
+  if (input.notes) noteParts.push(`Experiência ouvindo: ${input.notes}`);
+  if (input.listeningRepetitions) noteParts.push(`Repetições: ${input.listeningRepetitions}`);
+
+  await createPracticeSession({
+    entry_id: input.entryId,
+    practice_type: "listening",
+    self_rating: input.confidenceLevel,
+    note: noteParts.length > 0 ? noteParts.join("\n") : undefined,
+  });
+
+  if (input.personalSentence) {
+    await supabase.from("personal_sentences").insert({
+      user_id: user.id,
+      entry_id: input.entryId,
+      sentence: input.personalSentence,
+    });
+    await incrementDailyGoal(supabase, user.id, "personal_sentences_created");
+  }
+
   await incrementDailyGoal(supabase, user.id, "listening_practices");
 }
 
@@ -356,4 +382,35 @@ export async function completeSpeakingPractice(entryId?: string) {
   }
 
   await incrementDailyGoal(supabase, user.id, "speaking_practices");
+}
+
+export async function completeDailyTraining(input: {
+  narrationText?: string;
+  connectorSentence?: string;
+  connectorEntryId?: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autorizado.");
+
+  if (input.connectorSentence && input.connectorEntryId) {
+    await supabase.from("personal_sentences").insert({
+      user_id: user.id,
+      entry_id: input.connectorEntryId,
+      sentence: input.connectorSentence,
+    });
+    await incrementDailyGoal(supabase, user.id, "personal_sentences_created");
+  }
+
+  await supabase.from("practice_sessions").insert({
+    user_id: user.id,
+    mode: "review",
+    duration_seconds: 0,
+    notes: input.narrationText ?? null,
+  });
+
+  await incrementDailyGoal(supabase, user.id, "practiced_entries");
 }

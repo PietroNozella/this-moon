@@ -15,11 +15,13 @@ import type {
   ChunkRow,
   EntryRow,
   PersonalSentenceRow,
+  PracticeSessionRow,
 } from "@/types/database";
 
 type EntryDetailData = EntryRow & {
   chunks: ChunkRow[];
   personal_sentences: PersonalSentenceRow[];
+  practice_sessions: PracticeSessionRow[];
 };
 
 export default function EntryDetailPage() {
@@ -41,19 +43,27 @@ export default function EntryDetailPage() {
         return;
       }
 
-      const [chunksResult, sentencesResult] = await Promise.all([
-        supabase.from("chunks").select("*").eq("entry_id", params.id),
-        supabase
-          .from("personal_sentences")
-          .select("*")
-          .eq("entry_id", params.id),
-      ]);
+      const [chunksResult, sentencesResult, sessionsResult] =
+        await Promise.all([
+          supabase.from("chunks").select("*").eq("entry_id", params.id),
+          supabase
+            .from("personal_sentences")
+            .select("*")
+            .eq("entry_id", params.id),
+          supabase
+            .from("practice_sessions")
+            .select("*")
+            .eq("entry_id", params.id)
+            .order("created_at", { ascending: false }),
+        ]);
 
       setEntry({
         ...(entryData as EntryRow),
         chunks: (chunksResult.data as ChunkRow[]) ?? [],
         personal_sentences:
           (sentencesResult.data as PersonalSentenceRow[]) ?? [],
+        practice_sessions:
+          (sessionsResult.data as PracticeSessionRow[]) ?? [],
       });
       setLoading(false);
     }
@@ -199,27 +209,67 @@ export default function EntryDetailPage() {
               </div>
             </Card>
           ) : null}
+
+          {entry.practice_sessions.length > 0 ? (
+            <Card>
+              <CardTitle>Histórico de prática</CardTitle>
+              <div className="mt-4 space-y-3">
+                {entry.practice_sessions.slice(0, 5).map((session) => (
+                  <div
+                    key={session.id}
+                    className="rounded-xl border border-slate-200 bg-slate-50 p-3"
+                  >
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <span className="font-medium">
+                        {session.mode === "listening"
+                          ? "Escuta Guiada"
+                          : session.mode === "speaking"
+                            ? "Speaking"
+                            : session.mode === "shadowing"
+                              ? "Shadowing"
+                              : session.mode}
+                      </span>
+                      <span>{formatDate(session.created_at)}</span>
+                    </div>
+                    {session.notes ? (
+                      <p className="mt-1 text-sm text-slate-600 line-clamp-2">
+                        {session.notes}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ) : (
+            <Card>
+              <CardTitle>Histórico de prática</CardTitle>
+              <p className="mt-2 text-sm text-slate-500">
+                Você ainda não praticou este chunk.
+              </p>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
           <Card>
-            <div className="flex flex-col gap-2">
+            <CardTitle>Ações rápidas</CardTitle>
+            <div className="mt-4 flex flex-col gap-2">
               <ButtonLink
-                href={`/speaking`}
+                href={`/listening`}
                 variant="primary"
                 className="w-full"
                 size="sm"
               >
-                Treinar speaking
+                Treinar Escuta Guiada
               </ButtonLink>
               <ButtonLink
-                href={`/listening`}
+                href={`/speaking`}
                 variant="secondary"
                 className="w-full"
                 size="sm"
               >
-                Treinar listening
+                Treinar Speaking
               </ButtonLink>
               <StatusForm entryId={entry.id} currentStatus={entry.status} />
             </div>

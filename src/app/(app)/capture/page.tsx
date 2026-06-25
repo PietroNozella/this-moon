@@ -5,8 +5,8 @@ export default function CapturePage() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Captura"
-        subtitle="Salve frases reais, verbos e padrões que você encontrou no dia a dia."
+        title="Capturar novo aprendizado"
+        subtitle="Salve frases, verbos e padrões que você encontrou em músicas, jogos, vídeos ou conversas."
       />
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_0.8fr]">

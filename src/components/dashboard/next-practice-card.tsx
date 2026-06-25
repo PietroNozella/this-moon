@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import type { EntryRow } from "@/types/database";
 
 type Props = {
   nextKey: string | null;
   doneCount: number;
+  nextEntry?: EntryRow | null;
 };
 
-const stepConfig: Record<string, { title: string; body: string; href: string; cta: string }> = {
+const stepConfig: Record<
+  string,
+  { title: string; body: string; href: string; cta: string }
+> = {
   chunk: {
     title: "Capture um chunk",
     body: "Comece salvando uma frase real que você encontrou hoje.",
@@ -40,7 +45,7 @@ const stepConfig: Record<string, { title: string; body: string; href: string; ct
   },
 };
 
-export function NextPracticeCard({ nextKey, doneCount }: Props) {
+export function NextPracticeCard({ nextKey, doneCount, nextEntry }: Props) {
   const config = nextKey ? stepConfig[nextKey] : null;
 
   return (
@@ -52,7 +57,38 @@ export function NextPracticeCard({ nextKey, doneCount }: Props) {
           Próximo melhor treino
         </div>
 
-        {config ? (
+        {nextEntry ? (
+          <>
+            <h2 className="text-xl font-semibold tracking-tight text-white transition-all duration-300 group-hover:text-slate-950">
+              Treine &ldquo;{nextEntry.original_phrase}&rdquo;
+            </h2>
+            <p className="mt-3 max-w-sm text-sm leading-6 text-white/60 transition-all duration-300 group-hover:text-slate-500">
+              Você salvou esse chunk, mas ainda não registrou prática de
+              escuta.
+            </p>
+
+            <div className="mt-6 space-y-2 text-sm text-white/60 transition-all duration-300 group-hover:text-slate-500">
+              <p>• 5 minutos já contam</p>
+              <p>• Foque em reconhecer palavras</p>
+              <p>• Não precisa entender tudo</p>
+            </div>
+
+            <div className="mt-auto flex gap-2 pt-6">
+              <Link
+                href="/listening"
+                className="inline-flex h-10 flex-1 items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-onyx shadow-sm transition-all duration-300 hover:bg-slate-100 group-hover:bg-onyx group-hover:text-white group-hover:hover:bg-slate-800"
+              >
+                Treinar agora
+              </Link>
+              <Link
+                href={`/library/${nextEntry.id}`}
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-white/20 px-4 text-sm font-medium text-white/70 shadow-sm transition-all duration-300 hover:bg-white/10 group-hover:border-slate-300 group-hover:text-slate-600"
+              >
+                Ver detalhe
+              </Link>
+            </div>
+          </>
+        ) : config ? (
           <>
             <h2 className="text-xl font-semibold tracking-tight text-white transition-all duration-300 group-hover:text-slate-950">
               {config.title}

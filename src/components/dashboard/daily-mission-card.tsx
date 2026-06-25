@@ -59,7 +59,7 @@ export function DailyMissionCard({ items, doneCount, totalCount }: Props) {
             <span>
               Falta{" "}
               {nextNotDone.key === "listening"
-                ? "listening"
+                ? "escuta guiada"
                 : nextNotDone.key === "speaking"
                   ? "speaking"
                   : nextNotDone.key === "sentences"

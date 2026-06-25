@@ -141,7 +141,7 @@ export default function LibraryPage() {
     <div className="space-y-8">
       <PageHeader
         title="Biblioteca"
-        subtitle="Encontre chunks, verbos e frases que você já salvou."
+        subtitle="Todos os seus chunks, verbos e frases em evolução."
         action={
           <ButtonLink href="/capture" variant="primary" size="sm">
             Capturar novo
@@ -266,9 +266,9 @@ export default function LibraryPage() {
         </div>
       ) : (
         <EmptyState
-          title="Nada aqui ainda"
-          description="Capture uma frase real para começar."
-          actionLabel="Capturar chunk"
+          title="Sua biblioteca ainda está vazia."
+          description="Comece salvando uma frase curta que você ouviu ou leu hoje."
+          actionLabel="Capturar aprendizado"
           actionHref="/capture"
         />
       )}

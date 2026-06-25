@@ -106,8 +106,8 @@ export default function SpeakingPage() {
           subtitle="Repita frases curtas até conseguir usar naturalmente."
         />
         <EmptyState
-          title="Nada aqui ainda"
-          description="Capture uma frase real para começar."
+          title="Você ainda não tem frases para praticar speaking."
+          description="Salve um chunk simples e volte aqui para repetir em voz alta."
           actionLabel="Capturar chunk"
           actionHref="/capture"
         />

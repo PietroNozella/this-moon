@@ -82,10 +82,10 @@ export default function ReviewPage() {
     <div className="space-y-8">
       <header className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-          Review
+          Revisão
         </h1>
         <p className="mt-2 text-sm leading-6 text-slate-500">
-          Crie frases suas com os chunks que você salvou.
+          Crie frases próprias e fortaleça os chunks que você já salvou.
         </p>
       </header>
 
@@ -204,7 +204,7 @@ export default function ReviewPage() {
             Nada aqui ainda
           </p>
           <p className="mt-2 text-sm text-slate-500">
-            Capture uma frase real para começar.
+            Capture uma frase real para começar a criar frases suas.
           </p>
           <ButtonLink href="/capture" variant="primary" className="mt-6">
             Capturar chunk

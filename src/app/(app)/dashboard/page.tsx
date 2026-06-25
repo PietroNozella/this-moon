@@ -10,7 +10,7 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { ButtonLink } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/utils";
-import type { DailyGoalRow } from "@/types/database";
+import type { DailyGoalRow, EntryRow } from "@/types/database";
 
 type DashboardData = {
   entriesCount: number;
@@ -25,6 +25,7 @@ type DashboardData = {
     listening_practices: number;
   };
   recentPhrase: string | null;
+  nextEntry: EntryRow | null;
 };
 
 const emptyData: DashboardData = {
@@ -40,6 +41,7 @@ const emptyData: DashboardData = {
     listening_practices: 0,
   },
   recentPhrase: null,
+  nextEntry: null,
 };
 
 export default function DashboardPage() {
@@ -52,7 +54,7 @@ export default function DashboardPage() {
     async function load() {
       const today = todayISO();
 
-      const [entriesRes, verbsRes, sessionsRes, masteredRes, goalRes, recentRes] =
+      const [entriesRes, verbsRes, sessionsRes, masteredRes, goalRes, recentRes, nextRes] =
         await Promise.all([
           supabase.from("learning_entries").select("*", { count: "exact", head: true }),
           supabase.from("learning_entries").select("*", { count: "exact", head: true }).eq("entry_type", "verb"),
@@ -60,6 +62,15 @@ export default function DashboardPage() {
           supabase.from("learning_entries").select("*", { count: "exact", head: true }).eq("status", "mastered"),
           supabase.from("daily_goals").select("*").eq("goal_date", today).maybeSingle(),
           supabase.from("learning_entries").select("original_phrase").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+          supabase
+            .from("learning_entries")
+            .select("*")
+            .neq("entry_type", "verb")
+            .order("times_practiced", { ascending: true })
+            .order("confidence_level", { ascending: true })
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
         ]);
 
       const dailyGoals = goalRes.data as DailyGoalRow | null;
@@ -77,6 +88,7 @@ export default function DashboardPage() {
           listening_practices: dailyGoals?.listening_practices ?? 0,
         },
         recentPhrase: recentRes.data?.original_phrase ?? null,
+        nextEntry: (nextRes.data as EntryRow | null) ?? null,
       });
       setLoading(false);
     }
@@ -112,7 +124,7 @@ export default function DashboardPage() {
     { key: "chunk", done: dg.captured_entries > 0, label: "Capturar 1 chunk real", actionHref: "/capture", actionLabel: "Capturar agora" },
     { key: "verb", done: dg.captured_verbs > 0, label: "Capturar 1 verbo ou padrão", actionHref: "/capture", actionLabel: "Adicionar verbo" },
     { key: "sentences", done: dg.personal_sentences_created >= 3, label: `Criar ${dg.personal_sentences_created >= 3 ? "3" : `${dg.personal_sentences_created}/3`} frases próprias`, actionHref: "/review", actionLabel: "Criar frases" },
-    { key: "listening", done: dg.listening_practices > 0, label: "Fazer 1 listening", actionHref: "/listening", actionLabel: "Treinar listening" },
+    { key: "listening", done: dg.listening_practices > 0, label: "Fazer 1 escuta guiada", actionHref: "/listening", actionLabel: "Treinar escuta" },
     { key: "speaking", done: dg.speaking_practices > 0, label: "Fazer 1 speaking", actionHref: "/speaking", actionLabel: "Treinar speaking" },
   ];
   const doneSteps = missionItems.filter((s) => s.done).length;
@@ -123,10 +135,10 @@ export default function DashboardPage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-            Hoje
+            Seu treino de hoje
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Continue seu contato ativo com inglês.
+            Capture, pratique e transforme chunks em frases suas.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -155,6 +167,7 @@ export default function DashboardPage() {
         <NextPracticeCard
           nextKey={nextNotDone?.key ?? null}
           doneCount={doneSteps}
+          nextEntry={data.nextEntry}
         />
       </section>
 

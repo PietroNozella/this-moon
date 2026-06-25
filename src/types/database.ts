@@ -316,6 +316,7 @@ export type PracticeSessionRow = {
   source_type: string | null;
   duration_seconds: number | null;
   entries_practiced: number | null;
+  entry_id: string | null;
   notes: string | null;
   created_at: string;
 };
