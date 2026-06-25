@@ -86,39 +86,24 @@ export function CaptureForm() {
   return (
     <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-[1fr_360px]">
       <Card className="space-y-5">
-        <div>
-          <CardTitle>Captura rápida</CardTitle>
-          <p className="mt-1 text-sm text-slate-500">
-            Salve a frase, o contexto e pelo menos um caminho para usar isso na
-            sua vida.
-          </p>
-        </div>
+        <CardTitle>Captura rápida</CardTitle>
 
         <div className="space-y-2">
           <Label htmlFor="original_phrase">Frase original</Label>
-          <Textarea
-            id="original_phrase"
-            name="original_phrase"
-            placeholder="That makes sense."
-            required
-          />
+          <Textarea id="original_phrase" name="original_phrase" required />
           <FieldError errors={state.errors?.original_phrase} />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="translation">Tradução</Label>
-            <Input
-              id="translation"
-              name="translation"
-              placeholder="Isso faz sentido."
-            />
+            <Input id="translation" name="translation" />
             <FieldError errors={state.errors?.translation} />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="chunk_text">Chunk principal</Label>
-            <Input id="chunk_text" name="chunk_text" placeholder="makes sense" />
+            <Input id="chunk_text" name="chunk_text" />
             <FieldError errors={state.errors?.chunk_text} />
           </div>
         </div>
@@ -126,30 +111,18 @@ export function CaptureForm() {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="natural_version">Versão natural</Label>
-            <Input
-              id="natural_version"
-              name="natural_version"
-              placeholder="That makes sense."
-            />
+            <Input id="natural_version" name="natural_version" />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="casual_version">Versão falada</Label>
-            <Input
-              id="casual_version"
-              name="casual_version"
-              placeholder="Yeah, makes sense."
-            />
+            <Input id="casual_version" name="casual_version" />
           </div>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="meaning_explanation">Explicação simples</Label>
-          <Textarea
-            id="meaning_explanation"
-            name="meaning_explanation"
-            placeholder="Use quando algo fica claro ou parece lógico."
-          />
+          <Textarea id="meaning_explanation" name="meaning_explanation" />
         </div>
       </Card>
 
@@ -171,22 +144,13 @@ export function CaptureForm() {
 
           <div className="space-y-2">
             <Label htmlFor="context_note">Onde você usaria?</Label>
-            <Textarea
-              id="context_note"
-              name="context_note"
-              placeholder="Quando eu entendo uma explicação de código."
-              required
-            />
+            <Textarea id="context_note" name="context_note" required />
             <FieldError errors={state.errors?.context_note} />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="source_title">Título da fonte</Label>
-            <Input
-              id="source_title"
-              name="source_title"
-              placeholder="React tutorial"
-            />
+            <Input id="source_title" name="source_title" />
           </div>
 
           <div className="space-y-2">
@@ -209,11 +173,7 @@ export function CaptureForm() {
 
             <div className="space-y-2">
               <Label htmlFor="tags">Tags</Label>
-              <Input
-                id="tags"
-                name="tags"
-                placeholder="music, casual, routine"
-              />
+              <Input id="tags" name="tags" />
             </div>
           </div>
         </Card>
