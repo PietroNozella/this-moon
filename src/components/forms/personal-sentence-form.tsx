@@ -61,7 +61,7 @@ export function PersonalSentenceForm({
         <Textarea
           id="sentence"
           name="sentence"
-          placeholder="I need more gold to buy equipment."
+
           required
         />
         <FieldError errors={state.errors?.sentence} />
@@ -72,7 +72,7 @@ export function PersonalSentenceForm({
         <Input
           id="translation"
           name="translation"
-          placeholder="Preciso de mais ouro para comprar equipamento."
+
         />
       </div>
 

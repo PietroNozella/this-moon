@@ -94,7 +94,7 @@ export function ReviewItem({
           <Textarea
             id={`answer-${review.id}`}
             name="answer"
-            placeholder="Escreva sua resposta."
+
             value={answer}
             onChange={(event) => setAnswer(event.target.value)}
             className="min-h-[72px]"

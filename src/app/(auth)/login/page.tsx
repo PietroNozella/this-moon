@@ -82,7 +82,7 @@ export default function LoginPage() {
             {mode === "signup" ? (
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
-                <Input id="name" name="name" placeholder="Seu nome" required />
+                <Input id="name" name="name" required />
               </div>
             ) : null}
 
@@ -92,7 +92,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="voce@email.com"
+
                 required
               />
             </div>
@@ -103,7 +103,7 @@ export default function LoginPage() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Minimo 6 caracteres"
+
                 minLength={6}
                 required
               />

@@ -77,7 +77,7 @@ export default function LibraryPage() {
       <div className="flex flex-wrap gap-3">
         <Input
           name="q"
-          placeholder="Buscar frase, tradução ou contexto"
+         
           value={filters.q ?? ""}
           onChange={(event) =>
             setFilters((current) => ({ ...current, q: event.target.value }))

@@ -75,13 +75,13 @@ export function CaptureForm() {
 
       <div className="space-y-2">
         <Label htmlFor="original_phrase">Chunk / expressão</Label>
-        <Textarea id="original_phrase" name="original_phrase" required placeholder="I need more gold." />
+        <Textarea id="original_phrase" name="original_phrase" required />
         <FieldError errors={state.errors?.original_phrase} />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="translation">Tradução (opcional)</Label>
-        <Input id="translation" name="translation" placeholder="Preciso de mais ouro." />
+        <Input id="translation" name="translation" />
       </div>
 
       <div className="space-y-2">
@@ -98,13 +98,13 @@ export function CaptureForm() {
 
       <div className="space-y-2">
         <Label htmlFor="context_note">Onde você usaria isso?</Label>
-        <Textarea id="context_note" name="context_note" required placeholder="Quando estiver negociando com alguém." />
+        <Textarea id="context_note" name="context_note" required />
         <FieldError errors={state.errors?.context_note} />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="my_sentence">Sua frase (opcional)</Label>
-        <Textarea id="my_sentence" name="my_sentence" placeholder="I need more gold to buy equipment." />
+        <Textarea id="my_sentence" name="my_sentence" />
       </div>
 
       {state.message ? (
