@@ -1,15 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-
-function todayISO() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
+import { todayISO } from "@/lib/utils";
 
 function nextIntervalDays(current: number, rating: string) {
   const intervals = [0, 1, 3, 7, 15, 30];

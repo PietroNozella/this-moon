@@ -5,8 +5,9 @@ import { useEffect, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { todayISO } from "@/lib/utils";
 import { completeSpeakingPractice } from "@/server/actions/learning";
-import type { DailyGoalRow, ReviewRow } from "@/types/database";
+import type { DailyGoalRow } from "@/types/database";
 
 type DashboardData = {
   entriesCount: number;
@@ -16,10 +17,8 @@ type DashboardData = {
   dailyGoal: {
     captured_entries: number;
     personal_sentences_created: number;
-    reviews_completed: number;
     speaking_practices: number;
   };
-  reviewStep: { done: boolean; label: string };
 };
 
 const emptyData: DashboardData = {
@@ -30,10 +29,8 @@ const emptyData: DashboardData = {
   dailyGoal: {
     captured_entries: 0,
     personal_sentences_created: 0,
-    reviews_completed: 0,
     speaking_practices: 0,
   },
-  reviewStep: { done: true, label: "Sem revisão pendente hoje" },
 };
 
 export default function DashboardPage() {
@@ -45,15 +42,9 @@ export default function DashboardPage() {
     const supabase = createClient();
 
     async function load() {
-      const now = new Date().toISOString();
-      const today = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Sao_Paulo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(new Date());
+      const today = todayISO();
 
-      const [entriesRes, sentencesRes, reviewsDueRes, masteredRes, goalRes] =
+      const [entriesRes, sentencesRes, masteredRes, goalRes] =
         await Promise.all([
           supabase
             .from("learning_entries")
@@ -61,11 +52,6 @@ export default function DashboardPage() {
           supabase
             .from("personal_sentences")
             .select("*", { count: "exact", head: true }),
-          supabase
-            .from("reviews")
-            .select("*")
-            .lte("due_at", now)
-            .order("due_at", { ascending: true }),
           supabase
             .from("learning_entries")
             .select("*", { count: "exact", head: true })
@@ -79,33 +65,21 @@ export default function DashboardPage() {
 
       const entriesCount = entriesRes.count ?? 0;
       const personalSentencesCount = sentencesRes.count ?? 0;
-      const dueReviews = (reviewsDueRes.data ?? []) as ReviewRow[];
       const masteredCount = masteredRes.count ?? 0;
       const dailyGoals = goalRes.data as DailyGoalRow | null;
 
       const dailyGoal = {
         captured_entries: dailyGoals?.captured_entries ?? 0,
         personal_sentences_created: dailyGoals?.personal_sentences_created ?? 0,
-        reviews_completed: dailyGoals?.reviews_completed ?? 0,
         speaking_practices: dailyGoals?.speaking_practices ?? 0,
       };
-
-      const isDueReviewPending = (dueReviews?.length ?? 0) > 0;
-      const reviewStepDone =
-        dailyGoal.reviews_completed > 0 || !isDueReviewPending;
 
       setData({
         entriesCount: entriesCount ?? 0,
         personalSentencesCount: personalSentencesCount ?? 0,
-        pendingReviewsCount: dueReviews?.length ?? 0,
+        pendingReviewsCount: 0,
         masteredChunksCount: masteredCount,
         dailyGoal,
-        reviewStep: {
-          done: reviewStepDone,
-          label: isDueReviewPending
-            ? "1 revisão rápida"
-            : "Sem revisão pendente hoje",
-        },
       });
       setLoading(false);
     }
@@ -113,10 +87,10 @@ export default function DashboardPage() {
     void load();
   }, []);
 
+  const reviewDone = data.dailyGoal.personal_sentences_created >= 5;
   const dailySteps = [
     data.dailyGoal.captured_entries > 0,
-    data.dailyGoal.personal_sentences_created >= 3,
-    data.reviewStep.done,
+    reviewDone,
     data.dailyGoal.speaking_practices > 0,
   ];
   const doneSteps = dailySteps.filter(Boolean).length;
@@ -132,16 +106,10 @@ export default function DashboardPage() {
         <ButtonLink href="/capture">Capturar</ButtonLink>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-3">
         <Card>
           <p className="text-sm text-slate-500">Frases salvas</p>
           <p className="mt-2 text-3xl font-semibold">{data.entriesCount}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-slate-500">Revisões pendentes</p>
-          <p className="mt-2 text-3xl font-semibold">
-            {data.pendingReviewsCount}
-          </p>
         </Card>
         <Card>
           <p className="text-sm text-slate-500">Frases próprias</p>
@@ -164,11 +132,10 @@ export default function DashboardPage() {
             <ProgressRow done={data.dailyGoal.captured_entries > 0}>
               1 frase capturada
             </ProgressRow>
-            <ProgressRow done={data.dailyGoal.personal_sentences_created >= 3}>
-              3 frases próprias
-            </ProgressRow>
-            <ProgressRow done={data.reviewStep.done}>
-              {data.reviewStep.label}
+            <ProgressRow done={reviewDone}>
+              {reviewDone
+                ? "5 frases próprias"
+                : `${data.dailyGoal.personal_sentences_created}/5 frases próprias`}
             </ProgressRow>
             <ProgressRow done={data.dailyGoal.speaking_practices > 0}>
               {data.dailyGoal.speaking_practices > 0 ? (
@@ -202,7 +169,7 @@ export default function DashboardPage() {
               )}
             </ProgressRow>
           </div>
-          <p className="mt-5 text-sm text-slate-500">{doneSteps}/4 concluído</p>
+          <p className="mt-5 text-sm text-slate-500">{doneSteps}/3 concluído</p>
         </Card>
 
         <Card>

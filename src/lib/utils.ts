@@ -36,10 +36,12 @@ export function formatDate(value: string | null | undefined) {
 }
 
 export function todayISO() {
+  const d = new Date();
+  d.setTime(d.getTime() - 6 * 60 * 60 * 1000);
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date());
+  }).format(d);
 }

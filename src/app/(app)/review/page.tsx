@@ -1,85 +1,39 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
-import { Card } from "@/components/ui/card";
-import { ReviewItem } from "@/components/review/review-item";
+import { ButtonLink } from "@/components/ui/button";
+import { Card, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
-import type { ChunkRow, EntryRow, ReviewRow } from "@/types/database";
-
-type DueReview = ReviewRow & {
-  entry?: EntryRow | null;
-  chunk?: ChunkRow | null;
-};
+import { todayISO } from "@/lib/utils";
+import type { EntryRow } from "@/types/database";
 
 export default function ReviewPage() {
-  const [reviews, setReviews] = useState<DueReview[]>([]);
-  const [completedToday, setCompletedToday] = useState(0);
+  const [entries, setEntries] = useState<EntryRow[]>([]);
+  const [sentencesToday, setSentencesToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
 
     async function load() {
-      const now = new Date().toISOString();
-      const today = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Sao_Paulo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).format(new Date());
+      const today = todayISO();
 
-      const [{ data: dueReviews }, { data: dailyGoals }] =
-        await Promise.all([
-          supabase
-            .from("reviews")
-            .select("*")
-            .lte("due_at", now)
-            .order("due_at", { ascending: true }),
-          supabase
-            .from("daily_goals")
-            .select("reviews_completed")
-            .eq("goal_date", today)
-            .single(),
-        ]);
-
-      const entryIds = [
-        ...new Set((dueReviews ?? []).map((r) => r.entry_id).filter(Boolean)),
-      ];
-      const chunkIds = [
-        ...new Set((dueReviews ?? []).map((r) => r.chunk_id).filter(Boolean)),
-      ];
-
-      const [entriesResult, chunksResult] = await Promise.all([
-        entryIds.length > 0
-          ? supabase
-              .from("learning_entries")
-              .select("*")
-              .in("id", entryIds as string[])
-          : Promise.resolve({ data: [] }),
-        chunkIds.length > 0
-          ? supabase
-              .from("chunks")
-              .select("*")
-              .in("id", chunkIds as string[])
-          : Promise.resolve({ data: [] }),
+      const [{ data: allEntries }, { data: goal }] = await Promise.all([
+        supabase
+          .from("learning_entries")
+          .select("id, original_phrase")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("daily_goals")
+          .select("personal_sentences_created")
+          .eq("goal_date", today)
+          .single(),
       ]);
 
-      const entryMap = new Map(
-        (entriesResult.data ?? []).map((e) => [e.id, e as EntryRow]),
-      );
-      const chunkMap = new Map(
-        (chunksResult.data ?? []).map((c) => [c.id, c as ChunkRow]),
-      );
-
-      const merged: DueReview[] = (dueReviews ?? []).map((review) => ({
-        ...(review as ReviewRow),
-        entry: review.entry_id ? entryMap.get(review.entry_id) ?? null : null,
-        chunk: review.chunk_id ? chunkMap.get(review.chunk_id) ?? null : null,
-      }));
-
-      setReviews(merged);
-      setCompletedToday(dailyGoals?.reviews_completed ?? 0);
+      setEntries((allEntries ?? []) as EntryRow[]);
+      setSentencesToday(goal?.personal_sentences_created ?? 0);
       setLoading(false);
     }
 
@@ -87,44 +41,55 @@ export default function ReviewPage() {
   }, []);
 
   if (loading) {
-    return <Card className="text-slate-500">Carregando revisões...</Card>;
+    return <Card className="text-slate-500">Carregando...</Card>;
   }
 
-  const emptyMessage =
-    completedToday > 0
-      ? "Você concluiu as revisões de hoje."
-      : "Nenhuma revisão pendente. Capture frases para começar.";
+  const done = sentencesToday >= 5;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <p className="text-sm font-semibold text-emerald-700">Revisão</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
-            Revisões pendentes
-          </h1>
-        </div>
+      <div>
+        <p className="text-sm font-semibold text-emerald-700">Revisão</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-normal text-slate-950">
+          Criar frases próprias
+        </h1>
       </div>
 
-      <div className="grid gap-4">
-        {reviews.length > 0 ? (
-          reviews.map((review) => (
-            <ReviewItem
-              key={review.id}
-              review={review}
-              onComplete={() =>
-                setReviews((current) =>
-                  current.filter((r) => r.id !== review.id),
-                )
-              }
-            />
-          ))
-        ) : (
-          <Card className="border-dashed text-center text-slate-500">
-            {emptyMessage}
-          </Card>
-        )}
-      </div>
+      <Card className={done ? "border-emerald-200 bg-emerald-50" : ""}>
+        <CardTitle>Progresso de hoje</CardTitle>
+        <p className="mt-2 text-sm text-slate-600">
+          {done
+            ? "Você já criou 5 frases próprias hoje!"
+            : `${sentencesToday} de 5 frases próprias criadas hoje.`}
+        </p>
+      </Card>
+
+      <Card>
+        <CardTitle>Seus chunks</CardTitle>
+        <div className="mt-4 divide-y divide-slate-100">
+          {entries.length > 0 ? (
+            entries.map((entry) => (
+              <Link
+                key={entry.id}
+                href={`/library/${entry.id}`}
+                className="block py-3 transition hover:text-emerald-700"
+              >
+                <p className="font-medium text-slate-950">
+                  {entry.original_phrase}
+                </p>
+              </Link>
+            ))
+          ) : (
+            <p className="py-6 text-sm text-slate-500">
+              Nenhum chunk capturado ainda.
+            </p>
+          )}
+        </div>
+      </Card>
+
+      <ButtonLink href="/library" className="w-full">
+        Ir para biblioteca
+      </ButtonLink>
     </div>
   );
 }
