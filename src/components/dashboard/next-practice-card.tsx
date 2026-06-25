@@ -44,24 +44,24 @@ export function NextPracticeCard({ nextKey, doneCount }: Props) {
   const config = nextKey ? stepConfig[nextKey] : null;
 
   return (
-    <div className="relative flex min-h-[320px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-slate-950 p-6 shadow-sm">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-candy-blue-500/10 blur-2xl" />
+    <div className="group relative flex min-h-[320px] flex-col overflow-hidden rounded-3xl border bg-onyx p-6 shadow-sm transition-all duration-300 hover:border-slate-200 hover:bg-white">
+      <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-candy-blue-500/20 blur-2xl transition-all duration-300 group-hover:bg-candy-blue-500/10" />
 
       <div className="relative flex flex-1 flex-col">
-        <div className="mb-4 inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-candy-blue-500">
+        <div className="mb-4 inline-flex rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-medium text-candy-blue-500 transition-all duration-300 group-hover:border-candy-blue-500/30 group-hover:bg-candy-blue-500/10">
           Próximo melhor treino
         </div>
 
         {config ? (
           <>
-            <h2 className="text-xl font-semibold tracking-tight text-white">
+            <h2 className="text-xl font-semibold tracking-tight text-white transition-all duration-300 group-hover:text-slate-950">
               {config.title}
             </h2>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-slate-300">
+            <p className="mt-3 max-w-sm text-sm leading-6 text-white/60 transition-all duration-300 group-hover:text-slate-500">
               {config.body}
             </p>
 
-            <div className="mt-6 space-y-2 text-sm text-slate-300">
+            <div className="mt-6 space-y-2 text-sm text-white/60 transition-all duration-300 group-hover:text-slate-500">
               <p>• 5 minutos já contam</p>
               <p>• Foque em reconhecer palavras</p>
               <p>• Não precisa entender tudo</p>
@@ -70,7 +70,7 @@ export function NextPracticeCard({ nextKey, doneCount }: Props) {
             <div className="mt-auto pt-6">
               <Link
                 href={config.href}
-                className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-slate-950 shadow-sm transition-colors hover:bg-slate-100"
+                className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-onyx shadow-sm transition-all duration-300 hover:bg-slate-100 group-hover:bg-onyx group-hover:text-white group-hover:hover:bg-slate-800"
               >
                 {config.cta}
               </Link>
@@ -78,16 +78,16 @@ export function NextPracticeCard({ nextKey, doneCount }: Props) {
           </>
         ) : (
           <>
-            <h2 className="text-xl font-semibold tracking-tight text-white">
+            <h2 className="text-xl font-semibold tracking-tight text-white transition-all duration-300 group-hover:text-slate-950">
               Missão completa!
             </h2>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-slate-300">
+            <p className="mt-3 max-w-sm text-sm leading-6 text-white/60 transition-all duration-300 group-hover:text-slate-500">
               {doneCount}/5 concluído. Volte amanhã para mais prática.
             </p>
             <div className="mt-auto pt-6">
               <Link
                 href="/capture"
-                className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-slate-950 shadow-sm transition-colors hover:bg-slate-100"
+                className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-onyx shadow-sm transition-all duration-300 hover:bg-slate-100 group-hover:bg-onyx group-hover:text-white group-hover:hover:bg-slate-800"
               >
                 Capturar mais
               </Link>
