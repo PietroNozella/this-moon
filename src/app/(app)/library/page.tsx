@@ -1,15 +1,18 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/form";
+import { Pagination } from "@/components/ui/pagination";
 import { createClient } from "@/lib/supabase/client";
 import { entryStatuses } from "@/lib/validators/learning";
 import type { EntryRow } from "@/types/database";
+
+const PAGE_SIZE = 12;
 
 const statusLabels: Record<string, string> = {
   new: "Novo",
@@ -21,48 +24,80 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function LibraryPage() {
-  const supabase = createClient();
   const [entries, setEntries] = useState<EntryRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState<{
     q?: string;
     status?: string;
     type?: string;
   }>({});
 
+  function setFiltersAndReset(newFilters: typeof filters) {
+    setFilters(newFilters);
+    setPage(1);
+  }
+
   useEffect(() => {
+    const supabase = createClient();
+
     async function load() {
-      const { data } = await supabase
+      setLoading(true);
+
+      let query = supabase
+        .from("learning_entries")
+        .select("*", { count: "exact", head: true });
+
+      const search = filters.q?.trim();
+      if (search) {
+        query = query.textSearch("original_phrase", search, {
+          type: "websearch",
+        });
+      }
+      if (filters.status) {
+        query = query.eq("status", filters.status);
+      }
+      if (filters.type) {
+        query = query.eq("entry_type", filters.type);
+      }
+
+      const countRes = await query;
+      const total = countRes.count ?? 0;
+      const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      setTotalPages(pages);
+
+      const pageIndex = Math.min(page, pages);
+      if (pageIndex !== page) {
+        setPage(pageIndex);
+        return;
+      }
+
+      let dataQuery = supabase
         .from("learning_entries")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
-      setEntries((data ?? []) as EntryRow[]);
+      if (search) {
+        dataQuery = dataQuery.textSearch("original_phrase", search, {
+          type: "websearch",
+        });
+      }
+      if (filters.status) {
+        dataQuery = dataQuery.eq("status", filters.status);
+      }
+      if (filters.type) {
+        dataQuery = dataQuery.eq("entry_type", filters.type);
+      }
+
+      const dataRes = await dataQuery;
+      setEntries((dataRes.data ?? []) as EntryRow[]);
       setLoading(false);
     }
 
     void load();
-  }, []);
-
-  const filtered = useMemo(() => {
-    const search = filters.q?.trim().toLowerCase();
-
-    return entries.filter((entry) => {
-      if (filters.status && entry.status !== filters.status) return false;
-      if (filters.type && entry.entry_type !== filters.type) return false;
-      if (!search) return true;
-
-      return [entry.original_phrase, entry.translation, entry.context_note]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(search);
-    });
-  }, [entries, filters]);
-
-  if (loading) {
-    return <Card className="text-slate-500">Carregando biblioteca...</Card>;
-  }
+  }, [filters, page]);
 
   return (
     <div className="space-y-6">
@@ -70,7 +105,7 @@ export default function LibraryPage() {
         <div>
           <p className="text-sm font-semibold text-emerald-700">Biblioteca</p>
           <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
-            Biblioteca de frases
+            Biblioteca
           </h1>
         </div>
         <ButtonLink href="/capture">Nova captura</ButtonLink>
@@ -84,7 +119,10 @@ export default function LibraryPage() {
             name="q"
             value={filters.q ?? ""}
             onChange={(event) =>
-              setFilters((current) => ({ ...current, q: event.target.value }))
+              setFiltersAndReset({
+                ...filters,
+                q: event.target.value || undefined,
+              })
             }
             className="max-w-sm"
           />
@@ -96,10 +134,10 @@ export default function LibraryPage() {
             name="status"
             value={filters.status ?? ""}
             onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
+              setFiltersAndReset({
+                ...filters,
                 status: event.target.value || undefined,
-              }))
+              })
             }
             className="w-40"
           >
@@ -118,10 +156,10 @@ export default function LibraryPage() {
             name="type"
             value={filters.type ?? ""}
             onChange={(event) =>
-              setFilters((current) => ({
-                ...current,
+              setFiltersAndReset({
+                ...filters,
                 type: event.target.value || undefined,
-              }))
+              })
             }
             className="w-32"
           >
@@ -133,7 +171,7 @@ export default function LibraryPage() {
         {filters.q || filters.status || filters.type ? (
           <button
             type="button"
-            onClick={() => setFilters({})}
+            onClick={() => setFiltersAndReset({})}
             className="h-10 rounded-md bg-slate-950 px-4 text-sm font-medium text-white"
           >
             Limpar
@@ -141,36 +179,48 @@ export default function LibraryPage() {
         ) : null}
       </div>
 
-      <div className="grid gap-4">
-        {filtered.length > 0 ? (
-          filtered.map((entry) => (
-            <Link key={entry.id} href={`/library/${entry.id}`}>
-              <Card className="transition hover:border-slate-300 hover:shadow-md">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <StatusBadge value={entry.status} />
-                      <TypeBadge value={entry.entry_type} />
+      {loading ? (
+        <Card className="text-slate-500">Carregando...</Card>
+      ) : (
+        <>
+          <div className="grid gap-4">
+            {entries.length > 0 ? (
+              entries.map((entry) => (
+                <Link key={entry.id} href={`/library/${entry.id}`}>
+                  <Card className="transition hover:border-slate-300 hover:shadow-md">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <StatusBadge value={entry.status} />
+                          <TypeBadge value={entry.entry_type} />
+                        </div>
+                        <h2 className="mt-2 text-xl font-semibold text-slate-950">
+                          {entry.original_phrase}
+                        </h2>
+                        {entry.translation ? (
+                          <p className="mt-1 text-slate-600">
+                            {entry.translation}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
-                    <h2 className="mt-2 text-xl font-semibold text-slate-950">
-                      {entry.original_phrase}
-                    </h2>
-                    {entry.translation ? (
-                      <p className="mt-1 text-slate-600">
-                        {entry.translation}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
+                  </Card>
+                </Link>
+              ))
+            ) : (
+              <Card className="border-dashed text-center text-slate-500">
+                Nenhum resultado encontrado.
               </Card>
-            </Link>
-          ))
-        ) : (
-          <Card className="border-dashed text-center text-slate-500">
-            Sua biblioteca ainda está vazia. Capture sua primeira frase.
-          </Card>
-        )}
-      </div>
+            )}
+          </div>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
+      )}
     </div>
   );
 }
