@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 
+import { DailyMissionCard } from "@/components/dashboard/daily-mission-card";
+import { MetricCard } from "@/components/dashboard/metric-card";
+import { NextPracticeCard } from "@/components/dashboard/next-practice-card";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { ButtonLink } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
-import { DailyMissionItem } from "@/components/ui/daily-mission-item";
-import { MetricCard } from "@/components/ui/metric-card";
-import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/utils";
 import type { DailyGoalRow } from "@/types/database";
@@ -92,211 +93,74 @@ export default function DashboardPage() {
             <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
           ))}
         </div>
-        <div className="grid gap-6 md:grid-cols-[1.4fr_1fr]">
-          <div className="h-80 animate-pulse rounded-3xl bg-slate-200" />
+        <div className="grid gap-6 lg:grid-cols-[1.35fr_0.95fr]">
+          <div className="h-96 animate-pulse rounded-3xl bg-slate-200" />
           <div className="h-80 animate-pulse rounded-3xl bg-slate-200" />
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-200" />
+            <div key={i} className="h-36 animate-pulse rounded-2xl bg-slate-200" />
           ))}
         </div>
+        <div className="h-40 animate-pulse rounded-3xl bg-slate-200" />
       </div>
     );
   }
 
   const dg = data.dailyGoal;
-  const dailySteps = [
-    { key: "chunk", done: dg.captured_entries > 0, label: "Capturar 1 chunk real" },
-    { key: "verb", done: dg.captured_verbs > 0, label: "Capturar 1 verbo ou padrão" },
-    { key: "sentences", done: dg.personal_sentences_created >= 3, label: `Criar ${dg.personal_sentences_created >= 3 ? "3" : `${dg.personal_sentences_created}/3`} frases próprias` },
-    { key: "listening", done: dg.listening_practices > 0, label: "Fazer 1 listening" },
-    { key: "speaking", done: dg.speaking_practices > 0, label: "Fazer 1 speaking" },
+  const missionItems = [
+    { key: "chunk", done: dg.captured_entries > 0, label: "Capturar 1 chunk real", actionHref: "/capture", actionLabel: "Capturar agora" },
+    { key: "verb", done: dg.captured_verbs > 0, label: "Capturar 1 verbo ou padrão", actionHref: "/capture", actionLabel: "Adicionar verbo" },
+    { key: "sentences", done: dg.personal_sentences_created >= 3, label: `Criar ${dg.personal_sentences_created >= 3 ? "3" : `${dg.personal_sentences_created}/3`} frases próprias`, actionHref: "/review", actionLabel: "Criar frases" },
+    { key: "listening", done: dg.listening_practices > 0, label: "Fazer 1 listening", actionHref: "/listening", actionLabel: "Treinar listening" },
+    { key: "speaking", done: dg.speaking_practices > 0, label: "Fazer 1 speaking", actionHref: "/speaking", actionLabel: "Treinar speaking" },
   ];
-  const doneSteps = dailySteps.filter((s) => s.done).length;
-
-  const nextNotDone = dailySteps.find((s) => !s.done);
+  const doneSteps = missionItems.filter((s) => s.done).length;
+  const nextNotDone = missionItems.find((s) => !s.done);
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Hoje"
-        subtitle="Continue seu contato ativo com inglês."
-        action={
-          <div className="flex flex-wrap gap-2">
-            <ButtonLink href="/capture" variant="primary" size="sm">
-              Capturar chunk
-            </ButtonLink>
-            <ButtonLink href="/speaking" variant="secondary" size="sm">
-              Treinar speaking
-            </ButtonLink>
-          </div>
-        }
-      />
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+            Hoje
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Continue seu contato ativo com inglês.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <ButtonLink href="/capture" variant="primary" size="sm">
+            Capturar chunk
+          </ButtonLink>
+          <ButtonLink href="/speaking" variant="secondary" size="sm">
+            Treinar speaking
+          </ButtonLink>
+        </div>
+      </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
         <MetricCard label="Chunks" value={data.entriesCount} description="frases reais salvas" />
         <MetricCard label="Verbos" value={data.verbsCount} description="padrões para usar em frases" />
         <MetricCard label="Práticas" value={data.practiceCount} description="listening e speaking registrados" />
         <MetricCard label="Naturais" value={data.masteredCount} description="frases quase prontas para usar" />
       </section>
 
-      <section className="grid gap-6 md:grid-cols-[1.4fr_1fr]">
-        <Card important>
-          <CardTitle>Missão de hoje</CardTitle>
-          <p className="mt-1 text-sm text-slate-500">
-            Um ciclo curto para ouvir, repetir e usar.
-          </p>
-          <div className="mt-5 space-y-2">
-            <DailyMissionItem
-              done={dg.captured_entries > 0}
-              action={
-                dg.captured_entries === 0 ? (
-                  <ButtonLink href="/capture" variant="ghost" size="sm">
-                    Capturar agora
-                  </ButtonLink>
-                ) : null
-              }
-            >
-              Capturar 1 chunk real
-            </DailyMissionItem>
-            <DailyMissionItem
-              done={dg.captured_verbs > 0}
-              action={
-                dg.captured_verbs === 0 ? (
-                  <ButtonLink href="/capture" variant="ghost" size="sm">
-                    Adicionar verbo
-                  </ButtonLink>
-                ) : null
-              }
-            >
-              Capturar 1 verbo ou padrão
-            </DailyMissionItem>
-            <DailyMissionItem
-              done={dg.personal_sentences_created >= 3}
-              action={
-                dg.personal_sentences_created < 3 ? (
-                  <ButtonLink href="/review" variant="ghost" size="sm">
-                    Criar frases
-                  </ButtonLink>
-                ) : null
-              }
-            >
-              Criar 3 frases próprias
-            </DailyMissionItem>
-            <DailyMissionItem
-              done={dg.listening_practices > 0}
-              action={
-                dg.listening_practices === 0 ? (
-                  <ButtonLink href="/listening" variant="ghost" size="sm">
-                    Treinar listening
-                  </ButtonLink>
-                ) : null
-              }
-            >
-              Fazer 1 listening
-            </DailyMissionItem>
-            <DailyMissionItem
-              done={dg.speaking_practices > 0}
-              action={
-                dg.speaking_practices === 0 ? (
-                  <ButtonLink href="/speaking" variant="ghost" size="sm">
-                    Treinar speaking
-                  </ButtonLink>
-                ) : null
-              }
-            >
-              Fazer 1 speaking
-            </DailyMissionItem>
-          </div>
-          <p className="mt-5 text-sm text-slate-500">{doneSteps}/5 concluído</p>
-        </Card>
-
-        <Card important className="flex flex-col justify-between bg-onyx text-white border-white/10">
-          <div>
-            <p className="text-sm font-semibold text-candy-blue-500">
-              Próximo melhor treino
-            </p>
-            <p className="mt-3 text-sm leading-6 text-white/80">
-              {nextNotDone
-                ? `Você já capturou ${doneSteps > 0 ? "algo" : "nada"} hoje. ${nextNotDone.key === "listening" ? "Pratique listening com um trecho curto." : nextNotDone.key === "speaking" ? "Escolha uma frase curta e fale em voz alta." : nextNotDone.key === "sentences" ? "Crie uma frase sua com um chunk salvo." : "Capture uma frase real para começar."}`
-                : "Missão completa! Volte amanhã."}
-            </p>
-          </div>
-          {nextNotDone ? (
-            <ButtonLink
-              href={
-                nextNotDone.key === "chunk"
-                  ? "/capture"
-                  : nextNotDone.key === "verb"
-                    ? "/capture"
-                    : nextNotDone.key === "sentences"
-                      ? "/review"
-                      : nextNotDone.key === "listening"
-                        ? "/listening"
-                        : "/speaking"
-              }
-              variant="primary"
-              className="mt-4 w-full bg-white text-onyx hover:bg-slate-100"
-            >
-              {nextNotDone.key === "listening"
-                ? "Começar listening"
-                : nextNotDone.key === "speaking"
-                  ? "Começar speaking"
-                  : nextNotDone.key === "sentences"
-                    ? "Criar frases"
-                    : "Capturar agora"}
-            </ButtonLink>
-          ) : null}
-          <p className="mt-3 text-xs text-white/50">5 minutos já contam.</p>
-        </Card>
+      <section className="grid gap-6 lg:grid-cols-[1.35fr_0.95fr]">
+        <DailyMissionCard
+          items={missionItems}
+          doneCount={doneSteps}
+          totalCount={5}
+        />
+        <NextPracticeCard
+          nextKey={nextNotDone?.key ?? null}
+          doneCount={doneSteps}
+        />
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <Card clickable asChild>
-          <a href="/listening" className="block">
-            <p className="text-sm font-medium text-slate-600">Listening</p>
-            <p className="mt-1 text-sm text-slate-500">
-              Reconheça palavras em trechos reais.
-            </p>
-            <span className="mt-3 inline-block text-sm font-medium text-candy-blue-700">
-              Treinar →
-            </span>
-          </a>
-        </Card>
-        <Card clickable asChild>
-          <a href="/speaking" className="block">
-            <p className="text-sm font-medium text-slate-600">Speaking</p>
-            <p className="mt-1 text-sm text-slate-500">
-              Repita frases até soar natural.
-            </p>
-            <span className="mt-3 inline-block text-sm font-medium text-candy-blue-700">
-              Treinar →
-            </span>
-          </a>
-        </Card>
-        <Card clickable asChild>
-          <a href="/review" className="block">
-            <p className="text-sm font-medium text-slate-600">Review</p>
-            <p className="mt-1 text-sm text-slate-500">
-              Crie frases próprias com chunks salvos.
-            </p>
-            <span className="mt-3 inline-block text-sm font-medium text-candy-blue-700">
-              Revisar →
-            </span>
-          </a>
-        </Card>
-      </section>
+      <QuickActions />
 
-      {data.recentPhrase ? (
-        <Card>
-          <CardTitle>Atividade recente</CardTitle>
-          <p className="mt-2 text-sm text-slate-600">
-            Último chunk capturado:{" "}
-            <span className="font-medium text-onyx">{data.recentPhrase}</span>
-          </p>
-        </Card>
-      ) : null}
+      <RecentActivity phrase={data.recentPhrase} />
     </div>
   );
 }
