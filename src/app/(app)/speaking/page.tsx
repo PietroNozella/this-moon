@@ -120,7 +120,7 @@ export default function SpeakingPage() {
       <div className="mx-auto max-w-4xl space-y-6">
         <PageHeader
           title="Speaking"
-          subtitle="Repita frases curtas até conseguir usar naturalmente."
+          subtitle="Leia, repita devagar, fale natural e tente falar sem olhar."
         />
         <Card important className="border-candy-blue-500/30 bg-candy-blue-500/10 text-center">
           <p className="text-base font-semibold text-candy-blue-950">
@@ -143,21 +143,23 @@ export default function SpeakingPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Speaking"
-        subtitle="Repita frases curtas até conseguir usar naturalmente."
+        subtitle="Leia, repita devagar, fale natural e tente falar sem olhar."
       />
 
       <p className="text-sm text-slate-500">
         {currentIndex + 1} de {entries.length}
       </p>
 
-      <Card className="p-6 shadow-md" important>
+      <Card className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70" important>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Speaking practice
-          </span>
-          <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-700 border-blue-200">
+          <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium bg-candy-blue-500/25 text-candy-blue-950 border-candy-blue-500/50">
             {entry?.entry_type === "verb" ? "Verbo" : "Chunk"}
           </span>
+          {entry?.source_type ? (
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
+              {entry.source_type === "music" ? "Música" : entry.source_type === "game" ? "Jogo" : entry.source_type === "video" ? "Vídeo" : entry.source_type === "programming" ? "Programação" : entry.source_type === "conversation" ? "Conversa" : entry.source_type === "routine" ? "Rotina" : entry.source_type === "social_media" ? "Social media" : entry.source_type === "course" ? "Curso" : entry.source_type === "book" ? "Livro" : entry.source_type}
+          </span>
+          ) : null}
         </div>
 
         <div className="mt-5">
@@ -168,17 +170,27 @@ export default function SpeakingPage() {
           />
         </div>
 
-        {!showTranslation && entry?.translation ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="mt-3"
-            onClick={() => setShowTranslation(true)}
-          >
-            Mostrar tradução
-          </Button>
-        ) : null}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {!showTranslation && entry?.translation ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTranslation(true)}
+            >
+              Mostrar tradução
+            </Button>
+          ) : null}
+          {entry ? (
+            <ButtonLink
+              href={`/library/${entry.id}`}
+              variant="ghost"
+              size="sm"
+            >
+              Ver detalhe
+            </ButtonLink>
+          ) : null}
+        </div>
 
         {entry?.context_note ? (
           <p className="mt-4 text-sm text-slate-500">

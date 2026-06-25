@@ -234,7 +234,7 @@ export default function LibraryPage() {
             <a
               key={entry.id}
               href={`/library/${entry.id}`}
-              className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5"
+              className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge value={entry.status} />
@@ -245,15 +245,15 @@ export default function LibraryPage() {
                   </span>
                 ) : null}
               </div>
-              <p className="mt-3 text-xl font-semibold tracking-tight text-onyx">
+              <p className="mt-2 text-lg font-semibold tracking-tight text-onyx">
                 {entry.original_phrase}
               </p>
               {(entry.translation || entry.natural_phrase) ? (
-                <p className="mt-1 text-sm text-slate-500 italic">
+                <p className="mt-0.5 text-sm text-slate-500 italic">
                   {entry.natural_phrase ?? entry.translation}
                 </p>
               ) : null}
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
                 {entry.last_practiced_at ? (
                   <span>Praticado {formatDate(entry.last_practiced_at)}</span>
                 ) : null}

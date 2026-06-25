@@ -27,7 +27,7 @@ export function StatusForm({
 
   return (
     <form
-      className="flex gap-2"
+      className="grid grid-cols-[1fr_auto] gap-3"
       onSubmit={async (event) => {
         event.preventDefault();
         setPending(true);
@@ -40,7 +40,6 @@ export function StatusForm({
         name="status"
         aria-label="Status"
         defaultValue={currentStatus ?? "new"}
-        className="max-w-48"
       >
         {entryStatuses.map((status) => (
           <option key={status} value={status}>

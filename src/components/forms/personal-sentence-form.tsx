@@ -57,11 +57,12 @@ export function PersonalSentenceForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="sentence">Sua frase usando este chunk</Label>
+        <Label htmlFor="sentence">Frase</Label>
         <Textarea
           id="sentence"
           name="sentence"
-
+          placeholder="Ex: I guess I can try again."
+          className="min-h-28"
           required
         />
         <FieldError errors={state.errors?.sentence} />
@@ -72,7 +73,7 @@ export function PersonalSentenceForm({
         <Input
           id="translation"
           name="translation"
-
+          placeholder="Ex: Eu acho que posso tentar de novo."
         />
       </div>
 
@@ -82,7 +83,11 @@ export function PersonalSentenceForm({
         </p>
       ) : null}
 
-      <Button type="submit" disabled={pending}>
+      <Button
+        type="submit"
+        disabled={pending}
+        className="w-full"
+      >
         Salvar frase
       </Button>
     </form>

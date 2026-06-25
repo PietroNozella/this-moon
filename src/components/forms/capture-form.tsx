@@ -4,7 +4,6 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { CardTitle } from "@/components/ui/card";
 import { FieldError, Input, Label, Select, Textarea } from "@/components/ui/form";
 import { cn, compactText } from "@/lib/utils";
 import {
@@ -15,6 +14,7 @@ import {
   type LearningActionState,
 } from "@/lib/validators/learning";
 import { createEntry, createPersonalSentence, createVerb } from "@/server/actions/learning";
+import { ChevronDown } from "lucide-react";
 
 const sourceLabels: Record<string, string> = {
   music: "Música",
@@ -38,14 +38,50 @@ const difficultyLabels: Record<string, string> = {
 
 type CaptureMode = "chunk" | "verb";
 
-function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+    <div className="mb-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
         {title}
       </p>
-      <div className="space-y-3">{children}</div>
+      {subtitle ? (
+        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+      ) : null}
     </div>
+  );
+}
+
+function CollapsibleSection({
+  title,
+  subtitle,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <details
+      className="group rounded-2xl border border-slate-200 bg-slate-50/50"
+      open={defaultOpen}
+    >
+      <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-slate-700 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            {title}
+          </p>
+          {subtitle ? (
+            <p className="mt-0.5 text-sm text-slate-400">{subtitle}</p>
+          ) : null}
+        </div>
+        <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="border-t border-slate-200 px-5 py-4">
+        <div className="space-y-4">{children}</div>
+      </div>
+    </details>
   );
 }
 
@@ -142,8 +178,9 @@ export function CaptureForm() {
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
-      <div className="flex rounded-lg border border-slate-200 bg-slate-100 p-1">
+    <div className="space-y-6">
+      {/* Toggle */}
+      <div className="mx-auto max-w-xl rounded-lg border border-slate-200 bg-slate-100 p-1">
         <button
           type="button"
           onClick={() => { setMode("chunk"); setState({}); }}
@@ -171,163 +208,168 @@ export function CaptureForm() {
       </div>
 
       {mode === "chunk" ? (
-        <form onSubmit={handleChunk} className="space-y-4">
-          <CardTitle>Capturar chunk</CardTitle>
+        <form onSubmit={handleChunk} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
+          {/* Captura rápida */}
+          <SectionHeading title="Captura rápida" subtitle="Salve o chunk do jeito que você encontrou. Depois você pratica." />
 
-          <FormSection title="Frase">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="original_phrase">Frase original</Label>
-              <Textarea id="original_phrase" name="original_phrase" required />
-              <p className="text-xs text-slate-400">
-                Salve como você encontrou.
-              </p>
+              <Textarea id="original_phrase" name="original_phrase" className="min-h-28" required />
               <FieldError errors={state.errors?.original_phrase} />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="translation">Tradução (opcional)</Label>
-              <Input id="translation" name="translation" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="translation">Tradução (opcional)</Label>
+                <Input id="translation" name="translation" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="natural_phrase">Versão natural (opcional)</Label>
+                <Input id="natural_phrase" name="natural_phrase" placeholder="Ex: I'm gonna" />
+              </div>
+            </div>
+          </div>
+
+          {/* Fonte e contexto */}
+          <div className="mt-6 border-t border-slate-100 pt-6">
+            <SectionHeading title="Fonte e contexto" subtitle="Anote de onde veio e onde você usaria." />
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="source_type">Tipo da fonte</Label>
+                <Select id="source_type" name="source_type" required>
+                  {sourceTypes.map((source) => (
+                    <option key={source} value={source}>
+                      {sourceLabels[source]}
+                    </option>
+                  ))}
+                </Select>
+                <FieldError errors={state.errors?.source_type} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="context_note">Onde você usaria isso?</Label>
+                <Input id="context_note" name="context_note" required />
+                <FieldError errors={state.errors?.context_note} />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="natural_phrase">Versão natural (opcional)</Label>
-              <Textarea id="natural_phrase" name="natural_phrase" />
-              <p className="text-xs text-slate-400">
-                Ex: "I am going to" vira "I'm gonna" na fala casual.
-              </p>
-            </div>
-          </FormSection>
-
-          <FormSection title="Fonte">
-            <div className="space-y-2">
-              <Label htmlFor="source_type">Tipo da fonte</Label>
-              <Select id="source_type" name="source_type" required>
-                {sourceTypes.map((source) => (
-                  <option key={source} value={source}>
-                    {sourceLabels[source]}
-                  </option>
-                ))}
-              </Select>
-              <FieldError errors={state.errors?.source_type} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="source_title">Título (opcional)</Label>
-              <Input id="source_title" name="source_title" placeholder="Ex: Post Malone — Circles" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="source_url">Link (opcional)</Label>
-              <Input id="source_url" name="source_url" type="url" placeholder="https://" />
-              <FieldError errors={state.errors?.source_url} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="source_timestamp">Tempo / trecho (opcional)</Label>
-              <Input id="source_timestamp" name="source_timestamp" placeholder="Ex: 00:42 - 00:55" />
-            </div>
-          </FormSection>
-
-          <FormSection title="Uso real">
-            <div className="space-y-2">
-              <Label htmlFor="context_note">Onde você usaria isso?</Label>
-              <Textarea id="context_note" name="context_note" required />
-              <FieldError errors={state.errors?.context_note} />
-            </div>
-
-            <div className="space-y-2">
+            <div className="mt-4 space-y-2">
               <Label htmlFor="my_sentence">Sua frase (opcional)</Label>
-              <Textarea id="my_sentence" name="my_sentence" />
-            </div>
-          </FormSection>
-
-          <FormSection title="Fala e pronúncia">
-            <div className="space-y-2">
-              <Label htmlFor="pronunciation_note">Nota de pronúncia (opcional)</Label>
-              <Textarea id="pronunciation_note" name="pronunciation_note" />
-              <p className="text-xs text-slate-400">
-                Reduções (gonna, wanna), connected speech ou partes difíceis.
-              </p>
+              <Textarea id="my_sentence" name="my_sentence" placeholder="Ex: I need better gear to fight the boss." />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="grammar_note">Observação (opcional)</Label>
-              <Textarea id="grammar_note" name="grammar_note" />
-              <p className="text-xs text-slate-400">
-                Ex: "I'm trying to..." é usado para algo que você está tentando agora.
-              </p>
-            </div>
+            <p className="mt-3 text-xs text-slate-400">Contexto é mais importante que tradução perfeita.</p>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="difficulty">Dificuldade</Label>
-              <Select id="difficulty" name="difficulty">
-                {difficulties.map((d) => (
-                  <option key={d} value={d}>
-                    {difficultyLabels[d]}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </FormSection>
+          {/* Detalhes opcionais */}
+          <div className="mt-6">
+            <CollapsibleSection title="Detalhes opcionais" subtitle="Preencha só se isso ajudar seu treino.">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="source_title">Título da fonte</Label>
+                  <Input id="source_title" name="source_title" placeholder="Ex: Post Malone — Circles" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="source_url">Link</Label>
+                  <Input id="source_url" name="source_url" type="url" placeholder="https://" />
+                  <FieldError errors={state.errors?.source_url} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="source_timestamp">Tempo / trecho</Label>
+                  <Input id="source_timestamp" name="source_timestamp" placeholder="Ex: 00:42 - 00:55" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="difficulty">Dificuldade</Label>
+                  <Select id="difficulty" name="difficulty">
+                    {difficulties.map((d) => (
+                      <option key={d} value={d}>
+                        {difficultyLabels[d]}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="pronunciation_note">Nota de pronúncia</Label>
+                <Textarea id="pronunciation_note" name="pronunciation_note" className="min-h-24" placeholder="Reduções (gonna, wanna), connected speech ou partes difíceis." />
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="grammar_note">Observação</Label>
+                <Textarea id="grammar_note" name="grammar_note" className="min-h-24" placeholder={'Ex: "I\'m trying to..." é usado para algo que você está tentando agora.'} />
+              </div>
+            </CollapsibleSection>
+          </div>
 
           {state.message ? (
-            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="mt-6 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {state.message}
             </p>
           ) : null}
 
-          <Button type="submit" className="w-full" size="lg" disabled={pending}>
-            Salvar chunk
-          </Button>
+          {/* Footer */}
+          <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-400">
+              Você pode completar os detalhes depois na Biblioteca.
+            </p>
+            <Button type="submit" className="w-full sm:w-auto min-w-44" size="lg" disabled={pending}>
+              Salvar chunk
+            </Button>
+          </div>
         </form>
       ) : (
-        <form onSubmit={handleVerb} className="space-y-4">
-          <CardTitle>Capturar verbo</CardTitle>
+        <form onSubmit={handleVerb} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
+          <SectionHeading title="Captura rápida" subtitle="Registre um verbo ou padrão que apareceu no seu dia." />
 
-          <FormSection title="Verbo">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="verb">Verbo</Label>
-              <Textarea id="verb" name="verb" required />
+              <Input id="verb" name="verb" required />
               <FieldError errors={state.errors?.verb} />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="meaning">Significado</Label>
               <Input id="meaning" name="meaning" required />
               <FieldError errors={state.errors?.meaning} />
             </div>
-          </FormSection>
+          </div>
 
-          <FormSection title="Uso real">
+          <div className="mt-6 border-t border-slate-100 pt-6">
+            <SectionHeading title="Uso real" subtitle="Anote onde usar e os padrões que acompanham este verbo." />
+
             <div className="space-y-2">
               <Label htmlFor="context">Onde usar?</Label>
               <Textarea id="context" name="context" required />
               <FieldError errors={state.errors?.context} />
             </div>
 
-            <div className="space-y-2">
+            <div className="mt-4 space-y-2">
               <Label htmlFor="my_sentence">Frase de exemplo (opcional)</Label>
               <Textarea id="my_sentence" name="my_sentence" />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="verb_patterns">Padrões úteis com este verbo (opcional)</Label>
-              <Textarea id="verb_patterns" name="verb_patterns" />
-              <p className="text-xs text-slate-400">
-                Um padrão por linha. Ex: "get better", "get ready"
-              </p>
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="verb_patterns">Padrões úteis (opcional)</Label>
+              <Textarea id="verb_patterns" name="verb_patterns" placeholder='Um padrão por linha. Ex: "get better", "get ready"' />
             </div>
-          </FormSection>
+          </div>
 
           {state.message ? (
-            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="mt-6 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {state.message}
             </p>
           ) : null}
 
-          <Button type="submit" className="w-full" size="lg" disabled={pending}>
-            Salvar verbo
-          </Button>
+          <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-400">
+              Você pode revisar os padrões depois na Biblioteca.
+            </p>
+            <Button type="submit" className="w-full sm:w-auto min-w-44" size="lg" disabled={pending}>
+              Salvar verbo
+            </Button>
+          </div>
         </form>
       )}
     </div>
