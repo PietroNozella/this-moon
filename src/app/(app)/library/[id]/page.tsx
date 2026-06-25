@@ -346,7 +346,7 @@ export default function EntryDetailPage() {
         {/* ================================================================ */}
         <div className="space-y-5">
           {/* ── Ações rápidas ── */}
-          <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70">
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Ações rápidas
             </p>
@@ -369,7 +369,7 @@ export default function EntryDetailPage() {
           </div>
 
           {/* ── Status do chunk ── */}
-          <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70">
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Status do chunk
             </p>
@@ -382,7 +382,7 @@ export default function EntryDetailPage() {
           </div>
 
           {/* ── Evolução ── */}
-          <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70">
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Evolução
             </p>
@@ -442,7 +442,7 @@ export default function EntryDetailPage() {
           {entry.source_type ||
           entry.source_title ||
           entry.source_url ? (
-            <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70">
+            <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Fonte
               </p>
@@ -467,7 +467,7 @@ export default function EntryDetailPage() {
           ) : null}
 
           {/* ── Sua frase usando este chunk ── */}
-          <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70">
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Sua frase usando este chunk
             </p>

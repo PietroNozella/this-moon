@@ -62,7 +62,7 @@ export function PersonalSentenceForm({
           id="sentence"
           name="sentence"
           placeholder="Ex: I guess I can try again."
-          className="min-h-28"
+          className="min-h-20"
           required
         />
         <FieldError errors={state.errors?.sentence} />
