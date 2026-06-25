@@ -147,24 +147,24 @@ export default function DailyTrainingPage() {
         number={1}
         title="Verbos"
         time="5 min"
-        description="Revise 3 a 5 verbos frequentes e crie frases simples."
+        description="Escolha um verbo e crie frases com padrões diferentes."
         done={blocks.verbs}
         onToggle={() => toggleBlock("verbs")}
       >
         {verbs.length > 0 ? (
-          <div className="space-y-2">
-            {verbs.slice(0, 5).map((verb) => (
-              <div
-                key={verb.id}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
-              >
-                <p className="font-medium text-slate-900">
-                  {verb.original_phrase}
-                </p>
+          <div className="space-y-4">
+            {verbs.slice(0, 3).map((verb) => (
+              <div key={verb.id} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="font-medium text-slate-900">{verb.original_phrase}</p>
                 {verb.translation ? (
-                  <p className="text-sm text-slate-500">
-                    {verb.translation}
-                  </p>
+                  <p className="text-sm text-slate-500">{verb.translation}</p>
+                ) : null}
+                {verb.verb_patterns && Array.isArray(verb.verb_patterns) && verb.verb_patterns.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {(verb.verb_patterns as string[]).slice(0, 4).map((pattern, i) => (
+                      <span key={i} className="rounded-lg border border-candy-blue-500/40 bg-candy-blue-500/15 px-2 py-0.5 text-xs text-candy-blue-950">{pattern}</span>
+                    ))}
+                  </div>
                 ) : null}
               </div>
             ))}
@@ -172,7 +172,7 @@ export default function DailyTrainingPage() {
         ) : (
           <EmptyState
             title="Nenhum verbo salvo ainda."
-            description="Capture alguns verbos para revisar aqui."
+            description="Capture verbos para construir frases no treino diário."
             actionLabel="Adicionar verbo"
             actionHref="/capture"
           />
@@ -184,7 +184,7 @@ export default function DailyTrainingPage() {
             size="sm"
             className="mt-3"
           >
-            Revisar verbos
+            Treinar verbo
           </ButtonLink>
         ) : null}
       </CardBlock>
@@ -211,11 +211,7 @@ export default function DailyTrainingPage() {
               ) : null}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <ButtonLink
-                href="/listening"
-                variant="primary"
-                size="sm"
-              >
+              <ButtonLink href="/listening" variant="primary" size="sm">
                 Treinar chunk
               </ButtonLink>
               <ButtonLink

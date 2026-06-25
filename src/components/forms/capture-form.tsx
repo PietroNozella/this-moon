@@ -146,11 +146,19 @@ export function CaptureForm() {
       .map((line) => line.trim())
       .filter(Boolean);
 
+    const contextsRaw = compactText(formData.get("usage_contexts")) || "";
+    const usageContexts = contextsRaw
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
     const parsed = createVerbSchema.safeParse({
       verb: formData.get("verb"),
       meaning: formData.get("meaning"),
       context: formData.get("context"),
       verb_patterns: verbPatterns.length > 0 ? verbPatterns : undefined,
+      difficulty: formData.get("difficulty") || undefined,
+      usageContexts: usageContexts.length > 0 ? usageContexts : undefined,
     });
 
     if (!parsed.success) {
@@ -209,8 +217,7 @@ export function CaptureForm() {
 
       {mode === "chunk" ? (
         <form onSubmit={handleChunk} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-          {/* Captura rápida */}
-          <SectionHeading title="Captura rápida" subtitle="Salve o chunk do jeito que você encontrou. Depois você pratica." />
+          <SectionHeading title="Capturar chunk" subtitle="Salve uma frase curta que você encontrou e quer reconhecer, repetir e usar." />
 
           <div className="space-y-4">
             <div className="space-y-2">
@@ -231,7 +238,6 @@ export function CaptureForm() {
             </div>
           </div>
 
-          {/* Fonte e contexto */}
           <div className="mt-6 border-t border-slate-100 pt-6">
             <SectionHeading title="Fonte e contexto" subtitle="Anote de onde veio e onde você usaria." />
 
@@ -262,7 +268,6 @@ export function CaptureForm() {
             <p className="mt-3 text-xs text-slate-400">Contexto é mais importante que tradução perfeita.</p>
           </div>
 
-          {/* Detalhes opcionais */}
           <div className="mt-6">
             <CollapsibleSection title="Detalhes opcionais" subtitle="Preencha só se isso ajudar seu treino.">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -309,10 +314,9 @@ export function CaptureForm() {
             </p>
           ) : null}
 
-          {/* Footer */}
           <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-slate-400">
-              Você pode completar os detalhes depois na Biblioteca.
+              Chunk = frase para reconhecer e repetir.
             </p>
             <Button type="submit" className="w-full sm:w-auto min-w-44" size="lg" disabled={pending}>
               Salvar chunk
@@ -321,39 +325,59 @@ export function CaptureForm() {
         </form>
       ) : (
         <form onSubmit={handleVerb} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-          <SectionHeading title="Captura rápida" subtitle="Registre um verbo ou padrão que apareceu no seu dia." />
+          <SectionHeading title="Capturar verbo" subtitle="Salve um verbo para criar padrões e montar frases próprias com ele." />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="verb">Verbo</Label>
-              <Input id="verb" name="verb" required />
+              <Label htmlFor="verb">Verbo base</Label>
+              <Input id="verb" name="verb" placeholder="Ex: to need, to get, to try, to go" required />
               <FieldError errors={state.errors?.verb} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="meaning">Significado</Label>
-              <Input id="meaning" name="meaning" required />
+              <Input id="meaning" name="meaning" placeholder="Ex: precisar" required />
               <FieldError errors={state.errors?.meaning} />
             </div>
           </div>
 
           <div className="mt-6 border-t border-slate-100 pt-6">
-            <SectionHeading title="Uso real" subtitle="Anote onde usar e os padrões que acompanham este verbo." />
+            <SectionHeading title="Uso e padrões" subtitle="Explique quando usar e liste os padrões principais com este verbo." />
 
             <div className="space-y-2">
-              <Label htmlFor="context">Onde usar?</Label>
-              <Textarea id="context" name="context" required />
+              <Label htmlFor="context">Quando usar?</Label>
+              <Textarea id="context" name="context" placeholder="Ex: Use quando você precisa de algo ou precisa fazer alguma ação." required />
               <FieldError errors={state.errors?.context} />
             </div>
 
             <div className="mt-4 space-y-2">
-              <Label htmlFor="my_sentence">Frase de exemplo (opcional)</Label>
-              <Textarea id="my_sentence" name="my_sentence" />
+              <Label htmlFor="verb_patterns">Padrões com este verbo</Label>
+              <Textarea id="verb_patterns" name="verb_patterns" placeholder={'Um padrão por linha. Ex:\nI need...\nI need to...\nI don\'t need...\nDo you need...?'} rows={6} />
             </div>
 
             <div className="mt-4 space-y-2">
-              <Label htmlFor="verb_patterns">Padrões úteis (opcional)</Label>
-              <Textarea id="verb_patterns" name="verb_patterns" placeholder='Um padrão por linha. Ex: "get better", "get ready"' />
+              <Label htmlFor="my_sentence">Frases suas com este verbo (opcional)</Label>
+              <Textarea id="my_sentence" name="my_sentence" placeholder={'Ex:\nI need better gear.\nI need to fix this bug.\nI don\'t need this item.'} rows={4} />
             </div>
+
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="usage_contexts">Onde você quer usar este verbo?</Label>
+              <Textarea id="usage_contexts" name="usage_contexts" placeholder={'Um contexto por linha. Ex:\nJogo\nProgramação\nConversa'} rows={3} />
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <CollapsibleSection title="Dificuldade" subtitle="Apenas se quiser classificar agora.">
+              <div className="space-y-2">
+                <Label htmlFor="difficulty">Dificuldade</Label>
+                <Select id="difficulty" name="difficulty">
+                  {difficulties.map((d) => (
+                    <option key={d} value={d}>
+                      {difficultyLabels[d]}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </CollapsibleSection>
           </div>
 
           {state.message ? (
@@ -364,7 +388,7 @@ export function CaptureForm() {
 
           <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-slate-400">
-              Você pode revisar os padrões depois na Biblioteca.
+              Verbo = base para construir frases.
             </p>
             <Button type="submit" className="w-full sm:w-auto min-w-44" size="lg" disabled={pending}>
               Salvar verbo

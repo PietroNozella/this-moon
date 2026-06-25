@@ -65,7 +65,6 @@ export default function DashboardPage() {
           supabase
             .from("learning_entries")
             .select("*")
-            .neq("entry_type", "verb")
             .order("times_practiced", { ascending: true })
             .order("confidence_level", { ascending: true })
             .order("created_at", { ascending: false })

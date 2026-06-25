@@ -78,6 +78,19 @@ export default function ReviewPage() {
     "Não precisa ser perfeita. Precisa ser sua.",
   ];
 
+  const verbPrompts = [
+    "Crie 3 frases com um verbo usando padrões diferentes.",
+    "Varie entre afirmativa, negativa e pergunta.",
+    "Depois use um conector (because, so, but) para aumentar a frase.",
+  ];
+
+  function getPrompt(entry: EntryRow & { status?: string | null }) {
+    if (entry.entry_type === "verb") {
+      return "Crie 3 frases com este verbo usando padrões diferentes.";
+    }
+    return "Crie uma frase parecida com este chunk.";
+  }
+
   return (
     <div className="space-y-8">
       <header className="mb-8">
@@ -142,6 +155,15 @@ export default function ReviewPage() {
                 <p className="text-sm leading-6 text-slate-600">{prompt}</p>
               </div>
             ))}
+            <div className="mt-3 rounded-2xl border border-candy-blue-500/30 bg-candy-blue-500/10 p-4">
+              <div className="flex gap-3">
+                <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-candy-blue-700" />
+                <div>
+                  <p className="text-sm font-medium text-candy-blue-950">Verbos</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">Crie 3 frases com um verbo usando padrões diferentes.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -189,11 +211,13 @@ export default function ReviewPage() {
                   variant="secondary"
                   size="sm"
                 >
-                  Criar frase
+                  {entry.entry_type === "verb" ? "Criar frases" : "Criar frase"}
                 </ButtonLink>
-                <ButtonLink href="/speaking" variant="ghost" size="sm">
-                  Speaking
-                </ButtonLink>
+                {entry.entry_type === "chunk" ? (
+                  <ButtonLink href="/speaking" variant="ghost" size="sm">
+                    Speaking
+                  </ButtonLink>
+                ) : null}
               </div>
             </a>
           ))}

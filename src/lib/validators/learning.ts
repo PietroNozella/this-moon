@@ -59,6 +59,14 @@ export const createVerbSchema = z.object({
   meaning: z.string().min(1, "Preencha o significado.").trim(),
   context: z.string().min(3, "Explique onde usar.").trim(),
   verb_patterns: z.array(z.string().min(1)).optional(),
+  difficulty: z.enum(difficulties).default("unknown"),
+  usageContexts: z.array(z.string().min(1)).optional(),
+});
+
+export const verbPatternPracticeSchema = z.object({
+  entryId: z.string().uuid(),
+  sentences: z.array(z.string().min(2)).min(1, "Crie pelo menos uma frase."),
+  confidenceLevel: z.coerce.number().min(1).max(5).optional(),
 });
 
 export const createPracticeSessionSchema = z.object({

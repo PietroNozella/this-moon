@@ -66,6 +66,7 @@ export default function ListeningPage() {
       const { data } = await supabase
         .from("learning_entries")
         .select("id, original_phrase, translation, source_type, source_title, source_url, source_timestamp, natural_phrase, pronunciation_note, context_note, difficulty, status, entry_type")
+        .eq("entry_type", "chunk")
         .order("created_at", { ascending: false })
         .limit(20);
 

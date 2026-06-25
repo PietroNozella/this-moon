@@ -168,17 +168,59 @@ export async function createVerb(input: {
   meaning: string;
   context: string;
   verb_patterns?: string[];
+  difficulty?: string;
+  usageContexts?: string[];
 }) {
   return createEntry({
     original_phrase: input.verb,
     translation: input.meaning,
+    meaning_explanation: input.context,
     source_type: "other",
     context_note: input.context,
-    difficulty: "unknown",
+    difficulty: input.difficulty ?? "unknown",
     entry_type: "verb",
     tags: [],
     verb_patterns: input.verb_patterns,
   });
+}
+
+export async function completeVerbPatternPractice(input: {
+  entryId: string;
+  sentences: string[];
+  confidenceLevel?: number;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autorizado.");
+
+  const { data: entry } = await supabase
+    .from("learning_entries")
+    .select("entry_type, original_phrase")
+    .eq("id", input.entryId)
+    .single();
+
+  if (!entry) throw new Error("Entrada não encontrada.");
+  if (entry.entry_type !== "verb") throw new Error("Esta entrada não é um verbo.");
+
+  for (const sentence of input.sentences) {
+    await supabase.from("personal_sentences").insert({
+      user_id: user.id,
+      entry_id: input.entryId,
+      sentence,
+    });
+  }
+
+  await createPracticeSession({
+    entry_id: input.entryId,
+    practice_type: "review",
+    self_rating: input.confidenceLevel,
+    note: `Treino de verbo/padrões com "${entry.original_phrase}"`,
+  });
+
+  await incrementDailyGoal(supabase, user.id, "personal_sentences_created");
 }
 
 export async function createPracticeSession(input: {

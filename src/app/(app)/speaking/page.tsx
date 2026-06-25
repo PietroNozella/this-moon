@@ -37,6 +37,7 @@ export default function SpeakingPage() {
       const { data } = await supabase
         .from("learning_entries")
         .select("id, original_phrase, translation, source_type, source_title, natural_phrase, pronunciation_note, context_note, entry_type")
+        .eq("entry_type", "chunk")
         .order("created_at", { ascending: false })
         .limit(20);
 

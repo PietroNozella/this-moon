@@ -63,22 +63,33 @@ export function NextPracticeCard({ nextKey, doneCount, nextEntry }: Props) {
               Treine &ldquo;{nextEntry.original_phrase}&rdquo;
             </h2>
             <p className="mt-3 max-w-sm text-sm leading-6 text-white/60 transition-all duration-300 group-hover:text-slate-500">
-              Você salvou esse chunk, mas ainda não registrou prática de
-              escuta.
+              {nextEntry.entry_type === "verb"
+                ? `Crie frases usando ${nextEntry.original_phrase} com padrões diferentes.`
+                : "Você salvou esse chunk, mas ainda não registrou prática de escuta."}
             </p>
 
             <div className="mt-6 space-y-2 text-sm text-white/60 transition-all duration-300 group-hover:text-slate-500">
-              <p>• 5 minutos já contam</p>
-              <p>• Foque em reconhecer palavras</p>
-              <p>• Não precisa entender tudo</p>
+              {nextEntry.entry_type === "verb" ? (
+                <>
+                  <p>• Crie frases afirmativa, negativa e pergunta</p>
+                  <p>• Use padrões como I need..., I need to...</p>
+                  <p>• Depois adicione conectores (because, so, but)</p>
+                </>
+              ) : (
+                <>
+                  <p>• 5 minutos já contam</p>
+                  <p>• Foque em reconhecer palavras</p>
+                  <p>• Não precisa entender tudo</p>
+                </>
+              )}
             </div>
 
             <div className="mt-auto flex gap-2 pt-6">
               <Link
-                href="/listening"
+                href={nextEntry.entry_type === "verb" ? `/library/${nextEntry.id}` : "/listening"}
                 className="inline-flex h-10 flex-1 items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-onyx shadow-sm transition-all duration-300 hover:bg-slate-100 group-hover:bg-onyx group-hover:text-white group-hover:hover:bg-slate-800"
               >
-                Treinar agora
+                {nextEntry.entry_type === "verb" ? "Treinar padrões" : "Treinar agora"}
               </Link>
               <Link
                 href={`/library/${nextEntry.id}`}
