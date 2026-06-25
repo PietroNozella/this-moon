@@ -7,7 +7,7 @@ const variants = {
   primary:
     "bg-onyx text-white hover:bg-onyx/90 focus-visible:outline-candy-blue-500",
   secondary:
-    "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 focus-visible:outline-slate-400",
+    "border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 focus-visible:outline-slate-400",
   ghost:
     "text-slate-700 hover:bg-slate-100 focus-visible:outline-slate-400",
   danger:
