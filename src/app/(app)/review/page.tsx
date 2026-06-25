@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 
 import { ButtonLink } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
@@ -55,10 +53,18 @@ export default function ReviewPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="h-20 animate-pulse rounded-2xl bg-slate-200" />
-        <div className="h-16 animate-pulse rounded-2xl bg-slate-200" />
-        <div className="h-64 animate-pulse rounded-2xl bg-slate-200" />
+        <div className="h-32 animate-pulse rounded-3xl bg-slate-200" />
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="h-44 animate-pulse rounded-3xl bg-slate-200" />
+          <div className="h-44 animate-pulse rounded-3xl bg-slate-200" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -74,45 +80,88 @@ export default function ReviewPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Review"
-        subtitle="Crie frases suas com os chunks que você salvou."
-      />
-
-      <Card important>
-        <CardTitle>Frases próprias hoje</CardTitle>
-        <div className="mt-3">
-          <div className="flex items-end justify-between">
-            <p className="text-sm text-slate-600">
-              {done ? "Você já criou 3 frases próprias hoje!" : `${sentencesToday}/${GOAL}`}
-            </p>
-            <span className="text-xs text-slate-400">
-              {Math.round(progress * 100)}%
-            </span>
-          </div>
-          <div className="mt-2 h-2 w-full rounded-full bg-slate-200">
-            <div
-              className="h-full rounded-full bg-onyx transition-all duration-500"
-              style={{ width: `${progress * 100}%` }}
-            />
-          </div>
-        </div>
-        <p className="mt-3 text-sm text-slate-500">
-          Use jogo, rotina ou programação como contexto.
+      <header className="mb-8">
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+          Review
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Crie frases suas com os chunks que você salvou.
         </p>
-      </Card>
+      </header>
 
-      <Card>
-        <CardTitle>Inspiração</CardTitle>
-        <div className="mt-4 space-y-3">
-          {prompts.map((prompt) => (
-            <p key={prompt} className="flex items-start gap-2 text-sm text-slate-600">
-              <span className="mt-0.5 shrink-0 text-candy-blue-500">→</span>
-              {prompt}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm ring-1 ring-black/[0.02]">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-slate-950">
+              Frases próprias hoje
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              {done
+                ? "Você já criou 3 frases próprias hoje!"
+                : `${sentencesToday} de ${GOAL} frases criadas.`}
             </p>
-          ))}
+          </div>
+          <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+            {Math.round(progress * 100)}%
+          </span>
         </div>
-      </Card>
+
+        <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
+          <div
+            className="h-full rounded-full bg-onyx transition-all duration-500"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
+
+        <div className="mt-4 flex flex-col gap-1 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            {done ? "Meta concluída: 3/3 frases" : `${sentencesToday}/${GOAL} frases`}
+          </span>
+          <span>Use jogo, rotina ou programação como contexto.</span>
+        </div>
+      </div>
+
+      <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm ring-1 ring-black/[0.02]">
+          <div className="mb-5">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-950">
+              Inspiração
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              Use estes lembretes para criar frases mais úteis.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {prompts.map((prompt) => (
+              <div
+                key={prompt}
+                className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+              >
+                <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-candy-blue-500" />
+                <p className="text-sm leading-6 text-slate-600">{prompt}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm ring-1 ring-black/[0.02]">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-950">
+            Próxima ação
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Escolha um chunk salvo e crie uma frase simples com ele.
+          </p>
+          <div className="mt-5">
+            <a
+              href="/library"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-onyx px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-slate-800"
+            >
+              Escolher chunk
+            </a>
+          </div>
+        </div>
+      </section>
 
       {entries.length > 0 ? (
         <div className="space-y-4">
@@ -130,7 +179,7 @@ export default function ReviewPage() {
                 {entry.original_phrase}
               </p>
               {entry.translation ? (
-                <p className="mt-1 text-sm text-slate-500 italic">
+                <p className="mt-1 text-sm italic text-slate-500">
                   {entry.translation}
                 </p>
               ) : null}
@@ -142,11 +191,7 @@ export default function ReviewPage() {
                 >
                   Criar frase
                 </ButtonLink>
-                <ButtonLink
-                  href={`/speaking`}
-                  variant="ghost"
-                  size="sm"
-                >
+                <ButtonLink href="/speaking" variant="ghost" size="sm">
                   Speaking
                 </ButtonLink>
               </div>
