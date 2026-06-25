@@ -1,0 +1,74 @@
+import { z } from "zod";
+
+export const sourceTypes = [
+  "music",
+  "video",
+  "game",
+  "programming",
+  "conversation",
+  "social_media",
+  "course",
+  "book",
+  "routine",
+  "other",
+] as const;
+
+export const difficulties = ["easy", "medium", "hard", "unknown"] as const;
+
+export const entryStatuses = [
+  "new",
+  "learning",
+  "practicing",
+  "almost_natural",
+  "mastered",
+  "archived",
+] as const;
+
+export const reviewRatings = ["easy", "good", "hard", "forgot"] as const;
+
+export const createEntrySchema = z.object({
+  original_phrase: z
+    .string()
+    .min(4, "Salve uma frase ou chunk com contexto.")
+    .trim(),
+  translation: z.string().trim().optional(),
+  meaning_explanation: z.string().trim().optional(),
+  source_type: z.enum(sourceTypes),
+  source_title: z.string().trim().optional(),
+  source_url: z.string().url("Use uma URL valida.").trim().optional().or(z.literal("")),
+  context_note: z
+    .string()
+    .min(3, "Explique rapidamente onde voce usaria isso.")
+    .trim(),
+  difficulty: z.enum(difficulties).default("unknown"),
+  chunk_text: z.string().trim().optional(),
+  natural_version: z.string().trim().optional(),
+  casual_version: z.string().trim().optional(),
+  tags: z.array(z.string().min(1)).default([]),
+});
+
+export const createPersonalSentenceSchema = z.object({
+  entry_id: z.string().uuid(),
+  chunk_id: z.string().uuid().optional(),
+  sentence: z
+    .string()
+    .min(4, "Crie uma frase curta, mas completa.")
+    .trim(),
+  translation: z.string().trim().optional(),
+});
+
+export const updateEntryStatusSchema = z.object({
+  entry_id: z.string().uuid(),
+  status: z.enum(entryStatuses),
+});
+
+export const completeReviewSchema = z.object({
+  review_id: z.string().uuid(),
+  answer: z.string().min(1, "Registre sua resposta.").trim(),
+  rating: z.enum(reviewRatings),
+});
+
+export type LearningActionState = {
+  message?: string;
+  errors?: Record<string, string[] | undefined>;
+};

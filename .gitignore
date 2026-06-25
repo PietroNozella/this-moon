@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+next-dev.*.log
 
 # debug
 npm-debug.log*
@@ -32,6 +33,18 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local leftovers from the Supabase prototype
+src/server/
+src/lib/supabase/
+src/lib/auth.ts
+src/lib/env.ts
+src/lib/validators/auth.ts
+src/components/forms/auth-forms.tsx
+src/types/database.ts
+src/proxy.ts
+supabase/
 
 # vercel
 .vercel
