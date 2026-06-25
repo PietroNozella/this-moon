@@ -14,7 +14,7 @@ import type { DailyGoalRow } from "@/types/database";
 type DashboardData = {
   entriesCount: number;
   verbsCount: number;
-  sentencesCount: number;
+  practiceCount: number;
   masteredCount: number;
   dailyGoal: {
     captured_entries: number;
@@ -29,7 +29,7 @@ type DashboardData = {
 const emptyData: DashboardData = {
   entriesCount: 0,
   verbsCount: 0,
-  sentencesCount: 0,
+  practiceCount: 0,
   masteredCount: 0,
   dailyGoal: {
     captured_entries: 0,
@@ -51,11 +51,11 @@ export default function DashboardPage() {
     async function load() {
       const today = todayISO();
 
-      const [entriesRes, verbsRes, sentencesRes, masteredRes, goalRes, recentRes] =
+      const [entriesRes, verbsRes, sessionsRes, masteredRes, goalRes, recentRes] =
         await Promise.all([
           supabase.from("learning_entries").select("*", { count: "exact", head: true }),
           supabase.from("learning_entries").select("*", { count: "exact", head: true }).eq("entry_type", "verb"),
-          supabase.from("personal_sentences").select("*", { count: "exact", head: true }),
+          supabase.from("practice_sessions").select("*", { count: "exact", head: true }),
           supabase.from("learning_entries").select("*", { count: "exact", head: true }).eq("status", "mastered"),
           supabase.from("daily_goals").select("*").eq("goal_date", today).maybeSingle(),
           supabase.from("learning_entries").select("original_phrase").order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -66,7 +66,7 @@ export default function DashboardPage() {
       setData({
         entriesCount: entriesRes.count ?? 0,
         verbsCount: verbsRes.count ?? 0,
-        sentencesCount: sentencesRes.count ?? 0,
+        practiceCount: sessionsRes.count ?? 0,
         masteredCount: masteredRes.count ?? 0,
         dailyGoal: {
           captured_entries: dailyGoals?.captured_entries ?? 0,
@@ -85,11 +85,20 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="h-20 animate-pulse rounded-2xl bg-slate-200" />
         <div className="grid gap-4 md:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
+          ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-[1.4fr_1fr]">
+          <div className="h-80 animate-pulse rounded-3xl bg-slate-200" />
+          <div className="h-80 animate-pulse rounded-3xl bg-slate-200" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-200" />
           ))}
         </div>
       </div>
@@ -114,7 +123,7 @@ export default function DashboardPage() {
         title="Hoje"
         subtitle="Continue seu contato ativo com inglês."
         action={
-          <div className="hidden gap-2 md:flex">
+          <div className="flex flex-wrap gap-2">
             <ButtonLink href="/capture" variant="primary" size="sm">
               Capturar chunk
             </ButtonLink>
@@ -128,8 +137,8 @@ export default function DashboardPage() {
       <section className="grid gap-4 md:grid-cols-4">
         <MetricCard label="Chunks" value={data.entriesCount} description="frases reais salvas" />
         <MetricCard label="Verbos" value={data.verbsCount} description="padrões para usar em frases" />
-        <MetricCard label="Práticas" value={data.sentencesCount} description="listening e speaking registrados" />
-        <MetricCard label="Dominados" value={data.masteredCount} description="quase prontos para usar" />
+        <MetricCard label="Práticas" value={data.practiceCount} description="listening e speaking registrados" />
+        <MetricCard label="Naturais" value={data.masteredCount} description="frases quase prontas para usar" />
       </section>
 
       <section className="grid gap-6 md:grid-cols-[1.4fr_1fr]">
@@ -203,7 +212,7 @@ export default function DashboardPage() {
           <p className="mt-5 text-sm text-slate-500">{doneSteps}/5 concluído</p>
         </Card>
 
-        <Card important className="flex flex-col justify-between bg-onyx text-white">
+        <Card important className="flex flex-col justify-between bg-onyx text-white border-white/10">
           <div>
             <p className="text-sm font-semibold text-candy-blue-500">
               Próximo melhor treino

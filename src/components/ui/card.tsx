@@ -30,9 +30,10 @@ export function Card({
   );
 
   if (asChild && isValidElement(children)) {
-    const child = children as ReactElement<{ className?: string }>;
+    const child = children as ReactElement<Record<string, unknown>>;
     return cloneElement(child, {
-      className: cn(classes, child.props.className),
+      className: cn(classes, child.props.className as string | undefined),
+      ...props,
     });
   }
 
