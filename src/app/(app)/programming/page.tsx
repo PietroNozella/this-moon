@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -20,9 +20,9 @@ export default function ProgrammingPage() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-semibold text-emerald-700">Programming</p>
+          <p className="text-sm font-semibold text-emerald-700">Programação</p>
           <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
-            Ingles tecnico
+            Inglês técnico
           </h1>
         </div>
         <ButtonLink href="/capture">Capturar frase</ButtonLink>
@@ -30,7 +30,7 @@ export default function ProgrammingPage() {
 
       <section className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardTitle>Frases uteis</CardTitle>
+          <CardTitle>Frases úteis</CardTitle>
           <div className="mt-4 space-y-2">
             {basePhrases.map((phrase) => (
               <p key={phrase} className="rounded-md bg-slate-50 px-3 py-2">
@@ -60,3 +60,4 @@ export default function ProgrammingPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -6,16 +6,16 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/capture", label: "Capture" },
-  { href: "/library", label: "Library" },
-  { href: "/review", label: "Review" },
-  { href: "/practice", label: "Practice" },
-  { href: "/music", label: "Music" },
-  { href: "/games", label: "Games" },
-  { href: "/programming", label: "Programming" },
-  { href: "/analytics", label: "Analytics" },
-  { href: "/settings", label: "Settings" },
+  { href: "/dashboard", label: "Painel" },
+  { href: "/capture", label: "Captura" },
+  { href: "/library", label: "Biblioteca" },
+  { href: "/review", label: "Revisão" },
+  { href: "/practice", label: "Prática" },
+  { href: "/music", label: "Música" },
+  { href: "/games", label: "Jogos" },
+  { href: "/programming", label: "Programação" },
+  { href: "/analytics", label: "Análises" },
+  { href: "/settings", label: "Configurações" },
 ];
 
 export function Navigation() {

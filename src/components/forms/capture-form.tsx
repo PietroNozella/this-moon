@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -16,10 +16,10 @@ import {
 } from "@/lib/validators/learning";
 
 const sourceLabels: Record<string, string> = {
-  music: "Musica",
-  video: "Video",
+  music: "Música",
+  video: "Vídeo",
   game: "Jogo",
-  programming: "Programacao",
+  programming: "Programação",
   conversation: "Conversa",
   social_media: "Social media",
   course: "Curso",
@@ -29,10 +29,10 @@ const sourceLabels: Record<string, string> = {
 };
 
 const difficultyLabels: Record<string, string> = {
-  easy: "Facil",
-  medium: "Medio",
-  hard: "Dificil",
-  unknown: "Nao sei",
+  easy: "Fácil",
+  medium: "Médio",
+  hard: "Difícil",
+  unknown: "Não sei",
 };
 
 export function CaptureForm() {
@@ -79,7 +79,7 @@ export function CaptureForm() {
     <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-[1fr_360px]">
       <Card className="space-y-5">
         <div>
-          <CardTitle>Captura rapida</CardTitle>
+          <CardTitle>Captura rápida</CardTitle>
           <p className="mt-1 text-sm text-slate-500">
             Salve a frase, o contexto e pelo menos um caminho para usar isso na
             sua vida.
@@ -99,7 +99,7 @@ export function CaptureForm() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="translation">Traducao</Label>
+            <Label htmlFor="translation">Tradução</Label>
             <Input
               id="translation"
               name="translation"
@@ -117,7 +117,7 @@ export function CaptureForm() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="natural_version">Versao natural</Label>
+            <Label htmlFor="natural_version">Versão natural</Label>
             <Input
               id="natural_version"
               name="natural_version"
@@ -126,7 +126,7 @@ export function CaptureForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="casual_version">Versao falada</Label>
+            <Label htmlFor="casual_version">Versão falada</Label>
             <Input
               id="casual_version"
               name="casual_version"
@@ -136,11 +136,11 @@ export function CaptureForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="meaning_explanation">Explicacao simples</Label>
+          <Label htmlFor="meaning_explanation">Explicação simples</Label>
           <Textarea
             id="meaning_explanation"
             name="meaning_explanation"
-            placeholder="Use quando algo fica claro ou parece logico."
+            placeholder="Use quando algo fica claro ou parece lógico."
           />
         </div>
       </Card>
@@ -162,18 +162,18 @@ export function CaptureForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="context_note">Onde voce usaria?</Label>
+            <Label htmlFor="context_note">Onde você usaria?</Label>
             <Textarea
               id="context_note"
               name="context_note"
-              placeholder="Quando eu entendo uma explicacao de codigo."
+              placeholder="Quando eu entendo uma explicação de código."
               required
             />
             <FieldError errors={state.errors?.context_note} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="source_title">Titulo da fonte</Label>
+            <Label htmlFor="source_title">Título da fonte</Label>
             <Input
               id="source_title"
               name="source_title"
@@ -223,3 +223,4 @@ export function CaptureForm() {
     </form>
   );
 }
+

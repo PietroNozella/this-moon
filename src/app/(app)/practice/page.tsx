@@ -1,4 +1,4 @@
-import { ButtonLink } from "@/components/ui/button";
+﻿import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 
 const modes = [
@@ -14,7 +14,7 @@ const modes = [
   },
   {
     title: "Roleplay",
-    description: "Responda cenarios simples de rotina, jogos e codigo.",
+    description: "Responda cenários simples de rotina, jogos e código.",
     href: "/library",
   },
 ];
@@ -23,9 +23,9 @@ export default function PracticePage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-emerald-700">Practice</p>
+        <p className="text-sm font-semibold text-emerald-700">Prática</p>
         <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
-          Pratica ativa
+          Prática ativa
         </h1>
       </div>
 
@@ -37,7 +37,7 @@ export default function PracticePage() {
               {mode.description}
             </p>
             <ButtonLink href={mode.href} className="mt-5" variant="secondary">
-              Comecar
+              Começar
             </ButtonLink>
           </Card>
         ))}

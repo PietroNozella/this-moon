@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -13,10 +13,10 @@ import { difficulties, entryStatuses, sourceTypes } from "@/lib/validators/learn
 import { getLibraryEntries, type LibraryFilters } from "@/lib/local-selectors";
 
 const sourceLabels: Record<string, string> = {
-  music: "Musica",
-  video: "Video",
+  music: "Música",
+  video: "Vídeo",
   game: "Jogo",
-  programming: "Programacao",
+  programming: "Programação",
   conversation: "Conversa",
   social_media: "Social media",
   course: "Curso",
@@ -35,10 +35,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const difficultyLabels: Record<string, string> = {
-  easy: "Facil",
-  medium: "Medio",
-  hard: "Dificil",
-  unknown: "Sem nivel",
+  easy: "Fácil",
+  medium: "Médio",
+  hard: "Difícil",
+  unknown: "Sem nível",
 };
 
 export default function LibraryPage() {
@@ -57,7 +57,7 @@ export default function LibraryPage() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-semibold text-emerald-700">Library</p>
+          <p className="text-sm font-semibold text-emerald-700">Biblioteca</p>
           <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
             Biblioteca de frases
           </h1>
@@ -72,7 +72,7 @@ export default function LibraryPage() {
         >
           <Input
             name="q"
-            placeholder="Buscar frase, traducao ou contexto"
+            placeholder="Buscar frase, tradução ou contexto"
             value={filters.q ?? ""}
             onChange={(event) =>
               setFilters((current) => ({ ...current, q: event.target.value }))
@@ -181,10 +181,11 @@ export default function LibraryPage() {
           ))
         ) : (
           <Card className="border-dashed text-center text-slate-500">
-            Sua biblioteca ainda esta vazia. Capture sua primeira frase.
+            Sua biblioteca ainda está vazia. Capture sua primeira frase.
           </Card>
         )}
       </div>
     </div>
   );
 }
+

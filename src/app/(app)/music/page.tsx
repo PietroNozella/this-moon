@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -12,10 +12,10 @@ export default function MusicPage() {
 
   return (
     <SourcePage
-      eyebrow="Music"
-      title="Musicas"
-      description="1 trecho pequeno, 1 chunk util, 3 frases suas."
-      empty="Escolha uma musica e salve um trecho pequeno."
+      eyebrow="Música"
+      title="Músicas"
+      description="1 trecho pequeno, 1 chunk útil, 3 frases suas."
+      empty="Escolha uma música e salve um trecho pequeno."
       chunks={chunks}
       captureHref="/capture"
     />
@@ -69,3 +69,4 @@ function SourcePage({
     </div>
   );
 }
+

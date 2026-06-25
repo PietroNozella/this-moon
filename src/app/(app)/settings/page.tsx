@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
 
+import { useLocalStore } from "@/components/local-store-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { useLocalStore } from "@/components/local-store-provider";
 
 export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +37,7 @@ export default function SettingsPage() {
         importData(String(reader.result ?? ""));
         setMessage("Backup importado com sucesso.");
       } catch {
-        setMessage("Nao foi possivel importar esse arquivo.");
+        setMessage("Não foi possível importar esse arquivo.");
       }
     };
 
@@ -61,7 +61,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-emerald-700">Settings</p>
+        <p className="text-sm font-semibold text-emerald-700">Configurações</p>
         <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
           Dados locais e backup
         </h1>
@@ -71,7 +71,7 @@ export default function SettingsPage() {
         <Card>
           <CardTitle>Modo local</CardTitle>
           <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-            <p>O app nao usa login, banco de dados ou backend.</p>
+            <p>O app não usa login, banco de dados ou backend.</p>
             <p>Os dados ficam no IndexedDB deste navegador.</p>
             <p>Para trocar de dispositivo, exporte e importe um backup JSON.</p>
           </div>
@@ -82,8 +82,8 @@ export default function SettingsPage() {
           <div className="mt-4 grid gap-3 text-sm text-slate-600">
             <p>Frases: {state.entries.length}</p>
             <p>Chunks: {state.chunks.length}</p>
-            <p>Frases proprias: {state.personalSentences.length}</p>
-            <p>Revisoes: {state.reviews.length}</p>
+            <p>Frases próprias: {state.personalSentences.length}</p>
+            <p>Revisões: {state.reviews.length}</p>
           </div>
         </Card>
       </section>

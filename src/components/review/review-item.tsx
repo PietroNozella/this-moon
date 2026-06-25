@@ -1,18 +1,22 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 
+import { useLocalStore } from "@/components/local-store-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label, Textarea } from "@/components/ui/form";
-import { useLocalStore } from "@/components/local-store-provider";
 import type { LocalDueReview } from "@/types/local";
 
 const ratingLabels = {
   forgot: "Esqueci",
-  hard: "Dificil",
+  hard: "Difícil",
   good: "Bom",
-  easy: "Facil",
+  easy: "Fácil",
+};
+
+const reviewTypeLabels: Record<string, string> = {
+  frase_propria: "Frase própria",
 };
 
 export function ReviewItem({ review }: { review: LocalDueReview }) {
@@ -23,7 +27,7 @@ export function ReviewItem({ review }: { review: LocalDueReview }) {
     review.prompt ??
     review.chunk?.chunk_text ??
     review.entry?.original_phrase ??
-    "Crie uma frase propria.";
+    "Crie uma frase própria.";
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,7 +49,7 @@ export function ReviewItem({ review }: { review: LocalDueReview }) {
     <Card className="space-y-4">
       <div>
         <p className="text-xs font-semibold uppercase text-emerald-700">
-          {review.review_type}
+          {reviewTypeLabels[review.review_type] ?? review.review_type}
         </p>
         <h2 className="mt-1 text-xl font-semibold text-slate-950">{prompt}</h2>
         {review.entry?.translation ? (
@@ -61,7 +65,7 @@ export function ReviewItem({ review }: { review: LocalDueReview }) {
           <Textarea
             id={`answer-${review.id}`}
             name="answer"
-            placeholder="Escreva ou registre o que voce falou em voz alta."
+            placeholder="Escreva ou registre o que você falou em voz alta."
             value={answer}
             onChange={(event) => setAnswer(event.target.value)}
             required

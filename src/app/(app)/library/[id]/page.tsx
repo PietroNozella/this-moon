@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useParams } from "next/navigation";
 
@@ -24,7 +24,7 @@ export default function EntryDetailPage() {
   if (!entry) {
     return (
       <Card className="space-y-4 border-dashed text-slate-500">
-        <p>Entrada nao encontrada neste navegador.</p>
+        <p>Entrada não encontrada neste navegador.</p>
         <ButtonLink href="/library" variant="secondary">
           Voltar para biblioteca
         </ButtonLink>
@@ -59,8 +59,8 @@ export default function EntryDetailPage() {
             ))}
           </div>
 
-          <Section title="Traducao">{entry.translation}</Section>
-          <Section title="Explicacao simples">{entry.meaning_explanation}</Section>
+          <Section title="Tradução">{entry.translation}</Section>
+          <Section title="Explicação simples">{entry.meaning_explanation}</Section>
           <Section title="Contexto de uso">{entry.context_note}</Section>
 
           {entry.source_title || entry.source_url ? (
@@ -120,7 +120,7 @@ export default function EntryDetailPage() {
           </Card>
 
           <Card>
-            <CardTitle>Frases proprias</CardTitle>
+            <CardTitle>Frases próprias</CardTitle>
             <div className="mt-4 space-y-3">
               {entry.personal_sentences.length > 0 ? (
                 entry.personal_sentences.map((sentence) => (
@@ -173,3 +173,4 @@ function Section({
     </div>
   );
 }
+

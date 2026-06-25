@@ -1,4 +1,4 @@
-import { todayISO } from "@/lib/utils";
+﻿import { todayISO } from "@/lib/utils";
 import type {
   LocalChunk,
   LocalDailyGoal,
@@ -56,6 +56,9 @@ export function getDashboardData(state: LocalState) {
   const sortedChunks = [...state.chunks].sort(
     (a, b) => b.usage_count - a.usage_count,
   );
+  const hasPendingReviews = dueReviews.length > 0;
+  const reviewStepDone =
+    dailyGoal.reviews_completed > 0 || !hasPendingReviews;
 
   return {
     entriesCount: state.entries.length,
@@ -73,6 +76,15 @@ export function getDashboardData(state: LocalState) {
       ),
     ).length,
     dailyGoal,
+    reviewStep: {
+      done: reviewStepDone,
+      label: hasPendingReviews
+        ? "1 revisão rápida"
+        : "Sem revisão pendente hoje",
+      hint: hasPendingReviews
+        ? "Conclua uma revisão disponível para fechar essa etapa."
+        : "As próximas revisões aparecem aqui quando vencerem.",
+    },
     chunkOfDay: sortedChunks[0] ?? null,
     recentEntries: [...state.entries]
       .sort(

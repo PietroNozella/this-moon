@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -20,9 +20,9 @@ export default function GamesPage() {
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-semibold text-emerald-700">Games</p>
+          <p className="text-sm font-semibold text-emerald-700">Jogos</p>
           <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
-            Ingles de jogo
+            Inglês de jogo
           </h1>
         </div>
         <ButtonLink href="/capture">Capturar frase</ButtonLink>
@@ -60,3 +60,4 @@ export default function GamesPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Card, CardTitle } from "@/components/ui/card";
 import { useLocalStore } from "@/components/local-store-provider";
@@ -10,9 +10,9 @@ export default function AnalyticsPage() {
 
   const metrics = [
     ["Frases capturadas", data.entriesCount],
-    ["Frases proprias", data.personalSentencesCount],
-    ["Revisoes feitas", data.completedReviewsCount],
-    ["Sessoes de pratica", data.practiceSessionsCount],
+    ["Frases próprias", data.personalSentencesCount],
+    ["Revisões feitas", data.completedReviewsCount],
+    ["Sessões de prática", data.practiceSessionsCount],
     ["Chunks ativos", data.activeChunksCount],
     ["Chunks dominados", data.masteredChunksCount],
   ];
@@ -24,7 +24,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-emerald-700">Analytics</p>
+        <p className="text-sm font-semibold text-emerald-700">Análises</p>
         <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
           Progresso
         </h1>
@@ -41,3 +41,4 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+

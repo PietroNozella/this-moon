@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 
@@ -6,14 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { useLocalStore } from "@/components/local-store-provider";
-import { formatDate } from "@/lib/utils";
 import { getDashboardData } from "@/lib/local-selectors";
+import { formatDate } from "@/lib/utils";
 
 const quickActions = [
   { href: "/review", label: "Revisar hoje" },
   { href: "/capture", label: "Capturar nova frase" },
   { href: "/practice", label: "Praticar speaking" },
-  { href: "/music", label: "Estudar musica" },
+  { href: "/music", label: "Estudar música" },
   { href: "/library", label: "Criar frases minhas" },
 ];
 
@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const dailySteps = [
     data.dailyGoal.captured_entries > 0,
     data.dailyGoal.personal_sentences_created >= 3,
-    data.dailyGoal.reviews_completed > 0,
+    data.reviewStep.done,
     data.dailyGoal.speaking_practices > 0,
   ];
   const doneSteps = dailySteps.filter(Boolean).length;
@@ -38,7 +38,7 @@ export default function DashboardPage() {
         <div>
           <p className="text-sm font-semibold text-emerald-700">Hoje</p>
           <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
-            Seu laboratorio de ingles
+            Seu laboratório de inglês
           </h1>
         </div>
         <ButtonLink href="/capture">Capturar frase</ButtonLink>
@@ -50,13 +50,13 @@ export default function DashboardPage() {
           <p className="mt-2 text-3xl font-semibold">{data.entriesCount}</p>
         </Card>
         <Card>
-          <p className="text-sm text-slate-500">Revisoes pendentes</p>
+          <p className="text-sm text-slate-500">Revisões pendentes</p>
           <p className="mt-2 text-3xl font-semibold">
             {data.pendingReviewsCount}
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-slate-500">Frases proprias</p>
+          <p className="text-sm text-slate-500">Frases próprias</p>
           <p className="mt-2 text-3xl font-semibold">
             {data.personalSentencesCount}
           </p>
@@ -75,10 +75,10 @@ export default function DashboardPage() {
             <div>
               <CardTitle>Chunk do dia</CardTitle>
               <p className="mt-1 text-sm text-slate-500">
-                Use em voz alta e crie uma variacao sua.
+                Use em voz alta e crie uma variação sua.
               </p>
             </div>
-            <Badge>{data.activeChunksCount} em pratica</Badge>
+            <Badge>{data.activeChunksCount} em prática</Badge>
           </div>
 
           {data.chunkOfDay ? (
@@ -99,34 +99,34 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="mt-6 rounded-lg border border-dashed border-slate-300 p-5 text-slate-500">
-              Comece salvando uma frase que voce ouviu hoje.
+              Comece salvando uma frase que você ouviu hoje.
             </div>
           )}
         </Card>
 
         <Card>
-          <CardTitle>Missao diaria</CardTitle>
+          <CardTitle>Missão diária</CardTitle>
           <div className="mt-5 space-y-3">
             <ProgressRow done={data.dailyGoal.captured_entries > 0}>
               1 frase capturada
             </ProgressRow>
             <ProgressRow done={data.dailyGoal.personal_sentences_created >= 3}>
-              3 frases proprias
+              3 frases próprias
             </ProgressRow>
-            <ProgressRow done={data.dailyGoal.reviews_completed > 0}>
-              1 revisao rapida
+            <ProgressRow done={data.reviewStep.done} hint={data.reviewStep.hint}>
+              {data.reviewStep.label}
             </ProgressRow>
             <ProgressRow done={data.dailyGoal.speaking_practices > 0}>
               1 frase falada
             </ProgressRow>
           </div>
-          <p className="mt-5 text-sm text-slate-500">{doneSteps}/4 concluido</p>
+          <p className="mt-5 text-sm text-slate-500">{doneSteps}/4 concluído</p>
         </Card>
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
         <Card>
-          <CardTitle>Acoes rapidas</CardTitle>
+          <CardTitle>Ações rápidas</CardTitle>
           <div className="mt-4 grid gap-2">
             {quickActions.map((action) => (
               <ButtonLink
@@ -166,7 +166,7 @@ export default function DashboardPage() {
               ))
             ) : (
               <p className="py-6 text-sm text-slate-500">
-                Sua biblioteca ainda esta vazia. Capture sua primeira frase.
+                Sua biblioteca ainda está vazia. Capture sua primeira frase.
               </p>
             )}
           </div>
@@ -178,19 +178,24 @@ export default function DashboardPage() {
 
 function ProgressRow({
   done,
+  hint,
   children,
 }: {
   done: boolean;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-start gap-3">
       <span
-        className={`size-3 rounded-full ${done ? "bg-emerald-500" : "bg-slate-300"}`}
+        className={`mt-1 size-3 rounded-full ${done ? "bg-emerald-500" : "bg-slate-300"}`}
       />
-      <span className={done ? "text-slate-950" : "text-slate-500"}>
-        {children}
-      </span>
+      <div>
+        <span className={done ? "text-slate-950" : "text-slate-500"}>
+          {children}
+        </span>
+        {hint ? <p className="text-xs text-slate-400">{hint}</p> : null}
+      </div>
     </div>
   );
 }
