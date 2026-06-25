@@ -1,10 +1,14 @@
-﻿import { ButtonLink } from "@/components/ui/button";
+﻿"use client";
+
+import { Button, ButtonLink } from "@/components/ui/button";
+import { useLocalStore } from "@/components/local-store-provider";
 import { Card, CardTitle } from "@/components/ui/card";
+import { getTodayGoal } from "@/lib/local-selectors";
 
 const modes = [
   {
     title: "Speaking",
-    description: "Repita frases salvas e marque o que saiu natural.",
+    description: "Repita frases salvas e marque o que soou natural.",
     href: "/review",
   },
   {
@@ -20,6 +24,10 @@ const modes = [
 ];
 
 export default function PracticePage() {
+  const { state, isLoaded, completeSpeakingPractice } = useLocalStore();
+  const dailyGoal = getTodayGoal(state);
+  const speakingDone = dailyGoal.speaking_practices > 0;
+
   return (
     <div className="space-y-6">
       <div>
@@ -28,6 +36,26 @@ export default function PracticePage() {
           Prática ativa
         </h1>
       </div>
+
+      <Card>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <CardTitle>Missão diária de fala</CardTitle>
+            <p className="text-sm text-slate-500">
+              {speakingDone
+                ? "Você já concluiu a frase falada de hoje."
+                : "Depois de falar uma frase em voz alta, marque aqui para concluir a etapa."}
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={completeSpeakingPractice}
+            disabled={!isLoaded || speakingDone}
+          >
+            {speakingDone ? "Frase falada concluída" : "Marcar frase falada"}
+          </Button>
+        </div>
+      </Card>
 
       <section className="grid gap-4 md:grid-cols-3">
         {modes.map((mode) => (

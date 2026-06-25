@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   createContext,
@@ -32,6 +32,7 @@ type LocalStoreContextValue = {
   createPersonalSentence: (input: CreatePersonalSentenceInput) => void;
   updateEntryStatus: (entryId: string, status: string) => void;
   completeReview: (reviewId: string, answer: string, rating: string) => void;
+  completeSpeakingPractice: () => void;
   exportData: () => string;
   importData: (payload: string) => void;
   resetData: () => Promise<void>;
@@ -67,6 +68,19 @@ function nextIntervalDays(current: number, rating: string) {
   return intervals[Math.min(currentIndex + 1, intervals.length - 1)] ?? 30;
 }
 
+function createDailyGoal(date: string): LocalDailyGoal {
+  return {
+    goal_date: date,
+    captured_entries: 0,
+    reviews_completed: 0,
+    personal_sentences_created: 0,
+    speaking_practices: 0,
+    listening_minutes: 0,
+    completed: false,
+    created_at: new Date().toISOString(),
+  };
+}
+
 function incrementDailyGoal(
   state: LocalState,
   field:
@@ -77,18 +91,7 @@ function incrementDailyGoal(
     | "listening_minutes",
 ) {
   const date = todayISO();
-  const current: LocalDailyGoal =
-    state.dailyGoals[date] ??
-    {
-      goal_date: date,
-      captured_entries: 0,
-      reviews_completed: 0,
-      personal_sentences_created: 0,
-      speaking_practices: 0,
-      listening_minutes: 0,
-      completed: false,
-      created_at: new Date().toISOString(),
-    };
+  const current: LocalDailyGoal = state.dailyGoals[date] ?? createDailyGoal(date);
 
   return {
     ...state.dailyGoals,
@@ -294,6 +297,28 @@ export function LocalStoreProvider({
     [persist],
   );
 
+  const completeSpeakingPractice = useCallback(() => {
+    persist((current) => {
+      const date = todayISO();
+      const dailyGoal = current.dailyGoals[date] ?? createDailyGoal(date);
+
+      if (dailyGoal.speaking_practices > 0) {
+        return current;
+      }
+
+      return {
+        ...current,
+        dailyGoals: {
+          ...current.dailyGoals,
+          [date]: {
+            ...dailyGoal,
+            speaking_practices: 1,
+          },
+        },
+      };
+    });
+  }, [persist]);
+
   const exportData = useCallback(() => JSON.stringify(state, null, 2), [state]);
 
   const importData = useCallback(
@@ -318,6 +343,7 @@ export function LocalStoreProvider({
       createPersonalSentence,
       updateEntryStatus,
       completeReview,
+      completeSpeakingPractice,
       exportData,
       importData,
       resetData,
@@ -329,6 +355,7 @@ export function LocalStoreProvider({
       createPersonalSentence,
       updateEntryStatus,
       completeReview,
+      completeSpeakingPractice,
       exportData,
       importData,
       resetData,
@@ -351,3 +378,5 @@ export function useLocalStore() {
 
   return context;
 }
+
+
