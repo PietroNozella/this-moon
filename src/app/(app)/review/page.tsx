@@ -109,7 +109,15 @@ export default function ReviewPage() {
       <div className="grid gap-4">
         {reviews.length > 0 ? (
           reviews.map((review) => (
-            <ReviewItem key={review.id} review={review} />
+            <ReviewItem
+              key={review.id}
+              review={review}
+              onComplete={() =>
+                setReviews((current) =>
+                  current.filter((r) => r.id !== review.id),
+                )
+              }
+            />
           ))
         ) : (
           <Card className="border-dashed text-center text-slate-500">

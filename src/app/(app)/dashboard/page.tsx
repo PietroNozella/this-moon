@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { completeSpeakingPractice } from "@/server/actions/learning";
 import type { DailyGoalRow, ReviewRow } from "@/types/database";
 
 type DashboardData = {
@@ -38,6 +39,7 @@ const emptyData: DashboardData = {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>(emptyData);
   const [loading, setLoading] = useState(true);
+  const [speakingPending, setSpeakingPending] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -51,7 +53,7 @@ export default function DashboardPage() {
         day: "2-digit",
       }).format(new Date());
 
-      const [entriesRes, sentencesRes, reviewsDueRes, chunksRes, goalRes] =
+      const [entriesRes, sentencesRes, reviewsDueRes, masteredRes, goalRes] =
         await Promise.all([
           supabase
             .from("learning_entries")
@@ -65,7 +67,7 @@ export default function DashboardPage() {
             .lte("due_at", now)
             .order("due_at", { ascending: true }),
           supabase
-            .from("chunks")
+            .from("learning_entries")
             .select("*", { count: "exact", head: true })
             .eq("status", "mastered"),
           supabase
@@ -78,7 +80,7 @@ export default function DashboardPage() {
       const entriesCount = entriesRes.count ?? 0;
       const personalSentencesCount = sentencesRes.count ?? 0;
       const dueReviews = (reviewsDueRes.data ?? []) as ReviewRow[];
-      const masteredChunksCount = chunksRes.count ?? 0;
+      const masteredCount = masteredRes.count ?? 0;
       const dailyGoals = goalRes.data as DailyGoalRow | null;
 
       const dailyGoal = {
@@ -96,7 +98,7 @@ export default function DashboardPage() {
         entriesCount: entriesCount ?? 0,
         personalSentencesCount: personalSentencesCount ?? 0,
         pendingReviewsCount: dueReviews?.length ?? 0,
-        masteredChunksCount,
+        masteredChunksCount: masteredCount,
         dailyGoal,
         reviewStep: {
           done: reviewStepDone,
@@ -153,7 +155,7 @@ export default function DashboardPage() {
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-slate-500">Chunks dominados</p>
+          <p className="text-sm text-slate-500">Dominados</p>
           <p className="mt-2 text-3xl font-semibold">
             {data.masteredChunksCount}
           </p>
@@ -174,7 +176,35 @@ export default function DashboardPage() {
               {data.reviewStep.label}
             </ProgressRow>
             <ProgressRow done={data.dailyGoal.speaking_practices > 0}>
-              1 frase falada
+              {data.dailyGoal.speaking_practices > 0 ? (
+                "1 frase falada"
+              ) : (
+                <span className="flex items-center gap-2">
+                  1 frase falada
+                  <button
+                    type="button"
+                    disabled={speakingPending}
+                    onClick={async () => {
+                      setSpeakingPending(true);
+                      try {
+                        await completeSpeakingPractice();
+                        setData((prev) => ({
+                          ...prev,
+                          dailyGoal: {
+                            ...prev.dailyGoal,
+                            speaking_practices: 1,
+                          },
+                        }));
+                      } finally {
+                        setSpeakingPending(false);
+                      }
+                    }}
+                    className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200 disabled:opacity-50"
+                  >
+                    {speakingPending ? "..." : "Falar agora"}
+                  </button>
+                </span>
+              )}
             </ProgressRow>
           </div>
           <p className="mt-5 text-sm text-slate-500">{doneSteps}/4 concluído</p>

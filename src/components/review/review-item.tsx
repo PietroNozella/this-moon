@@ -24,7 +24,13 @@ const reviewTypeLabels: Record<string, string> = {
   frase_propria: "Frase própria",
 };
 
-export function ReviewItem({ review }: { review: DueReview }) {
+export function ReviewItem({
+  review,
+  onComplete,
+}: {
+  review: DueReview;
+  onComplete?: () => void;
+}) {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -46,9 +52,8 @@ export function ReviewItem({ review }: { review: DueReview }) {
     }
 
     await completeReview(review.id, answer.trim(), rating);
-    setAnswer("");
-    setError("");
     setDone(true);
+    onComplete?.();
   }
 
   if (done) {
@@ -57,6 +62,11 @@ export function ReviewItem({ review }: { review: DueReview }) {
         <p className="text-sm font-medium text-emerald-700">
           Revisão concluída!
         </p>
+        {review.expected_answer ? (
+          <p className="mt-1 text-sm text-slate-600">
+            Resposta esperada: {review.expected_answer}
+          </p>
+        ) : null}
       </Card>
     );
   }
