@@ -14,7 +14,6 @@ type DueReview = ReviewRow & {
 
 export default function ReviewPage() {
   const [reviews, setReviews] = useState<DueReview[]>([]);
-  const [totalReviews, setTotalReviews] = useState(0);
   const [completedToday, setCompletedToday] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -30,14 +29,13 @@ export default function ReviewPage() {
         day: "2-digit",
       }).format(new Date());
 
-      const [{ data: dueReviews }, { data: allReviews }, { data: dailyGoals }] =
+      const [{ data: dueReviews }, { data: dailyGoals }] =
         await Promise.all([
           supabase
             .from("reviews")
             .select("*")
             .lte("due_at", now)
             .order("due_at", { ascending: true }),
-          supabase.from("reviews").select("id"),
           supabase
             .from("daily_goals")
             .select("reviews_completed")
@@ -81,7 +79,6 @@ export default function ReviewPage() {
       }));
 
       setReviews(merged);
-      setTotalReviews(allReviews?.length ?? 0);
       setCompletedToday(dailyGoals?.reviews_completed ?? 0);
       setLoading(false);
     }
@@ -94,11 +91,9 @@ export default function ReviewPage() {
   }
 
   const emptyMessage =
-    totalReviews === 0
-      ? "Sua primeira revisão aparece quando você salvar uma frase."
-      : completedToday > 0
-        ? "Você já concluiu as revisões disponíveis de hoje."
-        : "Nenhuma revisão vencida agora. As próximas aparecem aqui quando chegar a hora.";
+    completedToday > 0
+      ? "Você concluiu as revisões de hoje."
+      : "Nenhuma revisão pendente. Capture frases para começar.";
 
   return (
     <div className="space-y-6">

@@ -54,7 +54,7 @@ export function ReviewItem({ review }: { review: DueReview }) {
 
   if (done) {
     return (
-      <Card className="space-y-4 border-emerald-200 bg-emerald-50">
+      <Card className="border-emerald-200 bg-emerald-50">
         <p className="text-sm font-medium text-emerald-700">
           Revisão concluída!
         </p>
@@ -65,12 +65,12 @@ export function ReviewItem({ review }: { review: DueReview }) {
   return (
     <Card className="space-y-4">
       <div>
-        <p className="text-xs font-semibold uppercase text-emerald-700">
+        <p className="text-sm font-medium text-emerald-700">
           {reviewTypeLabels[review.review_type] ?? review.review_type}
         </p>
-        <h2 className="mt-1 text-xl font-semibold text-slate-950">{prompt}</h2>
+        <h2 className="mt-1 text-lg font-semibold text-slate-950">{prompt}</h2>
         {review.entry?.translation ? (
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500">
             {review.entry.translation}
           </p>
         ) : null}
@@ -78,19 +78,20 @@ export function ReviewItem({ review }: { review: DueReview }) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor={`answer-${review.id}`}>Sua resposta ativa</Label>
+          <Label htmlFor={`answer-${review.id}`}>Sua resposta</Label>
           <Textarea
             id={`answer-${review.id}`}
             name="answer"
-            placeholder="Escreva ou registre o que você falou em voz alta."
+            placeholder="Escreva sua resposta."
             value={answer}
             onChange={(event) => setAnswer(event.target.value)}
+            className="min-h-[72px]"
             required
           />
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-4">
+        <div className="flex flex-wrap gap-2">
           {Object.entries(ratingLabels).map(([rating, label]) => (
             <Button
               key={rating}
@@ -98,6 +99,8 @@ export function ReviewItem({ review }: { review: DueReview }) {
               name="rating"
               value={rating}
               variant={rating === "good" ? "primary" : "secondary"}
+              className="px-3 py-1.5 text-sm"
+              size="sm"
             >
               {label}
             </Button>
