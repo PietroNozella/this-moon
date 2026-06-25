@@ -106,42 +106,51 @@ export default function DashboardPage() {
   const doneSteps = dailySteps.filter(Boolean).length;
 
   if (loading) {
-    return <Card className="text-slate-500">Carregando seu painel...</Card>;
+    return <Card className="border-candy-blue-500/30 bg-onyx text-candy-blue-500/70">Carregando seu painel...</Card>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="-mx-4 -my-6 space-y-6 bg-onyx px-4 py-6 md:-mx-8 md:-my-8 md:px-8 md:py-8">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-candy-blue-700">Hoje</p>
-        <ButtonLink href="/capture">Capturar</ButtonLink>
+        <p className="text-sm font-semibold text-candy-blue-500">Hoje</p>
+        <ButtonLink
+          href="/capture"
+          className="bg-candy-blue-500 text-onyx hover:bg-candy-blue-500/90"
+        >
+          Capturar
+        </ButtonLink>
       </div>
 
       <section className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <p className="text-sm text-slate-500">Frases</p>
-          <p className="mt-2 text-3xl font-semibold text-onyx">{data.entriesCount}</p>
+        <Card className="border-candy-blue-500/30 bg-onyx">
+          <p className="text-sm text-candy-blue-500/70">Frases</p>
+          <p className="mt-2 text-3xl font-semibold text-candy-blue-500">
+            {data.entriesCount}
+          </p>
         </Card>
-        <Card>
-          <p className="text-sm text-slate-500">Verbos</p>
-          <p className="mt-2 text-3xl font-semibold text-onyx">{data.verbsCount}</p>
+        <Card className="border-candy-blue-500/30 bg-onyx">
+          <p className="text-sm text-candy-blue-500/70">Verbos</p>
+          <p className="mt-2 text-3xl font-semibold text-candy-blue-500">
+            {data.verbsCount}
+          </p>
         </Card>
-        <Card>
-          <p className="text-sm text-slate-500">Frases próprias</p>
-          <p className="mt-2 text-3xl font-semibold text-onyx">
+        <Card className="border-candy-blue-500/30 bg-onyx">
+          <p className="text-sm text-candy-blue-500/70">Frases próprias</p>
+          <p className="mt-2 text-3xl font-semibold text-candy-blue-500">
             {data.personalSentencesCount}
           </p>
         </Card>
-        <Card>
-          <p className="text-sm text-slate-500">Dominados</p>
-          <p className="mt-2 text-3xl font-semibold text-onyx">
+        <Card className="border-candy-blue-500/30 bg-onyx">
+          <p className="text-sm text-candy-blue-500/70">Dominados</p>
+          <p className="mt-2 text-3xl font-semibold text-candy-blue-500">
             {data.masteredChunksCount}
           </p>
         </Card>
       </section>
 
       <section className="grid gap-5 md:grid-cols-2">
-        <Card>
-          <CardTitle>Missão diária</CardTitle>
+        <Card className="border-candy-blue-500/30 bg-onyx">
+          <CardTitle className="text-candy-blue-500">Missão diária</CardTitle>
           <div className="mt-5 space-y-3">
             <ProgressRow done={data.dailyGoal.captured_entries > 0}>
               1 chunk capturado
@@ -180,7 +189,7 @@ export default function DashboardPage() {
                         setSpeakingPending(false);
                       }
                     }}
-                    className="rounded bg-candy-blue-500/20 px-2 py-0.5 text-xs font-medium text-candy-blue-700 hover:bg-candy-blue-500/30 disabled:opacity-50"
+                    className="rounded bg-candy-blue-500/20 px-2 py-0.5 text-xs font-medium text-candy-blue-500 hover:bg-candy-blue-500/30 disabled:opacity-50"
                   >
                     {speakingPending ? "..." : "Falar agora"}
                   </button>
@@ -188,30 +197,32 @@ export default function DashboardPage() {
               )}
             </ProgressRow>
           </div>
-          <p className="mt-5 text-sm text-slate-500">{doneSteps}/4 concluído</p>
+          <p className="mt-5 text-sm text-candy-blue-500/60">
+            {doneSteps}/4 concluído
+          </p>
         </Card>
 
-        <Card>
-          <CardTitle>Ações rápidas</CardTitle>
+        <Card className="border-candy-blue-500/30 bg-onyx">
+          <CardTitle className="text-candy-blue-500">Ações rápidas</CardTitle>
           <div className="mt-4 grid gap-2">
             <ButtonLink
               href="/review"
               variant="secondary"
-              className="justify-start"
+              className="border-candy-blue-500/30 bg-transparent text-candy-blue-500 hover:bg-candy-blue-500/10 justify-start"
             >
               Revisar hoje
             </ButtonLink>
             <ButtonLink
               href="/capture"
               variant="secondary"
-              className="justify-start"
+              className="border-candy-blue-500/30 bg-transparent text-candy-blue-500 hover:bg-candy-blue-500/10 justify-start"
             >
               Capturar nova frase
             </ButtonLink>
             <ButtonLink
               href="/library"
               variant="secondary"
-              className="justify-start"
+              className="border-candy-blue-500/30 bg-transparent text-candy-blue-500 hover:bg-candy-blue-500/10 justify-start"
             >
               Biblioteca
             </ButtonLink>
@@ -232,9 +243,9 @@ function ProgressRow({
   return (
     <div className="flex items-start gap-3">
       <span
-        className={`mt-1 size-3 rounded-full ${done ? "bg-candy-blue-500" : "bg-slate-300"}`}
+        className={`mt-1 size-3 rounded-full ${done ? "bg-candy-blue-500" : "bg-candy-blue-500/20"}`}
       />
-      <span className={done ? "text-onyx" : "text-slate-500"}>
+      <span className={done ? "text-candy-blue-500" : "text-candy-blue-500/60"}>
         {children}
       </span>
     </div>
