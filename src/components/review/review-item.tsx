@@ -29,10 +29,9 @@ export function ReviewItem({ review }: { review: DueReview }) {
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
-  const prompt =
-    review.prompt ??
-    review.chunk?.chunk_text ??
+  const phrase =
     review.entry?.original_phrase ??
+    review.chunk?.chunk_text ??
     "Crie uma frase própria.";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -68,11 +67,14 @@ export function ReviewItem({ review }: { review: DueReview }) {
         <p className="text-sm font-medium text-emerald-700">
           {reviewTypeLabels[review.review_type] ?? review.review_type}
         </p>
-        <h2 className="mt-1 text-lg font-semibold text-slate-950">{prompt}</h2>
+        <h2 className="mt-1 text-lg font-semibold text-slate-950">{phrase}</h2>
         {review.entry?.translation ? (
           <p className="mt-1 text-sm text-slate-500">
             {review.entry.translation}
           </p>
+        ) : null}
+        {review.prompt ? (
+          <p className="mt-3 text-sm text-slate-500">{review.prompt}</p>
         ) : null}
       </div>
 
