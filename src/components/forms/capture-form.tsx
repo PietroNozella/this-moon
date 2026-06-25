@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { FieldError, Input, Label, Select, Textarea } from "@/components/ui/form";
-import { useLocalStore } from "@/components/local-store-provider";
 import { compactText, parseCommaList } from "@/lib/utils";
 import {
   createEntrySchema,
@@ -14,6 +13,7 @@ import {
   sourceTypes,
   type LearningActionState,
 } from "@/lib/validators/learning";
+import { createEntry } from "@/server/actions/learning";
 
 const sourceLabels: Record<string, string> = {
   music: "Música",
@@ -37,11 +37,10 @@ const difficultyLabels: Record<string, string> = {
 
 export function CaptureForm() {
   const router = useRouter();
-  const { createEntry, isLoaded } = useLocalStore();
   const [state, setState] = useState<LearningActionState>({});
   const [pending, setPending] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
 
@@ -67,12 +66,21 @@ export function CaptureForm() {
       return;
     }
 
-    const entryId = createEntry({
-      ...parsed.data,
-      source_url: parsed.data.source_url || undefined,
-    });
+    try {
+      const entryId = await createEntry({
+        ...parsed.data,
+        source_url: parsed.data.source_url || undefined,
+      });
 
-    router.push(`/library/${entryId}`);
+      setState({});
+      router.push(`/library/${entryId}`);
+    } catch (error) {
+      setState({
+        message:
+          error instanceof Error ? error.message : "Erro ao salvar frase.",
+      });
+      setPending(false);
+    }
   }
 
   return (
@@ -216,11 +224,10 @@ export function CaptureForm() {
           </p>
         ) : null}
 
-        <Button type="submit" className="w-full" size="lg" disabled={pending || !isLoaded}>
+        <Button type="submit" className="w-full" size="lg" disabled={pending}>
           Salvar frase
         </Button>
       </div>
     </form>
   );
 }
-

@@ -1,16 +1,16 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/form";
-import { useLocalStore } from "@/components/local-store-provider";
+import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/utils";
 import { difficulties, entryStatuses, sourceTypes } from "@/lib/validators/learning";
-import { getLibraryEntries, type LibraryFilters } from "@/lib/local-selectors";
+import type { ChunkRow, EntryRow, TagRow } from "@/types/database";
 
 const sourceLabels: Record<string, string> = {
   music: "Música",
@@ -41,16 +41,100 @@ const difficultyLabels: Record<string, string> = {
   unknown: "Sem nível",
 };
 
-export default function LibraryPage() {
-  const { state, isLoaded } = useLocalStore();
-  const [filters, setFilters] = useState<LibraryFilters>({});
-  const entries = useMemo(
-    () => getLibraryEntries(state, filters),
-    [state, filters],
-  );
+type LibraryEntry = EntryRow & {
+  chunks: ChunkRow[];
+  tags: TagRow[];
+};
 
-  if (!isLoaded) {
-    return <Card className="text-slate-500">Carregando biblioteca local...</Card>;
+export default function LibraryPage() {
+  const supabase = createClient();
+  const [entries, setEntries] = useState<LibraryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<{
+    q?: string;
+    status?: string;
+    source?: string;
+    difficulty?: string;
+  }>({});
+
+  useEffect(() => {
+    async function load() {
+      const entriesData = (await supabase
+        .from("learning_entries")
+        .select("*")
+        .order("created_at", { ascending: false })).data ?? [];
+
+      const chunksData = (await supabase
+        .from("chunks")
+        .select("*")).data ?? [];
+
+      const { data: entryTagsData } = await supabase
+        .from("entry_tags")
+        .select("entry_id, tag_id");
+
+      const tagsData = (await supabase.from("tags").select("*")).data ?? [];
+      const rawEntryTags = (entryTagsData ?? []) as unknown as {
+        entry_id: string;
+        tag_id: string;
+        tags: TagRow;
+      }[];
+
+      const tagMap = new Map((tagsData as TagRow[]).map((t) => [t.id, t]));
+      const entryTagsMap = new Map<string, TagRow[]>();
+
+      for (const et of rawEntryTags) {
+        const tag = tagMap.get(et.tag_id);
+        if (tag) {
+          const existing = entryTagsMap.get(et.entry_id) ?? [];
+          existing.push(tag as TagRow);
+          entryTagsMap.set(et.entry_id, existing);
+        }
+      }
+
+      const rawChunks = chunksData as ChunkRow[];
+      const chunkMap = new Map<string, ChunkRow[]>();
+      for (const chunk of rawChunks) {
+        if (chunk.entry_id) {
+          const existing = chunkMap.get(chunk.entry_id) ?? [];
+          existing.push(chunk);
+          chunkMap.set(chunk.entry_id, existing);
+        }
+      }
+
+      const rawEntries = entriesData as EntryRow[];
+      const merged: LibraryEntry[] = rawEntries.map((entry) => ({
+        ...entry,
+        chunks: chunkMap.get(entry.id) ?? [],
+        tags: entryTagsMap.get(entry.id) ?? [],
+      }));
+
+      setEntries(merged);
+      setLoading(false);
+    }
+
+    void load();
+  }, []);
+
+  const filtered = useMemo(() => {
+    const search = filters.q?.trim().toLowerCase();
+
+    return entries.filter((entry) => {
+      if (filters.status && entry.status !== filters.status) return false;
+      if (filters.source && entry.source_type !== filters.source) return false;
+      if (filters.difficulty && entry.difficulty !== filters.difficulty)
+        return false;
+      if (!search) return true;
+
+      return [entry.original_phrase, entry.translation, entry.context_note]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    });
+  }, [entries, filters]);
+
+  if (loading) {
+    return <Card className="text-slate-500">Carregando biblioteca...</Card>;
   }
 
   return (
@@ -140,22 +224,28 @@ export default function LibraryPage() {
       </Card>
 
       <div className="grid gap-4">
-        {entries.length > 0 ? (
-          entries.map((entry) => (
+        {filtered.length > 0 ? (
+          filtered.map((entry) => (
             <Link key={entry.id} href={`/library/${entry.id}`}>
               <Card className="transition hover:border-slate-300 hover:shadow-md">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge value={entry.status} />
-                      <Badge>{sourceLabels[entry.source_type] ?? entry.source_type}</Badge>
-                      <Badge>{difficultyLabels[entry.difficulty ?? "unknown"]}</Badge>
+                      <Badge>
+                        {sourceLabels[entry.source_type] ?? entry.source_type}
+                      </Badge>
+                      <Badge>
+                        {difficultyLabels[entry.difficulty ?? "unknown"]}
+                      </Badge>
                     </div>
                     <h2 className="mt-3 text-xl font-semibold text-slate-950">
                       {entry.original_phrase}
                     </h2>
                     {entry.translation ? (
-                      <p className="mt-1 text-slate-600">{entry.translation}</p>
+                      <p className="mt-1 text-slate-600">
+                        {entry.translation}
+                      </p>
                     ) : null}
                     {entry.context_note ? (
                       <p className="mt-3 text-sm text-slate-500">
@@ -173,7 +263,7 @@ export default function LibraryPage() {
                     <Badge key={chunk.id}>{chunk.chunk_text}</Badge>
                   ))}
                   {entry.tags.map((tag) => (
-                    <Badge key={tag}>#{tag}</Badge>
+                    <Badge key={tag.id}>#{tag.name}</Badge>
                   ))}
                 </div>
               </Card>
@@ -188,4 +278,3 @@ export default function LibraryPage() {
     </div>
   );
 }
-

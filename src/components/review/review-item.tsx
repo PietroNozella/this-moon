@@ -2,11 +2,16 @@
 
 import { useState, type FormEvent } from "react";
 
-import { useLocalStore } from "@/components/local-store-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label, Textarea } from "@/components/ui/form";
-import type { LocalDueReview } from "@/types/local";
+import { completeReview } from "@/server/actions/learning";
+import type { ChunkRow, EntryRow, ReviewRow } from "@/types/database";
+
+type DueReview = ReviewRow & {
+  entry?: EntryRow | null;
+  chunk?: ChunkRow | null;
+};
 
 const ratingLabels = {
   forgot: "Esqueci",
@@ -19,17 +24,18 @@ const reviewTypeLabels: Record<string, string> = {
   frase_propria: "Frase própria",
 };
 
-export function ReviewItem({ review }: { review: LocalDueReview }) {
-  const { completeReview } = useLocalStore();
+export function ReviewItem({ review }: { review: DueReview }) {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+
   const prompt =
     review.prompt ??
     review.chunk?.chunk_text ??
     review.entry?.original_phrase ??
     "Crie uma frase própria.";
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -40,9 +46,20 @@ export function ReviewItem({ review }: { review: LocalDueReview }) {
       return;
     }
 
-    completeReview(review.id, answer.trim(), rating);
+    await completeReview(review.id, answer.trim(), rating);
     setAnswer("");
     setError("");
+    setDone(true);
+  }
+
+  if (done) {
+    return (
+      <Card className="space-y-4 border-emerald-200 bg-emerald-50">
+        <p className="text-sm font-medium text-emerald-700">
+          Revisão concluída!
+        </p>
+      </Card>
+    );
   }
 
   return (

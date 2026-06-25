@@ -1,23 +1,64 @@
 ﻿"use client";
 
+import { useEffect, useState } from "react";
+
 import { Card, CardTitle } from "@/components/ui/card";
-import { useLocalStore } from "@/components/local-store-provider";
-import { getDashboardData } from "@/lib/local-selectors";
+import { createClient } from "@/lib/supabase/client";
+
+type Metrics = [string, number][];
 
 export default function AnalyticsPage() {
-  const { state, isLoaded } = useLocalStore();
-  const data = getDashboardData(state);
+  const [metrics, setMetrics] = useState<Metrics>([]);
+  const [loading, setLoading] = useState(true);
 
-  const metrics = [
-    ["Frases capturadas", data.entriesCount],
-    ["Frases próprias", data.personalSentencesCount],
-    ["Revisões feitas", data.completedReviewsCount],
-    ["Sessões de prática", data.practiceSessionsCount],
-    ["Chunks ativos", data.activeChunksCount],
-    ["Chunks dominados", data.masteredChunksCount],
-  ];
+  useEffect(() => {
+    const supabase = createClient();
 
-  if (!isLoaded) {
+    async function load() {
+      const [
+        { count: entriesCount },
+        { count: personalSentencesCount },
+        { data: allReviews },
+        { data: allChunks },
+      ] = await Promise.all([
+        supabase
+          .from("learning_entries")
+          .select("*", { count: "exact", head: true }),
+        supabase
+          .from("personal_sentences")
+          .select("*", { count: "exact", head: true }),
+        supabase
+          .from("reviews")
+          .select("*")
+          .not("reviewed_at", "is", null),
+        supabase.from("chunks").select("*").returns<{ status: string | null }[]>(),
+      ]);
+
+      setMetrics([
+        ["Frases capturadas", entriesCount ?? 0],
+        ["Frases próprias", personalSentencesCount ?? 0],
+        ["Revisões feitas", allReviews?.length ?? 0],
+        ["Sessões de prática", 0],
+        [
+          "Chunks ativos",
+          allChunks?.filter((c) =>
+            ["new", "learning", "practicing", "almost_natural"].includes(
+              c.status ?? "",
+            ),
+          ).length ?? 0,
+        ],
+        [
+          "Chunks dominados",
+          allChunks?.filter((c) => c.status === "mastered").length ?? 0,
+        ],
+      ]);
+      setLoading(false);
+    }
+
+    void load();
+  }, []);
+
+  if (loading) {
     return <Card className="text-slate-500">Carregando progresso...</Card>;
   }
 
@@ -41,4 +82,3 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-

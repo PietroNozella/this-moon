@@ -1,30 +1,89 @@
 ﻿"use client";
 
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { PersonalSentenceForm } from "@/components/forms/personal-sentence-form";
 import { StatusForm } from "@/components/forms/status-form";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { useLocalStore } from "@/components/local-store-provider";
+import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/utils";
-import { getEntryDetail } from "@/lib/local-selectors";
+import type {
+  ChunkRow,
+  EntryRow,
+  PersonalSentenceRow,
+  TagRow,
+} from "@/types/database";
+
+type EntryDetailData = EntryRow & {
+  chunks: ChunkRow[];
+  personal_sentences: PersonalSentenceRow[];
+  tags: TagRow[];
+};
 
 export default function EntryDetailPage() {
   const params = useParams<{ id: string }>();
-  const { state, isLoaded } = useLocalStore();
-  const entry = getEntryDetail(state, params.id);
+  const [entry, setEntry] = useState<EntryDetailData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function load() {
+      const { data: entryData } = await supabase
+        .from("learning_entries")
+        .select("*")
+        .eq("id", params.id)
+        .single();
+
+      if (!entryData) {
+        setLoading(false);
+        return;
+      }
+
+      const [chunksResult, sentencesResult, entryTagsResult] =
+        await Promise.all([
+          supabase.from("chunks").select("*").eq("entry_id", params.id),
+          supabase
+            .from("personal_sentences")
+            .select("*")
+            .eq("entry_id", params.id),
+          supabase
+            .from("entry_tags")
+            .select("tag_id, tags(*)")
+            .eq("entry_id", params.id),
+        ]);
+
+      const rawEntryTags = (entryTagsResult.data ?? []) as unknown as {
+        tag_id: string;
+        tags: TagRow;
+      }[];
+      const tags = rawEntryTags.map((et) => et.tags).filter(Boolean);
+
+      setEntry({
+        ...(entryData as EntryRow),
+        chunks: (chunksResult.data as ChunkRow[]) ?? [],
+        personal_sentences:
+          (sentencesResult.data as PersonalSentenceRow[]) ?? [],
+        tags,
+      });
+      setLoading(false);
+    }
+
+    void load();
+  }, [params.id]);
+
   const mainChunk = entry?.chunks[0];
 
-  if (!isLoaded) {
+  if (loading) {
     return <Card className="text-slate-500">Carregando entrada...</Card>;
   }
 
   if (!entry) {
     return (
       <Card className="space-y-4 border-dashed text-slate-500">
-        <p>Entrada não encontrada neste navegador.</p>
+        <p>Entrada não encontrada.</p>
         <ButtonLink href="/library" variant="secondary">
           Voltar para biblioteca
         </ButtonLink>
@@ -55,12 +114,14 @@ export default function EntryDetailPage() {
             <Badge>{entry.source_type}</Badge>
             <Badge>{entry.difficulty ?? "unknown"}</Badge>
             {entry.tags.map((tag) => (
-              <Badge key={tag}>#{tag}</Badge>
+              <Badge key={tag.id}>#{tag.name}</Badge>
             ))}
           </div>
 
           <Section title="Tradução">{entry.translation}</Section>
-          <Section title="Explicação simples">{entry.meaning_explanation}</Section>
+          <Section title="Explicação simples">
+            {entry.meaning_explanation}
+          </Section>
           <Section title="Contexto de uso">{entry.context_note}</Section>
 
           {entry.source_title || entry.source_url ? (
@@ -162,9 +223,7 @@ function Section({
   title: string;
   children?: React.ReactNode;
 }) {
-  if (!children) {
-    return null;
-  }
+  if (!children) return null;
 
   return (
     <div>
@@ -173,4 +232,3 @@ function Section({
     </div>
   );
 }
-

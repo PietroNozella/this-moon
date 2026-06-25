@@ -1,5 +1,5 @@
-﻿import { AppShell } from "@/components/app-shell";
-import { LocalStoreProvider } from "@/components/local-store-provider";
+﻿import { AuthProvider } from "@/components/auth-provider";
+import { AppShell } from "@/components/app-shell";
 
 export default async function AppLayout({
   children,
@@ -7,8 +7,8 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <LocalStoreProvider>
+    <AuthProvider>
       <AppShell>{children}</AppShell>
-    </LocalStoreProvider>
+    </AuthProvider>
   );
 }

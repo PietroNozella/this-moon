@@ -1,9 +1,11 @@
 ﻿"use client";
 
+import { useEffect, useState } from "react";
+
 import { Button, ButtonLink } from "@/components/ui/button";
-import { useLocalStore } from "@/components/local-store-provider";
 import { Card, CardTitle } from "@/components/ui/card";
-import { getTodayGoal } from "@/lib/local-selectors";
+import { createClient } from "@/lib/supabase/client";
+import { completeSpeakingPractice } from "@/server/actions/learning";
 
 const modes = [
   {
@@ -24,9 +26,32 @@ const modes = [
 ];
 
 export default function PracticePage() {
-  const { state, isLoaded, completeSpeakingPractice } = useLocalStore();
-  const dailyGoal = getTodayGoal(state);
-  const speakingDone = dailyGoal.speaking_practices > 0;
+  const [speakingDone, setSpeakingDone] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function load() {
+      const today = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date());
+
+      const { data: goal } = await supabase
+        .from("daily_goals")
+        .select("speaking_practices")
+        .eq("goal_date", today)
+        .maybeSingle();
+
+      setSpeakingDone((goal?.speaking_practices as number | null ?? 0) > 0);
+      setLoading(false);
+    }
+
+    void load();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -49,8 +74,11 @@ export default function PracticePage() {
           </div>
           <Button
             type="button"
-            onClick={completeSpeakingPractice}
-            disabled={!isLoaded || speakingDone}
+            onClick={async () => {
+              await completeSpeakingPractice();
+              setSpeakingDone(true);
+            }}
+            disabled={loading || speakingDone}
           >
             {speakingDone ? "Frase falada concluída" : "Marcar frase falada"}
           </Button>

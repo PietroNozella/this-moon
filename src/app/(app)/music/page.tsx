@@ -1,14 +1,45 @@
 ﻿"use client";
 
+import { useEffect, useState } from "react";
+
 import { ButtonLink } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
-import { useLocalStore } from "@/components/local-store-provider";
-import { getChunksBySource } from "@/lib/local-selectors";
-import type { LocalChunk } from "@/types/local";
+import { Card } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
+import type { ChunkRow, EntryRow } from "@/types/database";
 
 export default function MusicPage() {
-  const { state } = useLocalStore();
-  const chunks = getChunksBySource(state, "music");
+  const [chunks, setChunks] = useState<ChunkRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function load() {
+      const { data: rawEntries } = await supabase
+        .from("learning_entries")
+        .select("id")
+        .eq("source_type", "music");
+
+      const entryIds = ((rawEntries ?? []) as Pick<EntryRow, "id">[]).map(
+        (e) => e.id,
+      );
+
+      if (entryIds.length > 0) {
+        const { data: chunksData } = await supabase
+          .from("chunks")
+          .select("*")
+          .in("entry_id", entryIds)
+          .order("created_at", { ascending: false })
+          .limit(12);
+
+        setChunks((chunksData as ChunkRow[]) ?? []);
+      }
+
+      setLoading(false);
+    }
+
+    void load();
+  }, []);
 
   return (
     <SourcePage
@@ -17,6 +48,7 @@ export default function MusicPage() {
       description="1 trecho pequeno, 1 chunk útil, 3 frases suas."
       empty="Escolha uma música e salve um trecho pequeno."
       chunks={chunks}
+      loading={loading}
       captureHref="/capture"
     />
   );
@@ -28,13 +60,15 @@ function SourcePage({
   description,
   empty,
   chunks,
+  loading,
   captureHref,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   empty: string;
-  chunks: LocalChunk[];
+  chunks: ChunkRow[];
+  loading: boolean;
   captureHref: string;
 }) {
   return (
@@ -51,10 +85,14 @@ function SourcePage({
       </div>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {chunks.length > 0 ? (
+        {loading ? (
+          <Card className="text-slate-500">Carregando...</Card>
+        ) : chunks.length > 0 ? (
           chunks.map((chunk) => (
             <Card key={chunk.id}>
-              <CardTitle>{chunk.chunk_text}</CardTitle>
+              <p className="text-base font-semibold text-slate-950">
+                {chunk.chunk_text}
+              </p>
               {chunk.translation ? (
                 <p className="mt-2 text-sm text-slate-500">
                   {chunk.translation}
@@ -69,4 +107,3 @@ function SourcePage({
     </div>
   );
 }
-

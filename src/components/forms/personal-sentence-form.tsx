@@ -4,12 +4,12 @@ import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label, Textarea } from "@/components/ui/form";
-import { useLocalStore } from "@/components/local-store-provider";
 import { compactText } from "@/lib/utils";
 import {
   createPersonalSentenceSchema,
   type LearningActionState,
 } from "@/lib/validators/learning";
+import { createPersonalSentence } from "@/server/actions/learning";
 
 export function PersonalSentenceForm({
   entryId,
@@ -18,11 +18,10 @@ export function PersonalSentenceForm({
   entryId: string;
   chunkId?: string | null;
 }) {
-  const { createPersonalSentence } = useLocalStore();
   const [state, setState] = useState<LearningActionState>({});
   const [pending, setPending] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
 
@@ -41,10 +40,18 @@ export function PersonalSentenceForm({
       return;
     }
 
-    createPersonalSentence(parsed.data);
-    form.reset();
-    setState({});
-    setPending(false);
+    try {
+      await createPersonalSentence(parsed.data);
+      form.reset();
+      setState({});
+      setPending(false);
+    } catch (error) {
+      setState({
+        message:
+          error instanceof Error ? error.message : "Erro ao criar frase.",
+      });
+      setPending(false);
+    }
   }
 
   return (

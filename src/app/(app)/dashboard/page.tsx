@@ -1,25 +1,151 @@
 ﻿"use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { useLocalStore } from "@/components/local-store-provider";
-import { getDashboardData } from "@/lib/local-selectors";
+import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/utils";
+import type { ChunkRow, DailyGoalRow, EntryRow, ReviewRow } from "@/types/database";
 
-const quickActions = [
-  { href: "/review", label: "Revisar hoje" },
-  { href: "/capture", label: "Capturar nova frase" },
-  { href: "/practice", label: "Praticar speaking" },
-  { href: "/music", label: "Estudar música" },
-  { href: "/library", label: "Criar frases minhas" },
-];
+type DashboardData = {
+  entriesCount: number;
+  personalSentencesCount: number;
+  pendingReviewsCount: number;
+  completedReviewsCount: number;
+  masteredChunksCount: number;
+  activeChunksCount: number;
+  dailyGoal: {
+    captured_entries: number;
+    personal_sentences_created: number;
+    reviews_completed: number;
+    speaking_practices: number;
+  };
+  reviewStep: { done: boolean; label: string; hint: string };
+  chunkOfDay: ChunkRow | null;
+  recentEntries: EntryRow[];
+};
+
+const emptyData: DashboardData = {
+  entriesCount: 0,
+  personalSentencesCount: 0,
+  pendingReviewsCount: 0,
+  completedReviewsCount: 0,
+  masteredChunksCount: 0,
+  activeChunksCount: 0,
+  dailyGoal: {
+    captured_entries: 0,
+    personal_sentences_created: 0,
+    reviews_completed: 0,
+    speaking_practices: 0,
+  },
+  reviewStep: { done: true, label: "Sem revisão pendente hoje", hint: "" },
+  chunkOfDay: null,
+  recentEntries: [],
+};
 
 export default function DashboardPage() {
-  const { state, isLoaded } = useLocalStore();
-  const data = getDashboardData(state);
+  const [data, setData] = useState<DashboardData>(emptyData);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function load() {
+      const now = new Date().toISOString();
+      const today = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date());
+
+      const [entriesRes, sentencesRes, reviewsDueRes, reviewsDoneRes, chunksRes, recentRes, goalRes] =
+        await Promise.all([
+          supabase
+            .from("learning_entries")
+            .select("*", { count: "exact", head: true }),
+          supabase
+            .from("personal_sentences")
+            .select("*", { count: "exact", head: true }),
+          supabase
+            .from("reviews")
+            .select("*")
+            .lte("due_at", now)
+            .order("due_at", { ascending: true }),
+          supabase
+            .from("reviews")
+            .select("*")
+            .not("reviewed_at", "is", null),
+          supabase
+            .from("chunks")
+            .select("*")
+            .order("usage_count", { ascending: false }),
+          supabase
+            .from("learning_entries")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(5),
+          supabase
+            .from("daily_goals")
+            .select("*")
+            .eq("goal_date", today)
+            .maybeSingle(),
+        ]);
+
+      const entriesCount = entriesRes.count ?? 0;
+      const personalSentencesCount = sentencesRes.count ?? 0;
+      const dueReviews = (reviewsDueRes.data ?? []) as ReviewRow[];
+      const allReviews = (reviewsDoneRes.data ?? []) as ReviewRow[];
+      const allChunks = (chunksRes.data ?? []) as ChunkRow[];
+      const recentEntries = (recentRes.data ?? []) as EntryRow[];
+      const dailyGoals = goalRes.data as DailyGoalRow | null;
+
+      const dailyGoal = {
+        captured_entries: dailyGoals?.captured_entries ?? 0,
+        personal_sentences_created: dailyGoals?.personal_sentences_created ?? 0,
+        reviews_completed: dailyGoals?.reviews_completed ?? 0,
+        speaking_practices: dailyGoals?.speaking_practices ?? 0,
+      };
+
+      const isDueReviewPending = (dueReviews?.length ?? 0) > 0;
+      const reviewStepDone =
+        dailyGoal.reviews_completed > 0 || !isDueReviewPending;
+
+      setData({
+        entriesCount: entriesCount ?? 0,
+        personalSentencesCount: personalSentencesCount ?? 0,
+        pendingReviewsCount: dueReviews?.length ?? 0,
+        completedReviewsCount: allReviews?.length ?? 0,
+        masteredChunksCount:
+          allChunks?.filter((c) => c.status === "mastered").length ?? 0,
+        activeChunksCount:
+          allChunks?.filter((c) =>
+            ["new", "learning", "practicing", "almost_natural"].includes(
+              c.status ?? "",
+            ),
+          ).length ?? 0,
+        dailyGoal,
+        reviewStep: {
+          done: reviewStepDone,
+          label: isDueReviewPending
+            ? "1 revisão rápida"
+            : "Sem revisão pendente hoje",
+          hint: isDueReviewPending
+            ? "Conclua uma revisão disponível para fechar essa etapa."
+            : "As próximas revisões aparecem aqui quando vencerem.",
+        },
+        chunkOfDay: (allChunks as ChunkRow[])?.[0] ?? null,
+        recentEntries: (recentEntries as EntryRow[]) ?? [],
+      });
+      setLoading(false);
+    }
+
+    void load();
+  }, []);
+
   const dailySteps = [
     data.dailyGoal.captured_entries > 0,
     data.dailyGoal.personal_sentences_created >= 3,
@@ -28,8 +154,8 @@ export default function DashboardPage() {
   ];
   const doneSteps = dailySteps.filter(Boolean).length;
 
-  if (!isLoaded) {
-    return <Card className="text-slate-500">Carregando seus dados locais...</Card>;
+  if (loading) {
+    return <Card className="text-slate-500">Carregando seu painel...</Card>;
   }
 
   return (
@@ -128,16 +254,41 @@ export default function DashboardPage() {
         <Card>
           <CardTitle>Ações rápidas</CardTitle>
           <div className="mt-4 grid gap-2">
-            {quickActions.map((action) => (
-              <ButtonLink
-                key={action.href}
-                href={action.href}
-                variant="secondary"
-                className="justify-start"
-              >
-                {action.label}
-              </ButtonLink>
-            ))}
+            <ButtonLink
+              href="/review"
+              variant="secondary"
+              className="justify-start"
+            >
+              Revisar hoje
+            </ButtonLink>
+            <ButtonLink
+              href="/capture"
+              variant="secondary"
+              className="justify-start"
+            >
+              Capturar nova frase
+            </ButtonLink>
+            <ButtonLink
+              href="/practice"
+              variant="secondary"
+              className="justify-start"
+            >
+              Praticar speaking
+            </ButtonLink>
+            <ButtonLink
+              href="/music"
+              variant="secondary"
+              className="justify-start"
+            >
+              Estudar música
+            </ButtonLink>
+            <ButtonLink
+              href="/library"
+              variant="secondary"
+              className="justify-start"
+            >
+              Criar frases minhas
+            </ButtonLink>
           </div>
         </Card>
 

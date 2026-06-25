@@ -35,17 +35,6 @@ yarn-error.log*
 .env*
 !.env.example
 
-# local leftovers from the Supabase prototype
-src/server/
-src/lib/supabase/
-src/lib/auth.ts
-src/lib/env.ts
-src/lib/validators/auth.ts
-src/components/forms/auth-forms.tsx
-src/types/database.ts
-src/proxy.ts
-supabase/
-
 # vercel
 .vercel
 

@@ -1,9 +1,11 @@
 ﻿"use client";
 
+import { useEffect, useState } from "react";
+
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { useLocalStore } from "@/components/local-store-provider";
-import { getChunksBySource } from "@/lib/local-selectors";
+import { createClient } from "@/lib/supabase/client";
+import type { ChunkRow, EntryRow } from "@/types/database";
 
 const basePhrases = [
   "I need more gold.",
@@ -13,8 +15,38 @@ const basePhrases = [
 ];
 
 export default function GamesPage() {
-  const { state } = useLocalStore();
-  const chunks = getChunksBySource(state, "game");
+  const [chunks, setChunks] = useState<ChunkRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function load() {
+      const { data: entries } = await supabase
+        .from("learning_entries")
+        .select("id")
+        .eq("source_type", "game");
+
+      const entryIds = ((entries ?? []) as Pick<EntryRow, "id">[]).map(
+        (e) => e.id,
+      );
+
+      if (entryIds.length > 0) {
+        const { data: chunksData } = await supabase
+          .from("chunks")
+          .select("*")
+          .in("entry_id", entryIds)
+          .order("created_at", { ascending: false })
+          .limit(12);
+
+        setChunks((chunksData as ChunkRow[]) ?? []);
+      }
+
+      setLoading(false);
+    }
+
+    void load();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -43,7 +75,9 @@ export default function GamesPage() {
         <Card>
           <CardTitle>Chunks capturados</CardTitle>
           <div className="mt-4 space-y-2">
-            {chunks.length > 0 ? (
+            {loading ? (
+              <p className="text-sm text-slate-500">Carregando...</p>
+            ) : chunks.length > 0 ? (
               chunks.map((chunk) => (
                 <p key={chunk.id} className="rounded-md bg-slate-50 px-3 py-2">
                   {chunk.chunk_text}
@@ -60,4 +94,3 @@ export default function GamesPage() {
     </div>
   );
 }
-

@@ -1,119 +1,86 @@
 ﻿"use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 
-import { useLocalStore } from "@/components/local-store-provider";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/auth-provider";
 import { Card, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { state, exportData, importData, resetData } = useLocalStore();
-  const [message, setMessage] = useState("");
+  const { user } = useAuth();
+  const [counts, setCounts] = useState({
+    entries: 0,
+    chunks: 0,
+    sentences: 0,
+    reviews: 0,
+  });
 
-  function handleExport() {
-    const blob = new Blob([exportData()], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+  useEffect(() => {
+    const supabase = createClient();
 
-    link.href = url;
-    link.download = `chunkflow-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    setMessage("Backup exportado.");
-  }
+    async function load() {
+      const [
+        { count: entries },
+        { count: chunks },
+        { count: sentences },
+        { count: reviews },
+      ] = await Promise.all([
+        supabase
+          .from("learning_entries")
+          .select("*", { count: "exact", head: true }),
+        supabase
+          .from("chunks")
+          .select("*", { count: "exact", head: true }),
+        supabase
+          .from("personal_sentences")
+          .select("*", { count: "exact", head: true }),
+        supabase
+          .from("reviews")
+          .select("*", { count: "exact", head: true }),
+      ]);
 
-  function handleImport(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
+      setCounts({
+        entries: entries ?? 0,
+        chunks: chunks ?? 0,
+        sentences: sentences ?? 0,
+        reviews: reviews ?? 0,
+      });
     }
 
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      try {
-        importData(String(reader.result ?? ""));
-        setMessage("Backup importado com sucesso.");
-      } catch {
-        setMessage("Não foi possível importar esse arquivo.");
-      }
-    };
-
-    reader.readAsText(file);
-    event.target.value = "";
-  }
-
-  async function handleReset() {
-    const confirmed = window.confirm(
-      "Isso apaga todos os dados locais deste navegador. Continuar?",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    await resetData();
-    setMessage("Dados locais apagados.");
-  }
+    void load();
+  }, []);
 
   return (
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold text-emerald-700">Configurações</p>
         <h1 className="text-3xl font-semibold tracking-normal text-slate-950">
-          Dados locais e backup
+          Conta e dados
         </h1>
       </div>
 
       <section className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardTitle>Modo local</CardTitle>
+          <CardTitle>Conta</CardTitle>
           <div className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
-            <p>O app não usa login, banco de dados ou backend.</p>
-            <p>Os dados ficam no IndexedDB deste navegador.</p>
-            <p>Para trocar de dispositivo, exporte e importe um backup JSON.</p>
+            <p>Email: {user?.email ?? "-"}</p>
+            <p>ID: {user?.id ?? "-"}</p>
+            <p className="text-xs text-slate-400">
+              Gerenciamento de conta pelo Supabase Auth.
+            </p>
           </div>
         </Card>
 
         <Card>
           <CardTitle>Resumo</CardTitle>
           <div className="mt-4 grid gap-3 text-sm text-slate-600">
-            <p>Frases: {state.entries.length}</p>
-            <p>Chunks: {state.chunks.length}</p>
-            <p>Frases próprias: {state.personalSentences.length}</p>
-            <p>Revisões: {state.reviews.length}</p>
+            <p>Frases: {counts.entries}</p>
+            <p>Chunks: {counts.chunks}</p>
+            <p>Frases próprias: {counts.sentences}</p>
+            <p>Revisões: {counts.reviews}</p>
           </div>
         </Card>
       </section>
-
-      <Card className="space-y-4">
-        <CardTitle>Backup</CardTitle>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button type="button" onClick={handleExport}>
-            Exportar JSON
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            Importar JSON
-          </Button>
-          <Button type="button" variant="danger" onClick={handleReset}>
-            Limpar dados
-          </Button>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json"
-          className="hidden"
-          onChange={handleImport}
-        />
-        {message ? <p className="text-sm text-slate-500">{message}</p> : null}
-      </Card>
     </div>
   );
 }

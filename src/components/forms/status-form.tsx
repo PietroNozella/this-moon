@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/form";
-import { useLocalStore } from "@/components/local-store-provider";
 import { entryStatuses } from "@/lib/validators/learning";
+import { updateEntryStatus } from "@/server/actions/learning";
 
 const labels: Record<string, string> = {
   new: "Novo",
@@ -21,15 +23,17 @@ export function StatusForm({
   entryId: string;
   currentStatus?: string | null;
 }) {
-  const { updateEntryStatus } = useLocalStore();
+  const [pending, setPending] = useState(false);
 
   return (
     <form
       className="flex gap-2"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
+        setPending(true);
         const formData = new FormData(event.currentTarget);
-        updateEntryStatus(entryId, String(formData.get("status") ?? "new"));
+        await updateEntryStatus(entryId, String(formData.get("status") ?? "new"));
+        setPending(false);
       }}
     >
       <Select
@@ -44,7 +48,7 @@ export function StatusForm({
           </option>
         ))}
       </Select>
-      <Button type="submit" variant="secondary">
+      <Button type="submit" variant="secondary" disabled={pending}>
         Atualizar
       </Button>
     </form>
