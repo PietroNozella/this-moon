@@ -103,7 +103,7 @@ export default function EntryDetailPage() {
       </div>
 
       <Section title="Tradução">{entry.translation}</Section>
-      <Section title="Contexto">{entry.context_note}</Section>
+      <Section title="Onde você usaria isso?">{entry.context_note}</Section>
 
       {mainChunk ? (
         <Card>
