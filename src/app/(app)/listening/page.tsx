@@ -366,11 +366,10 @@ export default function ListeningPage() {
             <Label htmlFor="experience">
               O que você reconheceu ao ouvir?
             </Label>
-            <Textarea
+              <Textarea
               id="experience"
               value={experience}
               onChange={(e) => setExperience(e.target.value)}
-              placeholder="Ex: Reconheci o começo da frase, mas o final ficou rápido. Depois de ouvir 3 vezes, consegui repetir melhor."
             />
           </div>
 
@@ -385,7 +384,6 @@ export default function ListeningPage() {
               max={20}
               value={repetitions}
               onChange={(e) => setRepetitions(e.target.value)}
-              placeholder="1"
               className="max-w-32"
             />
           </div>
@@ -409,7 +407,6 @@ export default function ListeningPage() {
               id="personal-sentence"
               value={personalSentence}
               onChange={(e) => setPersonalSentence(e.target.value)}
-              placeholder="Ex: I guess I need better gear."
             />
             <p className="text-xs leading-5 text-slate-500">
               Transforme o chunk em uma frase sua. Isso ajuda a sair do

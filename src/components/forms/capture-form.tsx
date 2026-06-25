@@ -233,7 +233,7 @@ export function CaptureForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="natural_phrase">Versão natural (opcional)</Label>
-                <Input id="natural_phrase" name="natural_phrase" placeholder="Ex: I'm gonna" />
+                <Input id="natural_phrase" name="natural_phrase" />
               </div>
             </div>
           </div>
@@ -262,7 +262,7 @@ export function CaptureForm() {
 
             <div className="mt-4 space-y-2">
               <Label htmlFor="my_sentence">Sua frase (opcional)</Label>
-              <Textarea id="my_sentence" name="my_sentence" placeholder="Ex: I need better gear to fight the boss." />
+              <Textarea id="my_sentence" name="my_sentence" />
             </div>
 
             <p className="mt-3 text-xs text-slate-400">Contexto é mais importante que tradução perfeita.</p>
@@ -273,16 +273,16 @@ export function CaptureForm() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="source_title">Título da fonte</Label>
-                  <Input id="source_title" name="source_title" placeholder="Ex: Post Malone — Circles" />
+                  <Input id="source_title" name="source_title" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="source_url">Link</Label>
-                  <Input id="source_url" name="source_url" type="url" placeholder="https://" />
+                  <Input id="source_url" name="source_url" type="url" />
                   <FieldError errors={state.errors?.source_url} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="source_timestamp">Tempo / trecho</Label>
-                  <Input id="source_timestamp" name="source_timestamp" placeholder="Ex: 00:42 - 00:55" />
+                  <Input id="source_timestamp" name="source_timestamp" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="difficulty">Dificuldade</Label>
@@ -298,12 +298,12 @@ export function CaptureForm() {
 
               <div className="mt-4 space-y-2">
                 <Label htmlFor="pronunciation_note">Nota de pronúncia</Label>
-                <Textarea id="pronunciation_note" name="pronunciation_note" className="min-h-24" placeholder="Reduções (gonna, wanna), connected speech ou partes difíceis." />
+                <Textarea id="pronunciation_note" name="pronunciation_note" className="min-h-24" />
               </div>
 
               <div className="mt-4 space-y-2">
                 <Label htmlFor="grammar_note">Observação</Label>
-                <Textarea id="grammar_note" name="grammar_note" className="min-h-24" placeholder={'Ex: "I\'m trying to..." é usado para algo que você está tentando agora.'} />
+                <Textarea id="grammar_note" name="grammar_note" className="min-h-24" />
               </div>
             </CollapsibleSection>
           </div>
@@ -330,12 +330,12 @@ export function CaptureForm() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="verb">Verbo base</Label>
-              <Input id="verb" name="verb" placeholder="Ex: to need, to get, to try, to go" required />
+              <Input id="verb" name="verb" required />
               <FieldError errors={state.errors?.verb} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="meaning">Significado</Label>
-              <Input id="meaning" name="meaning" placeholder="Ex: precisar" required />
+              <Input id="meaning" name="meaning" required />
               <FieldError errors={state.errors?.meaning} />
             </div>
           </div>
@@ -345,23 +345,23 @@ export function CaptureForm() {
 
             <div className="space-y-2">
               <Label htmlFor="context">Quando usar?</Label>
-              <Textarea id="context" name="context" placeholder="Ex: Use quando você precisa de algo ou precisa fazer alguma ação." required />
+              <Textarea id="context" name="context" required />
               <FieldError errors={state.errors?.context} />
             </div>
 
             <div className="mt-4 space-y-2">
               <Label htmlFor="verb_patterns">Padrões com este verbo</Label>
-              <Textarea id="verb_patterns" name="verb_patterns" placeholder={'Um padrão por linha. Ex:\nI need...\nI need to...\nI don\'t need...\nDo you need...?'} rows={6} />
+              <Textarea id="verb_patterns" name="verb_patterns" rows={6} />
             </div>
 
             <div className="mt-4 space-y-2">
               <Label htmlFor="my_sentence">Frases suas com este verbo (opcional)</Label>
-              <Textarea id="my_sentence" name="my_sentence" placeholder={'Ex:\nI need better gear.\nI need to fix this bug.\nI don\'t need this item.'} rows={4} />
+              <Textarea id="my_sentence" name="my_sentence" rows={4} />
             </div>
 
             <div className="mt-4 space-y-2">
               <Label htmlFor="usage_contexts">Onde você quer usar este verbo?</Label>
-              <Textarea id="usage_contexts" name="usage_contexts" placeholder={'Um contexto por linha. Ex:\nJogo\nProgramação\nConversa'} rows={3} />
+              <Textarea id="usage_contexts" name="usage_contexts" rows={3} />
             </div>
           </div>
 

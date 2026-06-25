@@ -61,7 +61,6 @@ export function PersonalSentenceForm({
         <Textarea
           id="sentence"
           name="sentence"
-          placeholder="Ex: I guess I can try again."
           className="min-h-20"
           required
         />
@@ -73,7 +72,6 @@ export function PersonalSentenceForm({
         <Input
           id="translation"
           name="translation"
-          placeholder="Ex: Eu acho que posso tentar de novo."
         />
       </div>
 

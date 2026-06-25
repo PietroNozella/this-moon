@@ -262,7 +262,6 @@ export default function DailyTrainingPage() {
               id="connector-sentence"
               value={connectorSentence}
               onChange={(e) => setConnectorSentence(e.target.value)}
-              placeholder="Ex: I need more gold because I want better gear."
             />
           </div>
         </CardBlock>
@@ -290,13 +289,12 @@ export default function DailyTrainingPage() {
 
         <div className="mt-4 space-y-2">
           <Label htmlFor="narration-text">Minha narração de hoje</Label>
-          <Textarea
-            id="narration-text"
-            value={narrationText}
-            onChange={(e) => setNarrationText(e.target.value)}
-            placeholder="Ex: Today, I woke up at 9 AM. After that, I checked my overnight farm and got my coffee."
-            className="min-h-32"
-          />
+            <Textarea
+              id="narration-text"
+              value={narrationText}
+              onChange={(e) => setNarrationText(e.target.value)}
+              className="min-h-32"
+            />
         </div>
       </CardBlock>
 

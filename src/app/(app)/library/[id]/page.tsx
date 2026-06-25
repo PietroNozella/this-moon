@@ -448,10 +448,9 @@ function VerbDetail({ entry }: { entry: EntryDetailData }) {
             <div className="mt-5 space-y-3">
               {sentences.map((s, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <Textarea
+                    <Textarea
                     value={s}
                     onChange={(e) => updateSentence(i, e.target.value)}
-                    placeholder={`Frase ${i + 1}: Ex: ${patterns[0]?.replace("...", "better gear") ?? "I need better gear."}`}
                     className="min-h-20 flex-1"
                   />
                   {sentences.length > 1 ? (
