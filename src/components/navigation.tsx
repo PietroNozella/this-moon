@@ -9,6 +9,8 @@ const navItems = [
   { href: "/dashboard", label: "Painel" },
   { href: "/capture", label: "Captura" },
   { href: "/library", label: "Biblioteca" },
+  { href: "/listening", label: "Listening" },
+  { href: "/speaking", label: "Speaking" },
   { href: "/review", label: "Revisão" },
 ];
 

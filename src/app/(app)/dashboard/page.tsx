@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { Button, ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/utils";
-import { completeSpeakingPractice } from "@/server/actions/learning";
 import type { DailyGoalRow } from "@/types/database";
 
 type DashboardData = {
@@ -19,6 +18,7 @@ type DashboardData = {
     captured_verbs: number;
     personal_sentences_created: number;
     speaking_practices: number;
+    listening_practices: number;
   };
 };
 
@@ -32,13 +32,13 @@ const emptyData: DashboardData = {
     captured_verbs: 0,
     personal_sentences_created: 0,
     speaking_practices: 0,
+    listening_practices: 0,
   },
 };
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>(emptyData);
   const [loading, setLoading] = useState(true);
-  const [speakingPending, setSpeakingPending] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -80,6 +80,7 @@ export default function DashboardPage() {
         captured_verbs: dailyGoals?.captured_verbs ?? 0,
         personal_sentences_created: dailyGoals?.personal_sentences_created ?? 0,
         speaking_practices: dailyGoals?.speaking_practices ?? 0,
+        listening_practices: dailyGoals?.listening_practices ?? 0,
       };
 
       setData({
@@ -95,12 +96,11 @@ export default function DashboardPage() {
     void load();
   }, []);
 
-  const verbsDone = data.dailyGoal.captured_verbs >= 2;
-  const reviewDone = data.dailyGoal.personal_sentences_created >= 5;
   const dailySteps = [
     data.dailyGoal.captured_entries > 0,
-    verbsDone,
-    reviewDone,
+    data.dailyGoal.captured_verbs > 0,
+    data.dailyGoal.personal_sentences_created >= 3,
+    data.dailyGoal.listening_practices > 0,
     data.dailyGoal.speaking_practices > 0,
   ];
   const doneSteps = dailySteps.filter(Boolean).length;
@@ -148,51 +148,32 @@ export default function DashboardPage() {
           <CardTitle>Missão diária</CardTitle>
           <div className="mt-5 space-y-3">
             <ProgressRow done={data.dailyGoal.captured_entries > 0}>
-              1 chunk capturado
+              {data.dailyGoal.captured_entries > 0
+                ? "1 chunk capturado"
+                : `${data.dailyGoal.captured_entries}/1 chunk capturado`}
             </ProgressRow>
-            <ProgressRow done={verbsDone}>
-              {verbsDone
-                ? "2 verbos capturados"
-                : `${data.dailyGoal.captured_verbs}/2 verbos capturados`}
+            <ProgressRow done={data.dailyGoal.captured_verbs > 0}>
+              {data.dailyGoal.captured_verbs > 0
+                ? "1 verbo capturado"
+                : `${data.dailyGoal.captured_verbs}/1 verbo capturado`}
             </ProgressRow>
-            <ProgressRow done={reviewDone}>
-              {reviewDone
-                ? "5 frases próprias"
-                : `${data.dailyGoal.personal_sentences_created}/5 frases próprias`}
+            <ProgressRow done={data.dailyGoal.personal_sentences_created >= 3}>
+              {data.dailyGoal.personal_sentences_created >= 3
+                ? "3 frases próprias"
+                : `${data.dailyGoal.personal_sentences_created}/3 frases próprias`}
+            </ProgressRow>
+            <ProgressRow done={data.dailyGoal.listening_practices > 0}>
+              {data.dailyGoal.listening_practices > 0
+                ? "1 listening"
+                : "1 listening"}
             </ProgressRow>
             <ProgressRow done={data.dailyGoal.speaking_practices > 0}>
-              {data.dailyGoal.speaking_practices > 0 ? (
-                "1 frase falada"
-              ) : (
-                <span className="flex items-center gap-2">
-                  1 frase falada
-                  <button
-                    type="button"
-                    disabled={speakingPending}
-                    onClick={async () => {
-                      setSpeakingPending(true);
-                      try {
-                        await completeSpeakingPractice();
-                        setData((prev) => ({
-                          ...prev,
-                          dailyGoal: {
-                            ...prev.dailyGoal,
-                            speaking_practices: 1,
-                          },
-                        }));
-                      } finally {
-                        setSpeakingPending(false);
-                      }
-                    }}
-                    className="rounded bg-candy-blue-500/20 px-2 py-0.5 text-xs font-medium text-candy-blue-700 hover:bg-candy-blue-500/30 disabled:opacity-50"
-                  >
-                    {speakingPending ? "..." : "Falar agora"}
-                  </button>
-                </span>
-              )}
+              {data.dailyGoal.speaking_practices > 0
+                ? "1 speaking"
+                : "1 speaking"}
             </ProgressRow>
           </div>
-          <p className="mt-5 text-sm text-slate-500">{doneSteps}/4 concluído</p>
+          <p className="mt-5 text-sm text-slate-500">{doneSteps}/5 concluído</p>
         </Card>
 
         <Card>
@@ -213,11 +194,18 @@ export default function DashboardPage() {
               Capturar nova frase
             </ButtonLink>
             <ButtonLink
-              href="/library"
+              href="/listening"
               variant="secondary"
               className="justify-start"
             >
-              Biblioteca
+              Praticar listening
+            </ButtonLink>
+            <ButtonLink
+              href="/speaking"
+              variant="secondary"
+              className="justify-start"
+            >
+              Praticar speaking
             </ButtonLink>
           </div>
         </Card>
@@ -236,7 +224,7 @@ function ProgressRow({
   return (
     <div className="flex items-start gap-3">
       <span
-        className={`mt-1 size-3 rounded-full ${done ? "bg-emerald-500" : "bg-slate-300"}`}
+        className={`mt-1 size-3 shrink-0 rounded-full ${done ? "bg-emerald-500" : "bg-slate-300"}`}
       />
       <span className={done ? "text-onyx" : "text-slate-500"}>
         {children}

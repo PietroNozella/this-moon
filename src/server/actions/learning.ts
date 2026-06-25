@@ -41,10 +41,20 @@ async function ensureTag(
   return created!.id;
 }
 
+type DailyGoalField =
+  | "captured_entries"
+  | "captured_verbs"
+  | "reviews_completed"
+  | "personal_sentences_created"
+  | "speaking_practices"
+  | "listening_practices"
+  | "shadowing_practices"
+  | "practiced_entries";
+
 async function incrementDailyGoal(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-  field: "captured_entries" | "captured_verbs" | "reviews_completed" | "personal_sentences_created" | "speaking_practices",
+  field: DailyGoalField,
 ) {
   const today = todayISO();
 
@@ -82,6 +92,12 @@ export async function createEntry(input: {
   chunk_text?: string;
   natural_version?: string;
   casual_version?: string;
+  natural_phrase?: string;
+  pronunciation_note?: string;
+  grammar_note?: string;
+  source_timestamp?: string;
+  confidence_level?: number;
+  verb_patterns?: string[];
   tags: string[];
   entry_type: string;
 }) {
@@ -105,6 +121,12 @@ export async function createEntry(input: {
       context_note: input.context_note,
       difficulty: input.difficulty,
       entry_type: input.entry_type,
+      natural_phrase: input.natural_phrase ?? null,
+      pronunciation_note: input.pronunciation_note ?? null,
+      grammar_note: input.grammar_note ?? null,
+      source_timestamp: input.source_timestamp ?? null,
+      confidence_level: input.confidence_level ?? null,
+      verb_patterns: input.verb_patterns ? JSON.stringify(input.verb_patterns) : null,
     })
     .select("id")
     .maybeSingle();
@@ -145,6 +167,7 @@ export async function createVerb(input: {
   verb: string;
   meaning: string;
   context: string;
+  verb_patterns?: string[];
 }) {
   return createEntry({
     original_phrase: input.verb,
@@ -154,7 +177,77 @@ export async function createVerb(input: {
     difficulty: "unknown",
     entry_type: "verb",
     tags: [],
+    verb_patterns: input.verb_patterns,
   });
+}
+
+export async function createPracticeSession(input: {
+  entry_id: string;
+  practice_type: "listening" | "speaking" | "shadowing" | "review";
+  self_rating?: number;
+  note?: string;
+  duration_seconds?: number;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autorizado.");
+
+  const { data: session } = await supabase
+    .from("practice_sessions")
+    .insert({
+      user_id: user.id,
+      mode: input.practice_type,
+      duration_seconds: input.duration_seconds ?? 0,
+      notes: input.note ?? null,
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (!session) throw new Error("Falha ao criar sessão.");
+
+  const { data: entry } = await supabase
+    .from("learning_entries")
+    .select("times_practiced")
+    .eq("id", input.entry_id)
+    .single();
+
+  await supabase
+    .from("learning_entries")
+    .update({
+      last_practiced_at: new Date().toISOString(),
+      times_practiced: (entry?.times_practiced ?? 0) + 1,
+      confidence_level: input.self_rating ?? undefined,
+    })
+    .eq("id", input.entry_id);
+
+  return session.id;
+}
+
+export async function completeListeningPractice(entryId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autorizado.");
+
+  await createPracticeSession({ entry_id: entryId, practice_type: "listening" });
+  await incrementDailyGoal(supabase, user.id, "listening_practices");
+}
+
+export async function completeShadowingPractice(entryId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autorizado.");
+
+  await createPracticeSession({ entry_id: entryId, practice_type: "shadowing" });
+  await incrementDailyGoal(supabase, user.id, "shadowing_practices");
 }
 
 export async function createPersonalSentence(input: {
@@ -250,13 +343,17 @@ export async function completeReview(
   await incrementDailyGoal(supabase, user.id, "reviews_completed");
 }
 
-export async function completeSpeakingPractice() {
+export async function completeSpeakingPractice(entryId?: string) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Não autorizado.");
+
+  if (entryId) {
+    await createPracticeSession({ entry_id: entryId, practice_type: "speaking" });
+  }
 
   await incrementDailyGoal(supabase, user.id, "speaking_practices");
 }

@@ -44,6 +44,12 @@ export const createEntrySchema = z.object({
   chunk_text: z.string().trim().optional(),
   natural_version: z.string().trim().optional(),
   casual_version: z.string().trim().optional(),
+  natural_phrase: z.string().trim().optional(),
+  pronunciation_note: z.string().trim().optional(),
+  grammar_note: z.string().trim().optional(),
+  source_timestamp: z.string().trim().optional(),
+  confidence_level: z.coerce.number().min(1).max(5).optional(),
+  verb_patterns: z.array(z.string().min(1)).optional(),
   tags: z.array(z.string().min(1)).default([]),
   entry_type: z.enum(["chunk", "verb"]).default("chunk"),
 });
@@ -52,6 +58,15 @@ export const createVerbSchema = z.object({
   verb: z.string().min(1, "Preencha o verbo.").trim(),
   meaning: z.string().min(1, "Preencha o significado.").trim(),
   context: z.string().min(3, "Explique onde usar.").trim(),
+  verb_patterns: z.array(z.string().min(1)).optional(),
+});
+
+export const createPracticeSessionSchema = z.object({
+  entry_id: z.string().uuid(),
+  practice_type: z.enum(["listening", "speaking", "shadowing", "review"]),
+  self_rating: z.coerce.number().min(1).max(5).optional(),
+  note: z.string().trim().optional(),
+  duration_seconds: z.coerce.number().min(0).optional(),
 });
 
 export const createPersonalSentenceSchema = z.object({

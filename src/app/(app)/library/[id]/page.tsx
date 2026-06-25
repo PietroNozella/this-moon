@@ -77,6 +77,13 @@ export default function EntryDetailPage() {
     );
   }
 
+  const difficultyLabels: Record<string, string> = {
+    easy: "Fácil",
+    medium: "Médio",
+    hard: "Difícil",
+    unknown: "Não sei",
+  };
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -101,10 +108,90 @@ export default function EntryDetailPage() {
             {entry.source_type}
           </span>
         ) : null}
+        {entry.difficulty && entry.difficulty !== "unknown" ? (
+          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+            {difficultyLabels[entry.difficulty]}
+          </span>
+        ) : null}
+        {entry.confidence_level ? (
+          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+            Confiança: {entry.confidence_level}/5
+          </span>
+        ) : null}
       </div>
 
       <Section title="Tradução">{entry.translation}</Section>
-      <Section title="Onde você usaria isso?">{entry.context_note}</Section>
+      <Section title="Onde usar?">{entry.context_note}</Section>
+
+      {entry.natural_phrase ? (
+        <Section title="Versão natural">{entry.natural_phrase}</Section>
+      ) : null}
+
+      {entry.pronunciation_note || entry.grammar_note ? (
+        <Card>
+          <CardTitle>Notas</CardTitle>
+          <div className="mt-4 space-y-3">
+            {entry.pronunciation_note ? (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Pronúncia
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-slate-700">
+                  {entry.pronunciation_note}
+                </p>
+              </div>
+            ) : null}
+            {entry.grammar_note ? (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Observação
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-slate-700">
+                  {entry.grammar_note}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
+
+      {(entry.source_title || entry.source_url || entry.source_timestamp) ? (
+        <Card>
+          <CardTitle>Fonte</CardTitle>
+          <div className="mt-4 space-y-2 text-sm text-slate-700">
+            {entry.source_title ? <p>{entry.source_title}</p> : null}
+            {entry.source_url ? (
+              <a
+                href={entry.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block truncate text-candy-blue-600 hover:underline"
+              >
+                {entry.source_url}
+              </a>
+            ) : null}
+            {entry.source_timestamp ? (
+              <p className="text-slate-500">{entry.source_timestamp}</p>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
+
+      {Array.isArray(entry.verb_patterns) && entry.verb_patterns.length > 0 ? (
+        <Card>
+          <CardTitle>Padrões</CardTitle>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(entry.verb_patterns as string[] ?? []).map((pattern, i) => (
+              <span
+                key={i}
+                className="rounded-md bg-candy-blue-500/10 px-2 py-1 text-sm text-candy-blue-700"
+              >
+                {pattern}
+              </span>
+            ))}
+          </div>
+        </Card>
+      ) : null}
 
       {mainChunk ? (
         <Card>
@@ -136,6 +223,13 @@ export default function EntryDetailPage() {
             ))}
           </div>
         </Card>
+      ) : null}
+
+      {entry.last_practiced_at ? (
+        <Section title="Última prática">
+          {formatDate(entry.last_practiced_at)}
+          {entry.times_practiced ? ` · ${entry.times_practiced}x praticado` : ""}
+        </Section>
       ) : null}
 
       <Card>

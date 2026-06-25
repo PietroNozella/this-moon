@@ -11,6 +11,7 @@ import { todayISO } from "@/lib/utils";
 import type { EntryRow } from "@/types/database";
 
 const PAGE_SIZE = 5;
+const GOAL = 3;
 
 export default function ReviewPage() {
   const [entries, setEntries] = useState<EntryRow[]>([]);
@@ -57,7 +58,13 @@ export default function ReviewPage() {
     return <Card className="text-slate-500">Carregando...</Card>;
   }
 
-  const done = sentencesToday >= 5;
+  const done = sentencesToday >= GOAL;
+
+  const prompts = [
+    "Use a frase em um contexto do seu dia.",
+    "Mude o sujeito da frase.",
+    "Transforme para negativa ou pergunta.",
+  ];
 
   return (
     <div className="space-y-6">
@@ -72,9 +79,21 @@ export default function ReviewPage() {
         <CardTitle>Progresso de hoje</CardTitle>
         <p className="mt-2 text-sm text-slate-600">
           {done
-            ? "Você já criou 5 frases próprias hoje!"
-            : `${sentencesToday} de 5 frases próprias criadas hoje.`}
+            ? "Você já criou 3 frases próprias hoje!"
+            : `${sentencesToday} de ${GOAL} frases próprias criadas hoje.`}
         </p>
+      </Card>
+
+      <Card>
+        <CardTitle>Inspiração</CardTitle>
+        <ul className="mt-3 space-y-2">
+          {prompts.map((prompt) => (
+            <li key={prompt} className="flex items-start gap-2 text-sm text-slate-600">
+              <span className="mt-0.5 shrink-0 text-candy-blue-500">→</span>
+              {prompt}
+            </li>
+          ))}
+        </ul>
       </Card>
 
       <Card>
