@@ -10,12 +10,10 @@ import { Input, Label, Textarea } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/page-header";
 import { PhraseBlock } from "@/components/ui/phrase-block";
 import { SourcePill } from "@/components/ui/source-pill";
-import { AILoadingState } from "@/components/ai/ai-loading-state";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { completePractice } from "@/server/actions/learning";
-import { generateListeningHelper } from "@/server/actions/ai";
-import { Copy, ExternalLink, Eye, EyeOff, Headphones, Sparkles } from "lucide-react";
+import { Copy, ExternalLink, Eye, EyeOff, Headphones } from "lucide-react";
 import type { EntryRow } from "@/types/database";
 
 const steps = [
@@ -65,9 +63,6 @@ export default function PracticePage() {
   const [repetitions, setRepetitions] = useState("");
   const [personalSentence, setPersonalSentence] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [listeningHelper, setListeningHelper] = useState<Record<string, unknown> | null>(null);
-  const [helperLoading, setHelperLoading] = useState(false);
-  const [helperError, setHelperError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -120,26 +115,11 @@ export default function PracticePage() {
         setExperience("");
         setRepetitions("");
         setPersonalSentence("");
-        setListeningHelper(null);
-        setHelperError(null);
       } else {
         setDone(true);
       }
     } finally {
       setPending(false);
-    }
-  }
-
-  async function handleListeningHelper(entryId: string) {
-    setHelperLoading(true);
-    setHelperError(null);
-    setListeningHelper(null);
-    const result = await generateListeningHelper(entryId);
-    setHelperLoading(false);
-    if (result.success) {
-      setListeningHelper(result.data as unknown as Record<string, unknown>);
-    } else {
-      setHelperError(result.error);
     }
   }
 
@@ -152,8 +132,6 @@ export default function PracticePage() {
       setExperience("");
       setRepetitions("");
       setPersonalSentence("");
-      setListeningHelper(null);
-      setHelperError(null);
     } else {
       setDone(true);
     }
@@ -229,19 +207,6 @@ export default function PracticePage() {
       <PageHeader
         title="Prática"
         subtitle="Escute, repita e fale chunks até soar natural."
-        action={
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={helperLoading}
-            onClick={() => void handleListeningHelper(entry.id)}
-            className="gap-1.5 text-candy-blue-700 hover:text-candy-blue-950"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Dica de escuta
-          </Button>
-        }
       />
 
       <p className="text-sm text-slate-500">
@@ -339,55 +304,6 @@ export default function PracticePage() {
             Copie o treino para uma ferramenta de áudio ou use a fonte original. Ouça sem olhar a tradução, depois volte e anote o que reconheceu.
           </p>
         </div>
-
-        {/* AI Listening Helper */}
-        {helperLoading ? (
-          <div className="mt-4">
-            <AILoadingState />
-          </div>
-        ) : null}
-        {helperError ? (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3">
-            <p className="text-sm text-red-700">{helperError}</p>
-          </div>
-        ) : null}
-        {listeningHelper ? (
-          <div className="mt-5 space-y-3 rounded-2xl border border-candy-blue-500/30 bg-candy-blue-500/5 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-950">Dica de escuta</p>
-            {Array.isArray(listeningHelper.focusWords) ? (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Foco nestas palavras</p>
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  {(listeningHelper.focusWords as string[]).map((w: string, i: number) => (
-                    <span key={i} className="rounded-lg border border-candy-blue-500/40 bg-candy-blue-500/15 px-2 py-0.5 text-xs text-candy-blue-950">{w}</span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            {listeningHelper.connectedSpeechTip ? (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Connected speech</p>
-                <p className="mt-0.5 text-sm text-slate-700">{listeningHelper.connectedSpeechTip as string}</p>
-              </div>
-            ) : null}
-            {Array.isArray(listeningHelper.listenFor) ? (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Preste atenção em</p>
-                <ul className="mt-1 space-y-1">
-                  {(listeningHelper.listenFor as string[]).map((l: string, i: number) => (
-                    <li key={i} className="text-sm text-slate-700">• {l}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            {listeningHelper.afterListeningQuestion ? (
-              <div className="rounded-xl border border-candy-blue-500/30 bg-candy-blue-500/10 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-950">Depois de ouvir</p>
-                <p className="mt-1 text-sm text-candy-blue-900">{listeningHelper.afterListeningQuestion as string}</p>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
 
         {/* Seção de escuta */}
         <div className="mt-6 space-y-4">

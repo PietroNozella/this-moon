@@ -7,7 +7,6 @@ import { MetricCard } from "@/components/dashboard/metric-card";
 import { NextPracticeCard } from "@/components/dashboard/next-practice-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { AICoachCard } from "@/components/ai/ai-coach-card";
 import { ButtonLink } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/utils";
@@ -172,11 +171,6 @@ export default function DashboardPage() {
       </section>
 
       <QuickActions />
-
-      <section className="grid gap-6 lg:grid-cols-[1.35fr_0.95fr]">
-        <AICoachCard />
-        <div />
-      </section>
 
       <RecentActivity phrase={data.recentPhrase} />
     </div>
