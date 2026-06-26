@@ -27,7 +27,7 @@ export async function generateAIResponse(
     model,
     messages,
     temperature: 0.4,
-    max_tokens: 2048,
+    max_tokens: 4096,
   });
 
   return {

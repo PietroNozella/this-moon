@@ -77,26 +77,37 @@ export async function sendCoachMessage(
     sentence: string; corrected_sentence: string | null;
   }>;
 
-  const context = {
-    todayGoal: {
-      captured_entries: Number(dailyGoal?.captured_entries ?? 0),
-      captured_verbs: Number(dailyGoal?.captured_verbs ?? 0),
-      personal_sentences_created: Number(dailyGoal?.personal_sentences_created ?? 0),
-      speaking_practices: Number(dailyGoal?.speaking_practices ?? 0),
-      listening_practices: Number(dailyGoal?.listening_practices ?? 0),
-    },
-    recentEntries: entries.map((e) => ({
-      phrase: e.original_phrase,
-      type: e.entry_type,
-      confidence: e.confidence_level,
-    })),
-    recentSentences: sentences.map((s) => ({
-      original: s.sentence,
-      corrected: s.corrected_sentence,
-    })),
-  };
+  const capturedEntries = Number(dailyGoal?.captured_entries ?? 0);
+  const capturedVerbs = Number(dailyGoal?.captured_verbs ?? 0);
+  const createdSentences = Number(dailyGoal?.personal_sentences_created ?? 0);
+  const speakingPractices = Number(dailyGoal?.speaking_practices ?? 0);
+  const listeningPractices = Number(dailyGoal?.listening_practices ?? 0);
 
-  const contextBlock = `Contexto do usuário:\n${JSON.stringify(context, null, 2)}`;
+  const entriesText = entries.length > 0
+    ? entries.map((e, i) => {
+        const conf = e.confidence_level != null ? `confiança ${e.confidence_level}` : "sem prática";
+        return `${i + 1}. "${e.original_phrase}" (${e.entry_type === "verb" ? "verbo" : "chunk"}) — ${conf}`;
+      }).join("\n")
+    : "Nenhum chunk registrado ainda.";
+
+  const sentencesText = sentences.length > 0
+    ? sentences.map((s, i) => {
+        const corrected = s.corrected_sentence ? ` → corrigido: "${s.corrected_sentence}"` : "";
+        return `${i + 1}. "${s.sentence}"${corrected}`;
+      }).join("\n")
+    : "Nenhuma frase criada ainda.";
+
+  const contextBlock = [
+    "DADOS DO USUÁRIO:",
+    "",
+    `Meta de hoje: ${capturedEntries} chunks capturados, ${capturedVerbs} verbos, ${createdSentences} frases criadas, ${speakingPractices} speaking, ${listeningPractices} listening.`,
+    "",
+    "Chunks e verbos recentes (do mais novo para o mais antigo):",
+    entriesText,
+    "",
+    "Frases próprias recentes:",
+    sentencesText,
+  ].join("\n");
 
   try {
     const response = await generateAIResponse([
