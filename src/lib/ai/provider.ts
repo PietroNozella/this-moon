@@ -26,7 +26,7 @@ export async function generateAIResponse(
   const completion = await client.chat.completions.create({
     model,
     messages,
-    temperature: 0.3,
+    temperature: 0.7,
     max_tokens: 2048,
   });
 
