@@ -31,17 +31,11 @@ const stepConfig: Record<
     href: "/review",
     cta: "Criar frases",
   },
-  listening: {
-    title: "Treine listening agora",
-    body: "Pratique listening com um trecho curto. Foque em reconhecer palavras.",
-    href: "/listening",
-    cta: "Começar listening",
-  },
-  speaking: {
-    title: "Treine speaking agora",
-    body: "Escolha uma frase curta e fale em voz alta. Não precisa ser perfeito.",
-    href: "/speaking",
-    cta: "Começar speaking",
+  practice: {
+    title: "Pratique agora",
+    body: "Ouça o chunk, repita em voz alta e crie frases suas.",
+    href: "/practice",
+    cta: "Praticar agora",
   },
 };
 
@@ -86,7 +80,7 @@ export function NextPracticeCard({ nextKey, doneCount, nextEntry }: Props) {
 
             <div className="mt-auto flex gap-2 pt-6">
               <Link
-                href={nextEntry.entry_type === "verb" ? `/library/${nextEntry.id}` : "/listening"}
+                href={nextEntry.entry_type === "verb" ? `/library/${nextEntry.id}` : "/practice"}
                 className="inline-flex h-10 flex-1 items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-onyx shadow-sm transition-all duration-300 hover:bg-slate-100 group-hover:bg-onyx group-hover:text-white group-hover:hover:bg-slate-800"
               >
                 {nextEntry.entry_type === "verb" ? "Treinar padrões" : "Treinar agora"}

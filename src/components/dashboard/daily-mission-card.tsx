@@ -58,15 +58,13 @@ export function DailyMissionCard({ items, doneCount, totalCount }: Props) {
           {nextNotDone ? (
             <span>
               Falta{" "}
-              {nextNotDone.key === "listening"
-                ? "escuta guiada"
-                : nextNotDone.key === "speaking"
-                  ? "speaking"
-                  : nextNotDone.key === "sentences"
-                    ? "frases próprias"
-                    : nextNotDone.key === "chunk"
-                      ? "chunk"
-                      : "verbo"}
+              {nextNotDone.key === "practice"
+                ? "prática"
+                : nextNotDone.key === "sentences"
+                  ? "frases próprias"
+                  : nextNotDone.key === "chunk"
+                    ? "chunk"
+                    : "verbo"}
             </span>
           ) : (
             <span>Missão completa!</span>

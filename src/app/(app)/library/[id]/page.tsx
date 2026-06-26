@@ -302,8 +302,7 @@ function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; on
                 <p className="text-sm font-medium text-slate-700">Você ainda não praticou este chunk.</p>
                 <p className="mt-1 text-sm text-slate-500">Comece pela Escuta Guiada ou pelo Speaking para registrar sua evolução.</p>
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  <ButtonLink href="/listening" variant="primary" size="sm">Treinar Escuta Guiada</ButtonLink>
-                  <ButtonLink href="/speaking" variant="secondary" size="sm">Treinar Speaking</ButtonLink>
+                  <ButtonLink href="/practice" variant="primary" size="sm">Praticar (escuta + fala)</ButtonLink>
                 </div>
               </div>
             </div>
@@ -315,8 +314,7 @@ function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; on
           <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ações rápidas</p>
             <div className="mt-4 space-y-3">
-              <ButtonLink href="/listening" variant="primary" className="w-full">Treinar Escuta Guiada</ButtonLink>
-              <ButtonLink href="/speaking" variant="secondary" className="w-full">Treinar Speaking</ButtonLink>
+              <ButtonLink href="/practice" variant="primary" className="w-full">Praticar (escuta + fala)</ButtonLink>
             </div>
           </div>
 

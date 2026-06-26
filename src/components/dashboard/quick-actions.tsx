@@ -2,22 +2,22 @@ import Link from "next/link";
 
 const actions = [
   {
-    href: "/listening",
-    title: "Listening",
-    description: "Reconheça palavras em trechos reais.",
-    cta: "Treinar",
+    href: "/practice",
+    title: "Praticar",
+    description: "Ouça, repita e fale chunks até soar natural.",
+    cta: "Praticar",
   },
   {
-    href: "/speaking",
-    title: "Speaking",
-    description: "Repita frases até soar natural.",
-    cta: "Treinar",
+    href: "/library",
+    title: "Biblioteca",
+    description: "Veja seus chunks e verbos salvos.",
+    cta: "Abrir",
   },
   {
-    href: "/review",
-    title: "Review",
-    description: "Crie frases próprias com chunks salvos.",
-    cta: "Revisar",
+    href: "/coach",
+    title: "AI Coach",
+    description: "Treino personalizado com IA.",
+    cta: "Conversar",
   },
 ];
 
@@ -32,7 +32,7 @@ export function QuickActions() {
         >
           <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
             <span className="text-xs font-bold">
-              {action.title === "Listening" ? "L" : action.title === "Speaking" ? "S" : "R"}
+              {action.title === "Praticar" ? "P" : action.title === "Biblioteca" ? "B" : "C"}
             </span>
           </div>
           <h3 className="text-sm font-semibold text-slate-950">

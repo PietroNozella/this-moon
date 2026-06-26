@@ -120,12 +120,12 @@ export default function DashboardPage() {
   }
 
   const dg = data.dailyGoal;
+  const practicedCount = dg.speaking_practices + dg.listening_practices;
   const missionItems = [
     { key: "chunk", done: dg.captured_entries > 0, label: "Capturar 1 chunk real", actionHref: "/capture", actionLabel: "Capturar agora" },
     { key: "verb", done: dg.captured_verbs > 0, label: "Capturar 1 verbo ou padrão", actionHref: "/capture", actionLabel: "Adicionar verbo" },
-    { key: "sentences", done: dg.personal_sentences_created >= 3, label: `Criar ${dg.personal_sentences_created >= 3 ? "3" : `${dg.personal_sentences_created}/3`} frases próprias`, actionHref: "/review", actionLabel: "Criar frases" },
-    { key: "listening", done: dg.listening_practices > 0, label: "Fazer 1 escuta guiada", actionHref: "/listening", actionLabel: "Treinar escuta" },
-    { key: "speaking", done: dg.speaking_practices > 0, label: "Fazer 1 speaking", actionHref: "/speaking", actionLabel: "Treinar speaking" },
+    { key: "sentences", done: dg.personal_sentences_created >= 3, label: `Criar ${dg.personal_sentences_created >= 3 ? "3" : `${dg.personal_sentences_created}/3`} frases próprias`, actionHref: `/library`, actionLabel: "Criar frases" },
+    { key: "practice", done: practicedCount > 0, label: "Praticar 1 chunk (escuta + fala)", actionHref: "/practice", actionLabel: "Praticar agora" },
   ];
   const doneSteps = missionItems.filter((s) => s.done).length;
   const nextNotDone = missionItems.find((s) => !s.done);
@@ -145,8 +145,8 @@ export default function DashboardPage() {
           <ButtonLink href="/capture" variant="primary" size="sm">
             Capturar chunk
           </ButtonLink>
-          <ButtonLink href="/speaking" variant="secondary" size="sm">
-            Treinar speaking
+          <ButtonLink href="/practice" variant="secondary" size="sm">
+            Praticar
           </ButtonLink>
         </div>
       </header>
@@ -154,7 +154,7 @@ export default function DashboardPage() {
       <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
         <MetricCard label="Chunks" value={data.entriesCount} description="frases reais salvas" />
         <MetricCard label="Verbos" value={data.verbsCount} description="padrões para usar em frases" />
-        <MetricCard label="Práticas" value={data.practiceCount} description="listening e speaking registrados" />
+        <MetricCard label="Práticas" value={data.practiceCount} description="sessões de prática registradas" />
         <MetricCard label="Naturais" value={data.masteredCount} description="frases quase prontas para usar" />
       </section>
 
@@ -162,7 +162,7 @@ export default function DashboardPage() {
         <DailyMissionCard
           items={missionItems}
           doneCount={doneSteps}
-          totalCount={5}
+          totalCount={4}
         />
         <NextPracticeCard
           nextKey={nextNotDone?.key ?? null}

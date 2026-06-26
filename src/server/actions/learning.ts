@@ -411,6 +411,44 @@ export async function completeReview(
   await incrementDailyGoal(supabase, user.id, "reviews_completed");
 }
 
+export async function completePractice(input: {
+  entryId: string;
+  confidenceLevel?: number;
+  listeningNotes?: string;
+  listeningRepetitions?: number;
+  personalSentence?: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autorizado.");
+
+  const noteParts: string[] = [];
+  if (input.listeningNotes) noteParts.push(`Experiência ouvindo: ${input.listeningNotes}`);
+  if (input.listeningRepetitions) noteParts.push(`Repetições: ${input.listeningRepetitions}`);
+
+  await createPracticeSession({
+    entry_id: input.entryId,
+    practice_type: "speaking",
+    self_rating: input.confidenceLevel,
+    note: noteParts.length > 0 ? noteParts.join("\n") : undefined,
+  });
+
+  if (input.personalSentence) {
+    await supabase.from("personal_sentences").insert({
+      user_id: user.id,
+      entry_id: input.entryId,
+      sentence: input.personalSentence,
+    });
+    await incrementDailyGoal(supabase, user.id, "personal_sentences_created");
+  }
+
+  await incrementDailyGoal(supabase, user.id, "speaking_practices");
+  await incrementDailyGoal(supabase, user.id, "listening_practices");
+}
+
 export async function completeSpeakingPractice(entryId?: string) {
   const supabase = await createClient();
   const {

@@ -6,16 +6,24 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { ConfidenceScale } from "@/components/ui/confidence-scale";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Input, Label, Textarea } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/page-header";
 import { PhraseBlock } from "@/components/ui/phrase-block";
 import { SourcePill } from "@/components/ui/source-pill";
-import { Input, Label, Textarea } from "@/components/ui/form";
 import { AILoadingState } from "@/components/ai/ai-loading-state";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { completeListeningPractice } from "@/server/actions/learning";
+import { completePractice } from "@/server/actions/learning";
 import { generateListeningHelper } from "@/server/actions/ai";
 import { Copy, ExternalLink, Eye, EyeOff, Headphones, Sparkles } from "lucide-react";
 import type { EntryRow } from "@/types/database";
+
+const steps = [
+  { key: "read", label: "Leia" },
+  { key: "slow", label: "Fale devagar" },
+  { key: "natural", label: "Fale natural" },
+  { key: "blind", label: "Fale sem olhar" },
+] as const;
 
 const difficultyLabels: Record<string, string> = {
   easy: "Fácil",
@@ -30,9 +38,7 @@ function buildPrompt(entry: EntryRow) {
   ];
 
   if (entry.natural_phrase) {
-    parts.push(
-      `\nVersão natural salva no meu sistema:\n"${entry.natural_phrase}"`,
-    );
+    parts.push(`\nVersão natural salva no meu sistema:\n"${entry.natural_phrase}"`);
   }
 
   if (entry.context_note) {
@@ -40,15 +46,13 @@ function buildPrompt(entry: EntryRow) {
   }
 
   if (entry.pronunciation_note) {
-    parts.push(
-      `\nMinha anotação de pronúncia:\n"${entry.pronunciation_note}"`,
-    );
+    parts.push(`\nMinha anotação de pronúncia:\n"${entry.pronunciation_note}"`);
   }
 
   return parts.join("\n");
 }
 
-export default function ListeningPage() {
+export default function PracticePage() {
   const [entries, setEntries] = useState<EntryRow[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -56,6 +60,7 @@ export default function ListeningPage() {
   const [done, setDone] = useState(false);
   const [showTranslation, setShowTranslation] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [experience, setExperience] = useState("");
   const [repetitions, setRepetitions] = useState("");
   const [personalSentence, setPersonalSentence] = useState("");
@@ -95,24 +100,28 @@ export default function ListeningPage() {
 
   async function handleComplete() {
     if (!entry || !rating) return;
+    if (completedSteps.size < steps.length) return;
     setPending(true);
 
     try {
-      await completeListeningPractice({
+      await completePractice({
         entryId: entry.id,
         confidenceLevel: rating,
+        listeningNotes: experience || undefined,
         listeningRepetitions: repetitions ? Number(repetitions) : undefined,
-        notes: experience || undefined,
         personalSentence: personalSentence || undefined,
       });
 
       if (currentIndex < entries.length - 1) {
         setCurrentIndex((i) => i + 1);
+        setCompletedSteps(new Set());
         setShowTranslation(false);
         setRating(null);
         setExperience("");
         setRepetitions("");
         setPersonalSentence("");
+        setListeningHelper(null);
+        setHelperError(null);
       } else {
         setDone(true);
       }
@@ -137,14 +146,29 @@ export default function ListeningPage() {
   function handleSkip() {
     if (currentIndex < entries.length - 1) {
       setCurrentIndex((i) => i + 1);
+      setCompletedSteps(new Set());
       setShowTranslation(false);
       setRating(null);
       setExperience("");
       setRepetitions("");
       setPersonalSentence("");
+      setListeningHelper(null);
+      setHelperError(null);
     } else {
       setDone(true);
     }
+  }
+
+  function toggleStep(key: string) {
+    setCompletedSteps((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
   }
 
   if (loading) {
@@ -160,11 +184,11 @@ export default function ListeningPage() {
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader
-          title="Escuta Guiada"
-          subtitle="Use uma fonte externa para ouvir o chunk e registre o que conseguiu reconhecer."
+          title="Prática"
+          subtitle="Escute, repita e fale chunks até soar natural."
         />
         <EmptyState
-          title="Você ainda não tem chunks para treinar escuta."
+          title="Você ainda não tem chunks para praticar."
           description="Capture uma frase real de música, jogo, vídeo ou conversa para começar."
           actionLabel="Capturar primeiro chunk"
           actionHref="/capture"
@@ -177,18 +201,18 @@ export default function ListeningPage() {
     return (
       <div className="mx-auto max-w-4xl space-y-6">
         <PageHeader
-          title="Escuta Guiada"
-          subtitle="Use uma fonte externa para ouvir o chunk e registre o que conseguiu reconhecer."
+          title="Prática"
+          subtitle="Escute, repita e fale chunks até soar natural."
         />
         <Card important className="border-candy-blue-500/30 bg-candy-blue-500/10 text-center">
           <p className="text-base font-semibold text-candy-blue-950">
-            Escuta de hoje concluída!
+            Prática de hoje concluída!
           </p>
           <p className="mt-2 text-sm text-slate-600">
             Volte amanhã para mais prática.
           </p>
         </Card>
-        <ButtonLink href="/listening" variant="secondary" className="w-full">
+        <ButtonLink href="/practice" variant="secondary" className="w-full">
           Recomeçar
         </ButtonLink>
       </div>
@@ -196,7 +220,6 @@ export default function ListeningPage() {
   }
 
   const entry = entries[currentIndex];
-
   if (!entry) return null;
 
   const showCopyFeedback = copiedId === entry.id;
@@ -204,49 +227,32 @@ export default function ListeningPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
-        title="Escuta Guiada"
-        subtitle="Use uma fonte externa para ouvir o chunk e registre o que conseguiu reconhecer."
+        title="Prática"
+        subtitle="Escute, repita e fale chunks até soar natural."
+        action={
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={helperLoading}
+            onClick={() => void handleListeningHelper(entry.id)}
+            className="gap-1.5 text-candy-blue-700 hover:text-candy-blue-950"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Dica de escuta
+          </Button>
+        }
       />
-
-      {/* Card de instrução */}
-      <Card className="p-5">
-        <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-candy-blue-500/20 text-candy-blue-700">
-            <Headphones className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <CardTitle>Como usar esta tela</CardTitle>
-            <ol className="mt-3 space-y-1.5 text-sm leading-6 text-slate-600">
-              <li>1. Escolha um chunk.</li>
-              <li>
-                2. Copie o treino para o ChatGPT ou abra a fonte original.
-              </li>
-              <li>3. Ouça sem olhar para a tradução.</li>
-              <li>4. Volte aqui e escreva o que você reconheceu.</li>
-              <li>5. Marque sua confiança e conclua a prática.</li>
-            </ol>
-            <ButtonLink
-              href="/library"
-              variant="ghost"
-              size="sm"
-              className="mt-3"
-            >
-              Ir para Biblioteca
-            </ButtonLink>
-          </div>
-        </div>
-      </Card>
 
       <p className="text-sm text-slate-500">
         {currentIndex + 1} de {entries.length}
       </p>
 
-      {/* Card do chunk */}
-      <Card className="p-6 shadow-md" important>
-        {/* Cabeçalho */}
+      <Card className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70" important>
+        {/* Cabeçalho com badges */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium bg-candy-blue-500/25 text-candy-blue-950 border-candy-blue-500/50">
-            {entry.entry_type === "verb" ? "Verbo" : "Chunk"}
+            Chunk
           </span>
           <SourcePill
             type={entry.source_type}
@@ -260,19 +266,7 @@ export default function ListeningPage() {
           ) : null}
           {entry.status ? (
             <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
-              {entry.status === "new"
-                ? "Novo"
-                : entry.status === "learning"
-                  ? "Aprendendo"
-                  : entry.status === "practicing"
-                    ? "Praticando"
-                    : entry.status === "almost_natural"
-                      ? "Quase natural"
-                      : entry.status === "mastered"
-                        ? "Dominado"
-                        : entry.status === "archived"
-                          ? "Arquivado"
-                          : entry.status}
+              {entry.status === "new" ? "Novo" : entry.status === "learning" ? "Aprendendo" : entry.status === "practicing" ? "Praticando" : entry.status === "almost_natural" ? "Quase natural" : entry.status === "mastered" ? "Dominado" : entry.status === "archived" ? "Arquivado" : entry.status}
             </span>
           ) : null}
         </div>
@@ -282,13 +276,11 @@ export default function ListeningPage() {
           <PhraseBlock
             phrase={entry.original_phrase}
             translation={showTranslation ? entry.translation : undefined}
-            naturalPhrase={
-              showTranslation ? entry.natural_phrase : undefined
-            }
+            naturalPhrase={showTranslation ? entry.natural_phrase : undefined}
           />
         </div>
 
-        {/* Área de apoio — botões de ação */}
+        {/* Botões de ação */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button
             type="button"
@@ -297,9 +289,7 @@ export default function ListeningPage() {
             onClick={() => handleCopy(entry)}
           >
             <Copy className="mr-1.5 h-3.5 w-3.5" />
-            {showCopyFeedback
-              ? "Copiado!"
-              : "Copiar treino para ChatGPT"}
+            {showCopyFeedback ? "Copiado!" : "Copiar treino"}
           </Button>
 
           <Button
@@ -321,18 +311,6 @@ export default function ListeningPage() {
             )}
           </Button>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={helperLoading}
-            onClick={() => void handleListeningHelper(entry.id)}
-            className="gap-1.5 text-candy-blue-700 hover:text-candy-blue-950"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Dica de listening
-          </Button>
-
           {entry.source_url ? (
             <a
               href={entry.source_url}
@@ -341,7 +319,7 @@ export default function ListeningPage() {
               className="inline-flex h-8 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-candy-blue-700 transition-colors hover:bg-candy-blue-500/20"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              Abrir fonte original
+              Fonte original
             </a>
           ) : null}
 
@@ -354,39 +332,11 @@ export default function ListeningPage() {
           </ButtonLink>
         </div>
 
-        {/* Tradução expandida */}
-        {showTranslation && entry.translation && (
-          <div className="mt-4 space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm italic text-slate-600">
-              {entry.translation}
-            </p>
-            {entry.natural_phrase ? (
-              <p className="text-sm text-slate-500">
-                <span className="font-medium text-slate-600">
-                  Natural:{" "}
-                </span>
-                {entry.natural_phrase}
-              </p>
-            ) : null}
-            {entry.pronunciation_note ? (
-              <div className="rounded-xl border border-candy-blue-500/40 bg-candy-blue-500/20 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-950">
-                  Pronúncia
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  {entry.pronunciation_note}
-                </p>
-              </div>
-            ) : null}
-          </div>
-        )}
-
-        {/* Instrução prática */}
+        {/* Instrução de escuta */}
         <div className="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <Headphones className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
           <p className="text-sm leading-6 text-slate-600">
-            Antes de concluir: ouça o chunk com apoio externo e tente
-            reconhecer o som sem depender da tradução.
+            Copie o treino para uma ferramenta de áudio ou use a fonte original. Ouça sem olhar a tradução, depois volte e anote o que reconheceu.
           </p>
         </div>
 
@@ -403,7 +353,7 @@ export default function ListeningPage() {
         ) : null}
         {listeningHelper ? (
           <div className="mt-5 space-y-3 rounded-2xl border border-candy-blue-500/30 bg-candy-blue-500/5 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-950">Dica de listening</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-950">Dica de escuta</p>
             {Array.isArray(listeningHelper.focusWords) ? (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Foco nestas palavras</p>
@@ -439,13 +389,13 @@ export default function ListeningPage() {
           </div>
         ) : null}
 
-        {/* Minha experiência ouvindo */}
+        {/* Seção de escuta */}
         <div className="mt-6 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="experience">
               O que você reconheceu ao ouvir?
             </Label>
-              <Textarea
+            <Textarea
               id="experience"
               value={experience}
               onChange={(e) => setExperience(e.target.value)}
@@ -468,10 +418,57 @@ export default function ListeningPage() {
           </div>
         </div>
 
-        {/* ConfidenceScale */}
+        {/* Separador */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-white px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Agora fale
+            </span>
+          </div>
+        </div>
+
+        {/* Etapas de speaking */}
+        <div className="flex flex-wrap gap-2">
+          {steps.map((step) => {
+            const doneStep = completedSteps.has(step.key);
+            return (
+              <button
+                key={step.key}
+                type="button"
+                onClick={() => toggleStep(step.key)}
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-xs transition-all duration-200",
+                  doneStep
+                    ? "border-candy-blue-500/50 bg-candy-blue-500/20 text-candy-blue-950"
+                    : "border-slate-200 bg-slate-100 text-slate-600 hover:border-slate-300",
+                )}
+              >
+                {doneStep ? "✓ " : ""}
+                {step.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Nota de pronúncia */}
+        {entry.pronunciation_note ? (
+          <div className="mt-5 rounded-xl border border-candy-blue-500/40 bg-candy-blue-500/20 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-950">
+              Nota de pronúncia
+            </p>
+            <p className="mt-1 text-sm text-slate-700">
+              {entry.pronunciation_note}
+            </p>
+          </div>
+        ) : null}
+
+        {/* Confiança */}
         <div className="mt-6">
           <p className="mb-3 text-sm font-medium text-slate-700">
-            Quanto você reconheceu?
+            Como você foi?
           </p>
           <ConfidenceScale value={rating} onChange={setRating} />
         </div>
@@ -488,14 +485,13 @@ export default function ListeningPage() {
               onChange={(e) => setPersonalSentence(e.target.value)}
             />
             <p className="text-xs leading-5 text-slate-500">
-              Transforme o chunk em uma frase sua. Isso ajuda a sair do
-              inglês passivo e começar a falar de verdade.
+              Transforme o chunk em uma frase sua. Isso ajuda a sair do inglês passivo e começar a falar de verdade.
             </p>
           </div>
         </div>
       </Card>
 
-      {/* Botões de ação */}
+      {/* Botões de navegação */}
       <div className="flex items-center justify-between gap-3">
         <Button type="button" variant="ghost" onClick={handleSkip}>
           Pular
@@ -503,10 +499,14 @@ export default function ListeningPage() {
         <Button
           type="button"
           size="lg"
-          disabled={!rating || pending}
+          disabled={!rating || pending || completedSteps.size < steps.length}
           onClick={handleComplete}
         >
-          {pending ? "Salvando..." : "Concluir escuta guiada"}
+          {pending
+            ? "Salvando..."
+            : completedSteps.size < steps.length
+              ? `Complete as ${steps.length} etapas de fala`
+              : "Concluir prática"}
         </Button>
       </div>
     </div>
