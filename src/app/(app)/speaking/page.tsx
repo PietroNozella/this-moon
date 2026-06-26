@@ -8,9 +8,12 @@ import { ConfidenceScale } from "@/components/ui/confidence-scale";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { PhraseBlock } from "@/components/ui/phrase-block";
+import { AILoadingState } from "@/components/ai/ai-loading-state";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { completeSpeakingPractice } from "@/server/actions/learning";
+import { generateSpeakingPractice } from "@/server/actions/ai";
+import { Sparkles } from "lucide-react";
 import type { EntryRow } from "@/types/database";
 
 const steps = [
@@ -139,12 +142,39 @@ export default function SpeakingPage() {
   }
 
   const entry = entries[currentIndex];
+  const [aiPractice, setAiPractice] = useState<{
+    warmup: string[];
+    mainPractice: string[];
+    challenge: string;
+    speakWithoutLooking: string;
+  } | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  async function handleAiPractice() {
+    setAiLoading(true);
+    setAiError(null);
+    setAiPractice(null);
+    const result = await generateSpeakingPractice();
+    setAiLoading(false);
+    if (result.success) {
+      setAiPractice(result.data);
+    } else {
+      setAiError(result.error);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Speaking"
         subtitle="Leia, repita devagar, fale natural e tente falar sem olhar."
+        action={
+          <Button type="button" variant="ghost" size="sm" disabled={aiLoading} onClick={handleAiPractice} className="gap-1.5 text-candy-blue-700 hover:text-candy-blue-950">
+            <Sparkles className="h-3.5 w-3.5" />
+            Gerar treino com IA
+          </Button>
+        }
       />
 
       <p className="text-sm text-slate-500">
@@ -220,6 +250,42 @@ export default function SpeakingPage() {
             );
           })}
         </div>
+
+        {aiLoading ? <AILoadingState className="mt-4" /> : null}
+        {aiError ? (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3">
+            <p className="text-sm text-red-700">{aiError}</p>
+          </div>
+        ) : null}
+        {aiPractice ? (
+          <div className="mt-6 space-y-4 rounded-2xl border border-candy-blue-500/30 bg-candy-blue-500/5 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-950">Treino gerado por IA</p>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Warm-up</p>
+              <ul className="mt-2 space-y-1">
+                {aiPractice.warmup.map((w, i) => (
+                  <li key={i} className="text-sm text-slate-700">• {w}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Prática principal</p>
+              <ul className="mt-2 space-y-1">
+                {aiPractice.mainPractice.map((p, i) => (
+                  <li key={i} className="text-sm text-slate-700">• {p}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Desafio</p>
+              <p className="mt-1 text-sm text-slate-700">{aiPractice.challenge}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Fale sem olhar</p>
+              <p className="mt-1 text-sm italic text-slate-600">"{aiPractice.speakWithoutLooking}"</p>
+            </div>
+          </div>
+        ) : null}
 
         {entry?.pronunciation_note ? (
           <div className="mt-5 rounded-xl border border-candy-blue-500/40 bg-candy-blue-500/20 px-4 py-3">

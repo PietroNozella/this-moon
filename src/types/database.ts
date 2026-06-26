@@ -71,6 +71,10 @@ export interface Database {
         Insert: RoleplayScenarioInsert;
         Update: RoleplayScenarioUpdate;
       };
+      ai_interactions: {
+        Row: AiInteractionRow;
+        Insert: AiInteractionInsert;
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -515,3 +519,25 @@ export type RoleplayScenarioInsert = {
 };
 
 export type RoleplayScenarioUpdate = Partial<RoleplayScenarioInsert>;
+
+/* ── AI Interactions ── */
+
+export type AiInteractionRow = {
+  id: string;
+  user_id: string;
+  feature: string;
+  input: Json;
+  output: Json;
+  related_entry_id: string | null;
+  created_at: string;
+};
+
+export type AiInteractionInsert = {
+  id?: string;
+  user_id: string;
+  feature: string;
+  input?: Json;
+  output?: Json;
+  related_entry_id?: string | null;
+  created_at?: string;
+};

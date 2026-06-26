@@ -1,10 +1,13 @@
 ﻿"use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles, ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label, Select, Textarea } from "@/components/ui/form";
+import { AILoadingState } from "@/components/ai/ai-loading-state";
+import { AIErrorState } from "@/components/ai/ai-error-state";
 import { cn, compactText } from "@/lib/utils";
 import {
   createEntrySchema,
@@ -14,7 +17,7 @@ import {
   type LearningActionState,
 } from "@/lib/validators/learning";
 import { createEntry, createPersonalSentence, createVerb } from "@/server/actions/learning";
-import { ChevronDown } from "lucide-react";
+import { generateCaptureAssist } from "@/server/actions/ai";
 
 const sourceLabels: Record<string, string> = {
   music: "Música",
@@ -87,9 +90,93 @@ function CollapsibleSection({
 
 export function CaptureForm() {
   const router = useRouter();
+  const chunkFormRef = useRef<HTMLFormElement>(null);
+  const verbFormRef = useRef<HTMLFormElement>(null);
   const [mode, setMode] = useState<CaptureMode>("chunk");
   const [state, setState] = useState<LearningActionState>({});
   const [pending, setPending] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  function setFieldValue(
+    form: HTMLFormElement | null,
+    name: string,
+    value: string,
+  ) {
+    if (!form) return;
+    const field = form.elements.namedItem(name) as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | HTMLSelectElement
+      | null;
+    if (field) field.value = value;
+  }
+
+  async function handleAIAssist() {
+    const form = mode === "chunk" ? chunkFormRef.current : verbFormRef.current;
+    if (!form) return;
+
+    const formData = new FormData(form);
+    const originalPhrase = compactText(
+      formData.get(mode === "chunk" ? "original_phrase" : "verb"),
+    );
+    if (!originalPhrase) return;
+
+    setAiLoading(true);
+    setAiError(null);
+
+    const result = await generateCaptureAssist({
+      entryType: mode,
+      originalPhrase,
+      sourceType:
+        compactText(formData.get("source_type")) ?? undefined,
+      sourceTitle:
+        compactText(formData.get("source_title")) ?? undefined,
+      contextNote:
+        compactText(formData.get("context_note")) ?? undefined,
+    });
+
+    setAiLoading(false);
+
+    if (!result.success) {
+      setAiError(result.error);
+      return;
+    }
+
+    const data = result.data;
+
+    if (mode === "chunk") {
+      if ("translation" in data && data.translation) {
+        setFieldValue(chunkFormRef.current, "translation", data.translation);
+      }
+      if ("naturalPhrase" in data && data.naturalPhrase) {
+        setFieldValue(chunkFormRef.current, "natural_phrase", data.naturalPhrase);
+      }
+      if ("pronunciationNote" in data && data.pronunciationNote) {
+        setFieldValue(chunkFormRef.current, "pronunciation_note", data.pronunciationNote);
+      }
+      if ("grammarNote" in data && data.grammarNote) {
+        setFieldValue(chunkFormRef.current, "grammar_note", data.grammarNote);
+      }
+      if ("difficulty" in data && data.difficulty) {
+        setFieldValue(chunkFormRef.current, "difficulty", data.difficulty);
+      }
+    } else {
+      if ("translation" in data && data.translation) {
+        setFieldValue(verbFormRef.current, "meaning", data.translation);
+      }
+      if ("verbPatterns" in data && data.verbPatterns) {
+        setFieldValue(
+          verbFormRef.current,
+          "verb_patterns",
+          data.verbPatterns.join("\n"),
+        );
+      }
+      if ("difficulty" in data && data.difficulty) {
+        setFieldValue(verbFormRef.current, "difficulty", data.difficulty);
+      }
+    }
+  }
 
   async function handleChunk(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -216,8 +303,24 @@ export function CaptureForm() {
       </div>
 
       {mode === "chunk" ? (
-        <form onSubmit={handleChunk} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-          <SectionHeading title="Capturar chunk" subtitle="Salve uma frase curta que você encontrou e quer reconhecer, repetir e usar." />
+        <form ref={chunkFormRef} onSubmit={handleChunk} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
+          <div className="flex items-start justify-between gap-4">
+            <SectionHeading title="Capturar chunk" subtitle="Salve uma frase curta que você encontrou e quer reconhecer, repetir e usar." />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={aiLoading}
+              onClick={handleAIAssist}
+              className="shrink-0 gap-1.5 text-candy-blue-700 hover:text-candy-blue-950"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Melhorar com IA
+            </Button>
+          </div>
+
+          {aiLoading ? <AILoadingState /> : null}
+          {aiError ? <AIErrorState message={aiError} onRetry={handleAIAssist} /> : null}
 
           <div className="space-y-4">
             <div className="space-y-2">
@@ -324,8 +427,24 @@ export function CaptureForm() {
           </div>
         </form>
       ) : (
-        <form onSubmit={handleVerb} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-          <SectionHeading title="Capturar verbo" subtitle="Salve um verbo para criar padrões e montar frases próprias com ele." />
+        <form ref={verbFormRef} onSubmit={handleVerb} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
+          <div className="flex items-start justify-between gap-4">
+            <SectionHeading title="Capturar verbo" subtitle="Salve um verbo para criar padrões e montar frases próprias com ele." />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={aiLoading}
+              onClick={handleAIAssist}
+              className="shrink-0 gap-1.5 text-candy-blue-700 hover:text-candy-blue-950"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Melhorar com IA
+            </Button>
+          </div>
+
+          {aiLoading ? <AILoadingState /> : null}
+          {aiError ? <AIErrorState message={aiError} onRetry={handleAIAssist} /> : null}
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">

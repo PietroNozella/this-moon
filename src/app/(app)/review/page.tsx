@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge, TypeBadge } from "@/components/ui/badge";
+import { AILoadingState } from "@/components/ai/ai-loading-state";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/utils";
+import { generateReviewPlan } from "@/server/actions/ai";
+import { Sparkles } from "lucide-react";
 import type { EntryRow } from "@/types/database";
 
 const PAGE_SIZE = 5;
@@ -83,6 +86,26 @@ export default function ReviewPage() {
     "Varie entre afirmativa, negativa e pergunta.",
     "Depois use um conector (because, so, but) para aumentar a frase.",
   ];
+
+  const [reviewPlan, setReviewPlan] = useState<{
+    reviewTitle: string;
+    entries: Array<{ id: string; reason: string; task: string }>;
+  } | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
+
+  async function handleReviewPlan() {
+    setReviewLoading(true);
+    setReviewError(null);
+    setReviewPlan(null);
+    const result = await generateReviewPlan();
+    setReviewLoading(false);
+    if (result.success) {
+      setReviewPlan(result.data);
+    } else {
+      setReviewError(result.error);
+    }
+  }
 
   function getPrompt(entry: EntryRow & { status?: string | null }) {
     if (entry.entry_type === "verb") {
@@ -182,6 +205,52 @@ export default function ReviewPage() {
               Escolher chunk
             </a>
           </div>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm ring-1 ring-black/[0.02]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight text-slate-950">
+                Plano de revisão
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                IA analisa seu progresso e sugere o que revisar.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={reviewLoading}
+              onClick={handleReviewPlan}
+              className="shrink-0 gap-1.5 text-candy-blue-700 hover:text-candy-blue-950"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Gerar plano
+            </Button>
+          </div>
+
+          {reviewLoading ? <AILoadingState className="mt-4" /> : null}
+          {reviewError ? (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-700">{reviewError}</p>
+            </div>
+          ) : null}
+
+          {reviewPlan ? (
+            <div className="mt-5 space-y-3">
+              <p className="text-sm font-medium text-candy-blue-950">{reviewPlan.reviewTitle}</p>
+              {reviewPlan.entries.slice(0, 5).map((item, i) => (
+                <div key={i} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-sm font-medium text-onyx">{item.task}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{item.reason}</p>
+                  <ButtonLink href={`/library/${item.id}`} variant="ghost" size="sm" className="mt-1">
+                    Ir para o chunk
+                  </ButtonLink>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
 

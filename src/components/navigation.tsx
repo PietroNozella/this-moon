@@ -10,6 +10,7 @@ import {
   Repeat,
   Library,
   Timer,
+  Bot,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/speaking", label: "Speaking", icon: Mic },
   { href: "/review", label: "Revisão", icon: Repeat },
   { href: "/library", label: "Biblioteca", icon: Library },
+  { href: "/coach", label: "AI Coach", icon: Bot },
 ];
 
 export function Navigation() {

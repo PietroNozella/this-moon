@@ -5,6 +5,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Trash2 } from "lucide-react";
 
 import { PersonalSentenceForm } from "@/components/forms/personal-sentence-form";
+import { SentenceWithAIFeedback } from "@/components/ai/sentence-with-ai-feedback";
+import { AIActionPanel } from "@/components/ai/ai-action-panel";
 import { StatusForm } from "@/components/forms/status-form";
 import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -264,12 +266,11 @@ function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; on
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Frases próprias</p>
               <div className="mt-4 space-y-3">
                 {entry.personal_sentences.map((sentence) => (
-                  <div key={sentence.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="font-medium leading-6 text-slate-950">{sentence.sentence}</p>
-                    {sentence.translation ? (
-                      <p className="mt-1 text-sm italic leading-6 text-slate-500">{sentence.translation}</p>
-                    ) : null}
-                  </div>
+                  <SentenceWithAIFeedback
+                    key={sentence.id}
+                    sentence={sentence}
+                    showTranslation
+                  />
                 ))}
               </div>
             </div>
@@ -318,6 +319,8 @@ function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; on
               <ButtonLink href="/speaking" variant="secondary" className="w-full">Treinar Speaking</ButtonLink>
             </div>
           </div>
+
+          <AIActionPanel entryId={entry.id} phrase={entry.original_phrase} />
 
           <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Status do chunk</p>
@@ -502,9 +505,10 @@ function VerbDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onD
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Frases criadas</p>
               <div className="mt-4 space-y-3">
                 {entry.personal_sentences.map((sentence) => (
-                  <div key={sentence.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="font-medium leading-6 text-slate-950">{sentence.sentence}</p>
-                  </div>
+                  <SentenceWithAIFeedback
+                    key={sentence.id}
+                    sentence={sentence}
+                  />
                 ))}
               </div>
             </div>
@@ -548,6 +552,8 @@ function VerbDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onD
               <ButtonLink href="/library" variant="secondary" className="w-full">Usar com conectores</ButtonLink>
             </div>
           </div>
+
+          <AIActionPanel entryId={entry.id} phrase={entry.original_phrase} />
 
           <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Status</p>
