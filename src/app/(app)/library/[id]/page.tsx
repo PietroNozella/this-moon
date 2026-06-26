@@ -1,7 +1,8 @@
 ﻿"use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
+import { Trash2 } from "lucide-react";
 
 import { PersonalSentenceForm } from "@/components/forms/personal-sentence-form";
 import { StatusForm } from "@/components/forms/status-form";
@@ -11,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Input, Label, Textarea } from "@/components/ui/form";
 import { SourcePill } from "@/components/ui/source-pill";
 import { createClient } from "@/lib/supabase/client";
-import { completeVerbPatternPractice } from "@/server/actions/learning";
+import { completeVerbPatternPractice, deleteEntry } from "@/server/actions/learning";
 import { formatDate } from "@/lib/utils";
 import type {
   ChunkRow,
@@ -35,8 +36,10 @@ const difficultyLabels: Record<string, string> = {
 
 export default function EntryDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [entry, setEntry] = useState<EntryDetailData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -107,11 +110,25 @@ export default function EntryDetailPage() {
     );
   }
 
-  if (entry.entry_type === "verb") {
-    return <VerbDetail entry={entry} />;
+  async function handleDelete() {
+    if (!entry) return;
+    if (!window.confirm("Tem certeza que deseja excluir esta entrada permanentemente?")) return;
+
+    setDeleting(true);
+    try {
+      await deleteEntry(entry.id);
+      router.push("/library");
+    } catch {
+      alert("Erro ao excluir entrada.");
+      setDeleting(false);
+    }
   }
 
-  return <ChunkDetail entry={entry} />;
+  if (entry.entry_type === "verb") {
+    return <VerbDetail entry={entry} onDelete={handleDelete} deleting={deleting} />;
+  }
+
+  return <ChunkDetail entry={entry} onDelete={handleDelete} deleting={deleting} />;
 }
 function ChunkHeader({ entry }: { entry: EntryDetailData }) {
   return (
@@ -187,7 +204,7 @@ function VerbHeader({ entry }: { entry: EntryDetailData }) {
 
 /* ── Chunk Detail ── */
 
-function ChunkDetail({ entry }: { entry: EntryDetailData }) {
+function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onDelete: () => Promise<void>; deleting: boolean }) {
   const mainChunk = entry.chunks[0];
 
   return (
@@ -354,6 +371,19 @@ function ChunkDetail({ entry }: { entry: EntryDetailData }) {
               <PersonalSentenceForm entryId={entry.id} chunkId={mainChunk?.id} />
             </div>
           </div>
+
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Perigo</p>
+            <Button
+              variant="danger"
+              className="mt-4 w-full"
+              disabled={deleting}
+              onClick={onDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {deleting ? "Excluindo..." : "Excluir entrada"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -362,7 +392,7 @@ function ChunkDetail({ entry }: { entry: EntryDetailData }) {
 
 /* ── Verb Detail ── */
 
-function VerbDetail({ entry }: { entry: EntryDetailData }) {
+function VerbDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onDelete: () => Promise<void>; deleting: boolean }) {
   const [sentences, setSentences] = useState<string[]>([""]);
   const [pending, setPending] = useState(false);
 
@@ -558,6 +588,19 @@ function VerbDetail({ entry }: { entry: EntryDetailData }) {
             <div className="mt-4">
               <PersonalSentenceForm entryId={entry.id} />
             </div>
+          </div>
+
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Perigo</p>
+            <Button
+              variant="danger"
+              className="mt-4 w-full"
+              disabled={deleting}
+              onClick={onDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {deleting ? "Excluindo..." : "Excluir entrada"}
+            </Button>
           </div>
         </div>
       </div>

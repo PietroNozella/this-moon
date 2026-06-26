@@ -426,6 +426,23 @@ export async function completeSpeakingPractice(entryId?: string) {
   await incrementDailyGoal(supabase, user.id, "speaking_practices");
 }
 
+export async function deleteEntry(entryId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autorizado.");
+
+  const { error } = await supabase
+    .from("learning_entries")
+    .delete()
+    .eq("id", entryId)
+    .eq("user_id", user.id);
+
+  if (error) throw new Error("Falha ao excluir entrada.");
+}
+
 export async function completeDailyTraining(input: {
   narrationText?: string;
   connectorSentence?: string;

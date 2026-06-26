@@ -1,15 +1,17 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
 
 import { StatusBadge, TypeBadge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input, Label, Select } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
 import { createClient } from "@/lib/supabase/client";
+import { deleteEntry } from "@/server/actions/learning";
 import { difficulties, entryStatuses, sourceTypes } from "@/lib/validators/learning";
 import { formatDate } from "@/lib/utils";
 import type { EntryRow } from "@/types/database";
@@ -50,6 +52,7 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [filters, setFilters] = useState<{
     q?: string;
     status?: string;
@@ -134,6 +137,23 @@ export default function LibraryPage() {
 
     void load();
   }, [filters, page]);
+
+  const handleDelete = useCallback(async (entryId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!window.confirm("Tem certeza que deseja excluir esta entrada?")) return;
+
+    setDeleting(entryId);
+    try {
+      await deleteEntry(entryId);
+      setEntries((prev) => prev.filter((e) => e.id !== entryId));
+    } catch {
+      alert("Erro ao excluir entrada.");
+    } finally {
+      setDeleting(null);
+    }
+  }, []);
 
   const hasFilters = filters.q || filters.status || filters.type || filters.source || filters.difficulty;
 
@@ -284,13 +304,24 @@ export default function LibraryPage() {
                   </div>
                 </>
               )}
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                {entry.last_practiced_at ? (
-                  <span>Praticado {formatDate(entry.last_practiced_at)}</span>
-                ) : null}
-                {entry.times_practiced ? (
-                  <span>{entry.times_practiced}x</span>
-                ) : null}
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+                <div className="flex flex-wrap items-center gap-3">
+                  {entry.last_practiced_at ? (
+                    <span>Praticado {formatDate(entry.last_practiced_at)}</span>
+                  ) : null}
+                  {entry.times_practiced ? (
+                    <span>{entry.times_practiced}x</span>
+                  ) : null}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={deleting === entry.id}
+                  onClick={(e) => handleDelete(entry.id, e)}
+                  className="text-red-400 hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
             </a>
           ))}
