@@ -6,10 +6,7 @@ import {
   LayoutDashboard,
   PlusCircle,
   Headphones,
-  Mic,
-  Repeat,
   Library,
-  Timer,
   Bot,
 } from "lucide-react";
 
@@ -18,11 +15,8 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
   { href: "/capture", label: "Captura", icon: PlusCircle },
-  { href: "/listening", label: "Escuta Guiada", icon: Headphones },
-  { href: "/daily-training", label: "Treino Diário", icon: Timer },
-  { href: "/speaking", label: "Speaking", icon: Mic },
-  { href: "/review", label: "Revisão", icon: Repeat },
   { href: "/library", label: "Biblioteca", icon: Library },
+  { href: "/practice", label: "Prática", icon: Headphones },
   { href: "/coach", label: "AI Coach", icon: Bot },
 ];
 

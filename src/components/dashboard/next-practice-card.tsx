@@ -28,7 +28,7 @@ const stepConfig: Record<
   sentences: {
     title: "Crie frases próprias",
     body: "Pegue um chunk salvo e crie uma frase sua com ele.",
-    href: "/review",
+    href: "/library",
     cta: "Criar frases",
   },
   practice: {
