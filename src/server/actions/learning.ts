@@ -126,7 +126,7 @@ export async function createEntry(input: {
       grammar_note: input.grammar_note ?? null,
       source_timestamp: input.source_timestamp ?? null,
       confidence_level: input.confidence_level ?? null,
-      verb_patterns: input.verb_patterns ? JSON.stringify(input.verb_patterns) : null,
+      verb_patterns: input.verb_patterns ?? null,
     })
     .select("id")
     .maybeSingle();
