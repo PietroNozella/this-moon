@@ -26,7 +26,7 @@ export function AIChat() {
     {
       role: "assistant",
       content:
-        "Olá! Sou seu AI Coach. Pergunte o que quiser sobre seu treino de inglês ou escolha um tópico abaixo.",
+        "Olá! Sou seu treinador pessoal de inglês do ChunkFlow. Me pergunte o que treinar hoje ou escolha um tópico abaixo.",
     },
   ]);
   const [input, setInput] = useState("");
