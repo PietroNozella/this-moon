@@ -40,7 +40,8 @@ export function DailyMissionCard({ items, doneCount, totalCount }: Props) {
               !item.done && item.actionHref ? (
                 <ButtonLink
                   href={item.actionHref}
-                  className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                  size="sm"
+                  className="rounded-lg border border-onyx text-white hover:border-slate-300 hover:bg-white hover:text-slate-950 active:border-slate-300 active:bg-white active:text-slate-950"
                 >
                   {item.actionLabel}
                 </ButtonLink>
