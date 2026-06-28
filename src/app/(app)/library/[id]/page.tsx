@@ -1,15 +1,15 @@
 ﻿"use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
-import { Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronDown, Trash2 } from "lucide-react";
 
 import { PersonalSentenceForm } from "@/components/forms/personal-sentence-form";
 import { StatusForm } from "@/components/forms/status-form";
 import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input, Label, Textarea } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/form";
 import { SourcePill } from "@/components/ui/source-pill";
 import { createClient } from "@/lib/supabase/client";
 import { completeVerbPatternPractice, deleteEntry } from "@/server/actions/learning";
@@ -40,9 +40,9 @@ export default function EntryDetailPage() {
   const [entry, setEntry] = useState<EntryDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  const supabase = createClient();
-
   useEffect(() => {
+    const supabase = createClient();
+
     async function load() {
       const { data: entryData } = await supabase
         .from("learning_entries")
@@ -275,37 +275,35 @@ function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; on
             </div>
           ) : null}
 
-          {entry.practice_sessions.length > 0 ? (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Histórico de prática</p>
-              <div className="mt-4 space-y-3">
-                {entry.practice_sessions.slice(0, 5).map((session) => (
-                  <div key={session.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="flex items-center justify-between text-xs text-slate-500">
-                      <span className="font-medium">
-                        {session.mode === "listening" ? "Escuta Guiada" : session.mode === "speaking" ? "Speaking" : session.mode === "shadowing" ? "Shadowing" : session.mode}
-                      </span>
-                      <span>{formatDate(session.created_at)}</span>
+          <details className="group rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
+            <summary className="flex cursor-pointer items-center justify-between px-6 py-5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
+              <span>Histórico de prática</span>
+              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-slate-100 px-6 pb-6 pt-4">
+              {entry.practice_sessions.length > 0 ? (
+                <div className="space-y-3">
+                  {entry.practice_sessions.slice(0, 5).map((session) => (
+                    <div key={session.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span className="font-medium">
+                          {session.mode === "listening" ? "Escuta Guiada" : session.mode === "speaking" ? "Speaking" : session.mode === "shadowing" ? "Shadowing" : session.mode}
+                        </span>
+                        <span>{formatDate(session.created_at)}</span>
+                      </div>
+                      {session.notes ? (
+                        <p className="mt-1 text-sm leading-6 text-slate-600 line-clamp-2">{session.notes}</p>
+                      ) : null}
                     </div>
-                    {session.notes ? (
-                      <p className="mt-1 text-sm leading-6 text-slate-600 line-clamp-2">{session.notes}</p>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Histórico de prática</p>
-              <div className="mt-4 rounded-2xl bg-slate-50 p-6 text-center ring-1 ring-slate-200/70">
-                <p className="text-sm font-medium text-slate-700">Você ainda não praticou este chunk.</p>
-                <p className="mt-1 text-sm text-slate-500">Comece pela Escuta Guiada ou pelo Speaking para registrar sua evolução.</p>
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  <ButtonLink href="/practice" variant="primary" size="sm">Praticar (escuta + fala)</ButtonLink>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <div className="rounded-2xl bg-slate-50 p-6 text-center">
+                  <p className="text-sm font-medium text-slate-700">Nenhuma prática registrada.</p>
+                </div>
+              )}
             </div>
-          )}
+          </details>
         </div>
 
         {/* Sidebar */}
@@ -324,31 +322,36 @@ function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; on
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Evolução</p>
-            <div className="mt-4 divide-y divide-slate-100 text-sm">
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500">Status</span>
-                <span className="font-medium text-slate-950">{entry.status === "new" ? "Novo" : entry.status === "learning" ? "Aprendendo" : entry.status === "practicing" ? "Praticando" : entry.status === "almost_natural" ? "Quase natural" : entry.status === "mastered" ? "Dominado" : entry.status === "archived" ? "Arquivado" : entry.status ?? "—"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500">Dificuldade</span>
-                <span className="font-medium text-slate-950">{difficultyLabels[entry.difficulty ?? "unknown"]}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500">Confiança</span>
-                <span className="font-medium text-slate-950">{entry.confidence_level ? `${entry.confidence_level}/5` : "—"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500">Praticado</span>
-                <span className="font-medium text-slate-950">{entry.times_practiced ? `${entry.times_practiced}x` : "0 vezes"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 last:pb-0">
-                <span className="text-slate-500">Última prática</span>
-                <span className="font-medium text-slate-950">{entry.last_practiced_at ? formatDate(entry.last_practiced_at) : "—"}</span>
+          <details className="group rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
+            <summary className="flex cursor-pointer items-center justify-between px-4 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
+              <span>Evolução</span>
+              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-slate-100 px-4 pb-4">
+              <div className="mt-4 divide-y divide-slate-100 text-sm">
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Status</span>
+                  <span className="font-medium text-slate-950">{entry.status === "new" ? "Novo" : entry.status === "learning" ? "Aprendendo" : entry.status === "practicing" ? "Praticando" : entry.status === "almost_natural" ? "Quase natural" : entry.status === "mastered" ? "Dominado" : entry.status === "archived" ? "Arquivado" : entry.status ?? "—"}</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Dificuldade</span>
+                  <span className="font-medium text-slate-950">{difficultyLabels[entry.difficulty ?? "unknown"]}</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Confiança</span>
+                  <span className="font-medium text-slate-950">{entry.confidence_level ? `${entry.confidence_level}/5` : "—"}</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Praticado</span>
+                  <span className="font-medium text-slate-950">{entry.times_practiced ? `${entry.times_practiced}x` : "0 vezes"}</span>
+                </div>
+                <div className="flex items-center justify-between py-2 last:pb-0">
+                  <span className="text-slate-500">Última prática</span>
+                  <span className="font-medium text-slate-950">{entry.last_practiced_at ? formatDate(entry.last_practiced_at) : "—"}</span>
+                </div>
               </div>
             </div>
-          </div>
+          </details>
 
           {entry.source_type || entry.source_title || entry.source_url ? (
             <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
@@ -512,32 +515,33 @@ function VerbDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onD
           ) : null}
 
           {/* ── Histórico ── */}
-          {entry.practice_sessions.length > 0 ? (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Histórico</p>
-              <div className="mt-4 space-y-3">
-                {entry.practice_sessions.slice(0, 5).map((session) => (
-                  <div key={session.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="flex items-center justify-between text-xs text-slate-500">
-                      <span className="font-medium">{session.mode === "review" ? "Treino de verbo" : session.mode}</span>
-                      <span>{formatDate(session.created_at)}</span>
+          <details className="group rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
+            <summary className="flex cursor-pointer items-center justify-between px-6 py-5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
+              <span>Histórico</span>
+              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-slate-100 px-6 pb-6 pt-4">
+              {entry.practice_sessions.length > 0 ? (
+                <div className="space-y-3">
+                  {entry.practice_sessions.slice(0, 5).map((session) => (
+                    <div key={session.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span className="font-medium">{session.mode === "review" ? "Treino de verbo" : session.mode}</span>
+                        <span>{formatDate(session.created_at)}</span>
+                      </div>
+                      {session.notes ? (
+                        <p className="mt-1 text-sm leading-6 text-slate-600 line-clamp-2">{session.notes}</p>
+                      ) : null}
                     </div>
-                    {session.notes ? (
-                      <p className="mt-1 text-sm leading-6 text-slate-600 line-clamp-2">{session.notes}</p>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl bg-slate-50 p-6 text-center">
+                  <p className="text-sm font-medium text-slate-700">Nenhuma prática registrada.</p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Histórico</p>
-              <div className="mt-4 rounded-2xl bg-slate-50 p-6 text-center ring-1 ring-slate-200/70">
-                <p className="text-sm font-medium text-slate-700">Nenhuma prática registrada ainda.</p>
-                <p className="mt-1 text-sm text-slate-500">Crie frases com os padrões acima para começar.</p>
-              </div>
-            </div>
-          )}
+          </details>
         </div>
 
         {/* Sidebar */}
@@ -557,31 +561,36 @@ function VerbDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onD
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Evolução</p>
-            <div className="mt-4 divide-y divide-slate-100 text-sm">
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500">Status</span>
-                <span className="font-medium text-slate-950">{entry.status === "new" ? "Novo" : entry.status === "learning" ? "Aprendendo" : entry.status === "practicing" ? "Praticando" : entry.status === "almost_natural" ? "Quase natural" : entry.status === "mastered" ? "Dominado" : entry.status === "archived" ? "Arquivado" : entry.status ?? "—"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500">Dificuldade</span>
-                <span className="font-medium text-slate-950">{difficultyLabels[entry.difficulty ?? "unknown"]}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500">Frases criadas</span>
-                <span className="font-medium text-slate-950">{entry.personal_sentences.length}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500">Praticado</span>
-                <span className="font-medium text-slate-950">{entry.times_practiced ? `${entry.times_practiced}x` : "0 vezes"}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 last:pb-0">
-                <span className="text-slate-500">Última prática</span>
-                <span className="font-medium text-slate-950">{entry.last_practiced_at ? formatDate(entry.last_practiced_at) : "—"}</span>
+          <details className="group rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
+            <summary className="flex cursor-pointer items-center justify-between px-4 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
+              <span>Evolução</span>
+              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-slate-100 px-4 pb-4">
+              <div className="mt-4 divide-y divide-slate-100 text-sm">
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Status</span>
+                  <span className="font-medium text-slate-950">{entry.status === "new" ? "Novo" : entry.status === "learning" ? "Aprendendo" : entry.status === "practicing" ? "Praticando" : entry.status === "almost_natural" ? "Quase natural" : entry.status === "mastered" ? "Dominado" : entry.status === "archived" ? "Arquivado" : entry.status ?? "—"}</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Dificuldade</span>
+                  <span className="font-medium text-slate-950">{difficultyLabels[entry.difficulty ?? "unknown"]}</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Frases criadas</span>
+                  <span className="font-medium text-slate-950">{entry.personal_sentences.length}</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-slate-500">Praticado</span>
+                  <span className="font-medium text-slate-950">{entry.times_practiced ? `${entry.times_practiced}x` : "0 vezes"}</span>
+                </div>
+                <div className="flex items-center justify-between py-2 last:pb-0">
+                  <span className="text-slate-500">Última prática</span>
+                  <span className="font-medium text-slate-950">{entry.last_practiced_at ? formatDate(entry.last_practiced_at) : "—"}</span>
+                </div>
               </div>
             </div>
-          </div>
+          </details>
 
           <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Sua frase com este verbo</p>

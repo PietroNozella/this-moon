@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Copy, ExternalLink, Eye, EyeOff } from "lucide-react";
 
 import { Button, ButtonLink } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { ConfidenceScale } from "@/components/ui/confidence-scale";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Input, Label, Textarea } from "@/components/ui/form";
+import { Label, Textarea } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/page-header";
 import { PhraseBlock } from "@/components/ui/phrase-block";
 import { SourcePill } from "@/components/ui/source-pill";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { completePractice } from "@/server/actions/learning";
-import { Copy, ExternalLink, Eye, EyeOff, Headphones } from "lucide-react";
 import type { EntryRow } from "@/types/database";
 
 const steps = [
@@ -58,9 +58,7 @@ export default function PracticePage() {
   const [done, setDone] = useState(false);
   const [showTranslation, setShowTranslation] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
-  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
-  const [experience, setExperience] = useState("");
-  const [repetitions, setRepetitions] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [personalSentence, setPersonalSentence] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -71,7 +69,6 @@ export default function PracticePage() {
       const { data } = await supabase
         .from("learning_entries")
         .select("id, original_phrase, translation, source_type, source_title, source_url, source_timestamp, natural_phrase, pronunciation_note, context_note, difficulty, status, entry_type")
-        .eq("entry_type", "chunk")
         .order("created_at", { ascending: false })
         .limit(20);
 
@@ -95,25 +92,20 @@ export default function PracticePage() {
 
   async function handleComplete() {
     if (!entry || !rating) return;
-    if (completedSteps.size < steps.length) return;
     setPending(true);
 
     try {
       await completePractice({
         entryId: entry.id,
         confidenceLevel: rating,
-        listeningNotes: experience || undefined,
-        listeningRepetitions: repetitions ? Number(repetitions) : undefined,
         personalSentence: personalSentence || undefined,
       });
 
       if (currentIndex < entries.length - 1) {
         setCurrentIndex((i) => i + 1);
-        setCompletedSteps(new Set());
         setShowTranslation(false);
         setRating(null);
-        setExperience("");
-        setRepetitions("");
+        setSelectedDifficulty(null);
         setPersonalSentence("");
       } else {
         setDone(true);
@@ -126,27 +118,13 @@ export default function PracticePage() {
   function handleSkip() {
     if (currentIndex < entries.length - 1) {
       setCurrentIndex((i) => i + 1);
-      setCompletedSteps(new Set());
       setShowTranslation(false);
       setRating(null);
-      setExperience("");
-      setRepetitions("");
+      setSelectedDifficulty(null);
       setPersonalSentence("");
     } else {
       setDone(true);
     }
-  }
-
-  function toggleStep(key: string) {
-    setCompletedSteps((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
   }
 
   if (loading) {
@@ -162,14 +140,14 @@ export default function PracticePage() {
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader
-          title="Prática"
-          subtitle="Escute, repita e fale chunks até soar natural."
+          title="Treinar"
+          subtitle="Repita frases reais até soar natural."
         />
         <EmptyState
-          title="Você ainda não tem chunks para praticar."
-          description="Capture uma frase real de música, jogo, vídeo ou conversa para começar."
-          actionLabel="Capturar primeiro chunk"
-          actionHref="/capture"
+          title="Você ainda não tem nada para treinar."
+          description="Capture uma frase real no painel Hoje para começar."
+          actionLabel="Ir para Hoje"
+          actionHref="/dashboard"
         />
       </div>
     );
@@ -179,12 +157,12 @@ export default function PracticePage() {
     return (
       <div className="mx-auto max-w-4xl space-y-6">
         <PageHeader
-          title="Prática"
-          subtitle="Escute, repita e fale chunks até soar natural."
+          title="Treinar"
+          subtitle="Repita frases reais até soar natural."
         />
         <Card important className="border-candy-blue-500/30 bg-candy-blue-500/10 text-center">
           <p className="text-base font-semibold text-candy-blue-950">
-            Prática de hoje concluída!
+            Treino de hoje concluído!
           </p>
           <p className="mt-2 text-sm text-slate-600">
             Volte amanhã para mais prática.
@@ -205,8 +183,8 @@ export default function PracticePage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
-        title="Prática"
-        subtitle="Escute, repita e fale chunks até soar natural."
+        title="Treinar"
+        subtitle="Repita frases reais até soar natural."
       />
 
       <p className="text-sm text-slate-500">
@@ -216,9 +194,6 @@ export default function PracticePage() {
       <Card className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70" important>
         {/* Cabeçalho com badges */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium bg-candy-blue-500/25 text-candy-blue-950 border-candy-blue-500/50">
-            Chunk
-          </span>
           <SourcePill
             type={entry.source_type}
             title={entry.source_title}
@@ -227,11 +202,6 @@ export default function PracticePage() {
           {entry.difficulty ? (
             <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
               {difficultyLabels[entry.difficulty] ?? entry.difficulty}
-            </span>
-          ) : null}
-          {entry.status ? (
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
-              {entry.status === "new" ? "Novo" : entry.status === "learning" ? "Aprendendo" : entry.status === "practicing" ? "Praticando" : entry.status === "almost_natural" ? "Quase natural" : entry.status === "mastered" ? "Dominado" : entry.status === "archived" ? "Arquivado" : entry.status}
             </span>
           ) : null}
         </div>
@@ -297,76 +267,21 @@ export default function PracticePage() {
           </ButtonLink>
         </div>
 
-        {/* Instrução de escuta */}
-        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <Headphones className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-          <p className="text-sm leading-6 text-slate-600">
-            Copie o treino para uma ferramenta de áudio ou use a fonte original. Ouça sem olhar a tradução, depois volte e anote o que reconheceu.
+        {/* Etapas de speaking (visual, não bloqueante) */}
+        <div className="mt-6">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Sugestão de prática
           </p>
-        </div>
-
-        {/* Seção de escuta */}
-        <div className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="experience">
-              O que você reconheceu ao ouvir?
-            </Label>
-            <Textarea
-              id="experience"
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="repetitions">
-              Quantas vezes você ouviu?
-            </Label>
-            <Input
-              id="repetitions"
-              type="number"
-              min={1}
-              max={20}
-              value={repetitions}
-              onChange={(e) => setRepetitions(e.target.value)}
-              className="max-w-32"
-            />
-          </div>
-        </div>
-
-        {/* Separador */}
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-white px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Agora fale
-            </span>
-          </div>
-        </div>
-
-        {/* Etapas de speaking */}
-        <div className="flex flex-wrap gap-2">
-          {steps.map((step) => {
-            const doneStep = completedSteps.has(step.key);
-            return (
-              <button
+          <div className="flex flex-wrap gap-2">
+            {steps.map((step) => (
+              <span
                 key={step.key}
-                type="button"
-                onClick={() => toggleStep(step.key)}
-                className={cn(
-                  "rounded-full border px-3 py-1.5 text-xs transition-all duration-200",
-                  doneStep
-                    ? "border-candy-blue-500/50 bg-candy-blue-500/20 text-candy-blue-950"
-                    : "border-slate-200 bg-slate-100 text-slate-600 hover:border-slate-300",
-                )}
+                className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs text-slate-500"
               >
-                {doneStep ? "✓ " : ""}
                 {step.label}
-              </button>
-            );
-          })}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Nota de pronúncia */}
@@ -389,20 +304,44 @@ export default function PracticePage() {
           <ConfidenceScale value={rating} onChange={setRating} />
         </div>
 
+        {/* Dificuldade */}
+        {rating ? (
+          <div className="mt-4">
+            <p className="mb-2 text-sm font-medium text-slate-700">
+              Qual a dificuldade?
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {(["easy", "medium", "hard"] as const).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setSelectedDifficulty(d)}
+                  className={cn(
+                    "rounded-full border px-4 py-1.5 text-sm transition-all",
+                    selectedDifficulty === d
+                      ? "border-onyx bg-onyx text-white"
+                      : "border-slate-200 bg-slate-100 text-slate-600 hover:border-slate-300",
+                  )}
+                >
+                  {difficultyLabels[d]}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         {/* Frase própria opcional */}
         <div className="mt-6 rounded-2xl border border-candy-blue-500/30 bg-candy-blue-500/10 p-4">
           <div className="space-y-2">
             <Label htmlFor="personal-sentence">
-              Crie uma frase sua usando este chunk
+              Crie uma frase sua (opcional)
             </Label>
             <Textarea
               id="personal-sentence"
               value={personalSentence}
               onChange={(e) => setPersonalSentence(e.target.value)}
+              placeholder="Ex: I need better gear to beat this boss."
             />
-            <p className="text-xs leading-5 text-slate-500">
-              Transforme o chunk em uma frase sua. Isso ajuda a sair do inglês passivo e começar a falar de verdade.
-            </p>
           </div>
         </div>
       </Card>
@@ -415,14 +354,10 @@ export default function PracticePage() {
         <Button
           type="button"
           size="lg"
-          disabled={!rating || pending || completedSteps.size < steps.length}
+          disabled={!rating || pending}
           onClick={handleComplete}
         >
-          {pending
-            ? "Salvando..."
-            : completedSteps.size < steps.length
-              ? `Complete as ${steps.length} etapas de fala`
-              : "Concluir prática"}
+          {pending ? "Salvando..." : "Concluir"}
         </Button>
       </div>
     </div>

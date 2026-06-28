@@ -31,18 +31,6 @@ async function logInteraction(
   await supabase.from("ai_interactions").insert(interaction);
 }
 
-function parseJSON(raw: string): Record<string, unknown> | null {
-  try {
-    const cleaned = raw
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```$/i, "")
-      .trim();
-    return JSON.parse(cleaned) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
 export async function sendCoachMessage(
   message: string,
   history: Array<{ role: "user" | "assistant"; content: string }>,

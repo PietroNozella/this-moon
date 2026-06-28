@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  PlusCircle,
   Headphones,
   Library,
   Bot,
@@ -13,11 +12,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
-  { href: "/capture", label: "Captura", icon: PlusCircle },
+  { href: "/dashboard", label: "Hoje", icon: LayoutDashboard },
+  { href: "/practice", label: "Treinar", icon: Headphones },
   { href: "/library", label: "Biblioteca", icon: Library },
-  { href: "/practice", label: "Prática", icon: Headphones },
-  { href: "/coach", label: "AI Coach", icon: Bot },
+  { href: "/coach", label: "Coach", icon: Bot },
 ];
 
 export function Navigation() {
@@ -59,7 +57,7 @@ export function Navigation() {
           Foco de hoje
         </p>
         <p className="mt-2 text-sm leading-5 text-slate-600">
-          Ouvir → Repetir → Usar
+          Capturar → Repetir → Usar
         </p>
       </div>
     </nav>

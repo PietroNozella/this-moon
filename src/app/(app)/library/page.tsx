@@ -1,11 +1,10 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Filter, Trash2 } from "lucide-react";
 
 import { StatusBadge, TypeBadge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input, Label, Select } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/page-header";
@@ -13,7 +12,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { createClient } from "@/lib/supabase/client";
 import { deleteEntry } from "@/server/actions/learning";
 import { difficulties, entryStatuses, sourceTypes } from "@/lib/validators/learning";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import type { EntryRow } from "@/types/database";
 
 const PAGE_SIZE = 5;
@@ -53,6 +52,7 @@ export default function LibraryPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<{
     q?: string;
     status?: string;
@@ -159,18 +159,18 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Biblioteca"
-        subtitle="Todos os seus chunks, verbos e frases em evolução."
-        action={
-          <ButtonLink href="/capture" variant="primary" size="sm">
-            Capturar novo
-          </ButtonLink>
-        }
-      />
+        <PageHeader
+          title="Biblioteca"
+          subtitle="Todos os seus itens salvos."
+          action={
+            <ButtonLink href="/dashboard" variant="primary" size="sm">
+              Capturar novo
+            </ButtonLink>
+          }
+        />
 
-      <div className="grid gap-3 md:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
-        <div className="space-y-1">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 space-y-1">
           <Label htmlFor="filter-search">Buscar</Label>
           <Input
             id="filter-search"
@@ -181,66 +181,100 @@ export default function LibraryPage() {
             placeholder="Buscar..."
           />
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="filter-status">Status</Label>
-          <Select
-            id="filter-status"
-            value={filters.status ?? ""}
-            onChange={(e) =>
-              setFiltersAndReset({ ...filters, status: e.target.value || undefined })
-            }
-          >
-            <option value="">Todos</option>
-            {entryStatuses.map((s) => (
-              <option key={s} value={s}>
-                {statusLabels[s]}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="filter-type">Tipo</Label>
-          <Select
-            id="filter-type"
-            value={filters.type ?? ""}
-            onChange={(e) =>
-              setFiltersAndReset({ ...filters, type: e.target.value || undefined })
-            }
-          >
-            <option value="">Todos</option>
-            <option value="chunk">Chunk</option>
-            <option value="verb">Verbo</option>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="filter-difficulty">Dificuldade</Label>
-          <Select
-            id="filter-difficulty"
-            value={filters.difficulty ?? ""}
-            onChange={(e) =>
-              setFiltersAndReset({ ...filters, difficulty: e.target.value || undefined })
-            }
-          >
-            <option value="">Todas</option>
-            {difficulties.map((d) => (
-              <option key={d} value={d}>
-                {difficultyLabels[d]}
-              </option>
-            ))}
-          </Select>
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowFilters((v) => !v)}
+          className={cn(
+            "mt-5 inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition",
+            showFilters
+              ? "bg-onyx text-white"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+          )}
+        >
+          <Filter className="h-4 w-4" />
+          Filtros
+          {hasFilters ? <span className="ml-1 rounded-full bg-candy-blue-500 px-1.5 py-0.5 text-xs text-white">{Object.values(filters).filter(Boolean).length}</span> : null}
+        </button>
         {hasFilters ? (
-          <div className="flex items-end">
-            <button
-              type="button"
-              onClick={() => setFiltersAndReset({})}
-              className="rounded-xl bg-transparent px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-            >
-              Limpar filtros
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setFiltersAndReset({})}
+            className="mt-5 inline-flex items-center rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+          >
+            Limpar
+          </button>
         ) : null}
       </div>
+
+      {showFilters ? (
+        <div className="grid gap-3 md:grid-cols-4">
+          <div className="space-y-1">
+            <Label htmlFor="filter-status">Status</Label>
+            <Select
+              id="filter-status"
+              value={filters.status ?? ""}
+              onChange={(e) =>
+                setFiltersAndReset({ ...filters, status: e.target.value || undefined })
+              }
+            >
+              <option value="">Todos</option>
+              {entryStatuses.map((s) => (
+                <option key={s} value={s}>
+                  {statusLabels[s]}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="filter-type">Tipo</Label>
+            <Select
+              id="filter-type"
+              value={filters.type ?? ""}
+              onChange={(e) =>
+                setFiltersAndReset({ ...filters, type: e.target.value || undefined })
+              }
+            >
+              <option value="">Todos</option>
+              <option value="chunk">Chunk</option>
+              <option value="verb">Verbo</option>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="filter-source">Fonte</Label>
+            <Select
+              id="filter-source"
+              value={filters.source ?? ""}
+              onChange={(e) =>
+                setFiltersAndReset({ ...filters, source: e.target.value || undefined })
+              }
+            >
+              <option value="">Todas</option>
+              {sourceTypes.map((s) => (
+                <option key={s} value={s}>
+                  {sourceLabels[s]}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="filter-difficulty">Dificuldade</Label>
+            <Select
+              id="filter-difficulty"
+              value={filters.difficulty ?? ""}
+              onChange={(e) =>
+                setFiltersAndReset({ ...filters, difficulty: e.target.value || undefined })
+              }
+            >
+              <option value="">Todas</option>
+              {difficulties.map((d) => (
+                <option key={d} value={d}>
+                  {difficultyLabels[d]}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="space-y-4">
@@ -331,7 +365,7 @@ export default function LibraryPage() {
           title="Sua biblioteca ainda está vazia."
           description="Comece salvando uma frase curta que você ouviu ou leu hoje."
           actionLabel="Capturar aprendizado"
-          actionHref="/capture"
+          actionHref="/dashboard"
         />
       )}
 

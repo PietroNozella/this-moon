@@ -1,22 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
-import { DailyMissionCard } from "@/components/dashboard/daily-mission-card";
-import { MetricCard } from "@/components/dashboard/metric-card";
-import { NextPracticeCard } from "@/components/dashboard/next-practice-card";
-import { QuickActions } from "@/components/dashboard/quick-actions";
-import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { ButtonLink } from "@/components/ui/button";
+import { MiniMission } from "@/components/mini-mission";
+import { QuickCapture } from "@/components/quick-capture";
 import { createClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/utils";
-import type { DailyGoalRow, EntryRow } from "@/types/database";
+import type { DailyGoalRow } from "@/types/database";
 
 type DashboardData = {
   entriesCount: number;
-  verbsCount: number;
-  practiceCount: number;
-  masteredCount: number;
   dailyGoal: {
     captured_entries: number;
     captured_verbs: number;
@@ -25,14 +19,10 @@ type DashboardData = {
     listening_practices: number;
   };
   recentPhrase: string | null;
-  nextEntry: EntryRow | null;
 };
 
 const emptyData: DashboardData = {
   entriesCount: 0,
-  verbsCount: 0,
-  practiceCount: 0,
-  masteredCount: 0,
   dailyGoal: {
     captured_entries: 0,
     captured_verbs: 0,
@@ -41,7 +31,6 @@ const emptyData: DashboardData = {
     listening_practices: 0,
   },
   recentPhrase: null,
-  nextEntry: null,
 };
 
 export default function DashboardPage() {
@@ -54,31 +43,21 @@ export default function DashboardPage() {
     async function load() {
       const today = todayISO();
 
-      const [entriesRes, verbsRes, sessionsRes, masteredRes, goalRes, recentRes, nextRes] =
-        await Promise.all([
-          supabase.from("learning_entries").select("*", { count: "exact", head: true }),
-          supabase.from("learning_entries").select("*", { count: "exact", head: true }).eq("entry_type", "verb"),
-          supabase.from("practice_sessions").select("*", { count: "exact", head: true }),
-          supabase.from("learning_entries").select("*", { count: "exact", head: true }).eq("status", "mastered"),
-          supabase.from("daily_goals").select("*").eq("goal_date", today).maybeSingle(),
-          supabase.from("learning_entries").select("original_phrase").order("created_at", { ascending: false }).limit(1).maybeSingle(),
-          supabase
-            .from("learning_entries")
-            .select("*")
-            .order("times_practiced", { ascending: true })
-            .order("confidence_level", { ascending: true })
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-        ]);
+      const [entriesRes, goalRes, recentRes] = await Promise.all([
+        supabase.from("learning_entries").select("*", { count: "exact", head: true }),
+        supabase.from("daily_goals").select("*").eq("goal_date", today).maybeSingle(),
+        supabase
+          .from("learning_entries")
+          .select("original_phrase")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
       const dailyGoals = goalRes.data as DailyGoalRow | null;
 
       setData({
         entriesCount: entriesRes.count ?? 0,
-        verbsCount: verbsRes.count ?? 0,
-        practiceCount: sessionsRes.count ?? 0,
-        masteredCount: masteredRes.count ?? 0,
         dailyGoal: {
           captured_entries: dailyGoals?.captured_entries ?? 0,
           captured_verbs: dailyGoals?.captured_verbs ?? 0,
@@ -87,7 +66,6 @@ export default function DashboardPage() {
           listening_practices: dailyGoals?.listening_practices ?? 0,
         },
         recentPhrase: recentRes.data?.original_phrase ?? null,
-        nextEntry: (nextRes.data as EntryRow | null) ?? null,
       });
       setLoading(false);
     }
@@ -95,84 +73,95 @@ export default function DashboardPage() {
     void load();
   }, []);
 
+  const dg = data.dailyGoal;
+  const practicedCount = dg.speaking_practices + dg.listening_practices;
+  const hasAnyCapture = dg.captured_entries > 0 || dg.captured_verbs > 0;
+
+  const missionItems = [
+    { key: "capture", done: hasAnyCapture, label: "Capturar 1 frase real", actionHref: "#capture", actionLabel: "Capturar" },
+    { key: "practice", done: practicedCount > 0, label: "Treinar 1 frase (ouvir + repetir)", actionHref: "/practice", actionLabel: "Treinar" },
+    { key: "sentence", done: dg.personal_sentences_created >= 1, label: "Criar 1 frase sua", actionHref: "/library", actionLabel: "Criar" },
+  ];
+
+  const doneSteps = missionItems.filter((s) => s.done).length;
+
   if (loading) {
     return (
-      <div className="space-y-8">
-        <div className="h-20 animate-pulse rounded-2xl bg-slate-200" />
-        <div className="grid gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
-          ))}
-        </div>
-        <div className="grid gap-6 lg:grid-cols-[1.35fr_0.95fr]">
-          <div className="h-96 animate-pulse rounded-3xl bg-slate-200" />
-          <div className="h-80 animate-pulse rounded-3xl bg-slate-200" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-36 animate-pulse rounded-2xl bg-slate-200" />
-          ))}
-        </div>
-        <div className="h-40 animate-pulse rounded-3xl bg-slate-200" />
+      <div className="space-y-6">
+        <div className="h-12 w-48 animate-pulse rounded-xl bg-slate-200" />
+        <div className="h-64 animate-pulse rounded-3xl bg-slate-200" />
+        <div className="h-48 animate-pulse rounded-3xl bg-slate-200" />
       </div>
     );
   }
 
-  const dg = data.dailyGoal;
-  const practicedCount = dg.speaking_practices + dg.listening_practices;
-  const missionItems = [
-    { key: "chunk", done: dg.captured_entries > 0, label: "Capturar 1 chunk real", actionHref: "/capture", actionLabel: "Capturar agora" },
-    { key: "verb", done: dg.captured_verbs > 0, label: "Capturar 1 verbo ou padrão", actionHref: "/capture", actionLabel: "Adicionar verbo" },
-    { key: "sentences", done: dg.personal_sentences_created >= 3, label: `Criar ${dg.personal_sentences_created >= 3 ? "3" : `${dg.personal_sentences_created}/3`} frases próprias`, actionHref: `/library`, actionLabel: "Criar frases" },
-    { key: "practice", done: practicedCount > 0, label: "Praticar 1 chunk (escuta + fala)", actionHref: "/practice", actionLabel: "Praticar agora" },
-  ];
-  const doneSteps = missionItems.filter((s) => s.done).length;
-  const nextNotDone = missionItems.find((s) => !s.done);
-
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-            Seu treino de hoje
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            Capture, pratique e transforme chunks em frases suas.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <ButtonLink href="/capture" variant="primary" size="sm">
-            Capturar chunk
-          </ButtonLink>
-          <ButtonLink href="/practice" variant="secondary" size="sm">
-            Praticar
-          </ButtonLink>
-        </div>
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+          Hoje
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Capture, repita e transforme inglês real em fala sua.
+        </p>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-        <MetricCard label="Chunks" value={data.entriesCount} description="frases reais salvas" />
-        <MetricCard label="Verbos" value={data.verbsCount} description="padrões para usar em frases" />
-        <MetricCard label="Práticas" value={data.practiceCount} description="sessões de prática registradas" />
-        <MetricCard label="Naturais" value={data.masteredCount} description="frases quase prontas para usar" />
+      <section id="capture">
+        <QuickCapture />
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1.35fr_0.95fr]">
-        <DailyMissionCard
+      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+        <MiniMission
           items={missionItems}
           doneCount={doneSteps}
-          totalCount={4}
+          totalCount={3}
         />
-        <NextPracticeCard
-          nextKey={nextNotDone?.key ?? null}
-          doneCount={doneSteps}
-          nextEntry={data.nextEntry}
-        />
-      </section>
 
-      <QuickActions />
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm ring-1 ring-black/[0.02]">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-950">
+            Ações rápidas
+          </h2>
+          <div className="mt-4 space-y-3">
+            <Link
+              href="/practice"
+              className="flex items-center justify-between rounded-xl bg-onyx px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            >
+              <span>Treinar agora</span>
+              <span className="text-candy-blue-500">→</span>
+            </Link>
+            <Link
+              href="/review"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100"
+            >
+              <span>Revisar</span>
+              <span className="text-slate-400">→</span>
+            </Link>
+            <Link
+              href="/library"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100"
+            >
+              <span>Biblioteca</span>
+              <span className="text-slate-400">→</span>
+            </Link>
+          </div>
 
-      <RecentActivity phrase={data.recentPhrase} />
+          {data.entriesCount > 0 ? (
+            <div className="mt-5 rounded-xl bg-slate-50 px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                Total
+              </p>
+              <p className="mt-1 text-sm text-slate-700">
+                {data.entriesCount} {data.entriesCount === 1 ? "entrada salva" : "entradas salvas"}
+              </p>
+              {data.recentPhrase ? (
+                <p className="mt-1 text-sm text-slate-500 italic truncate">
+                  Última: &ldquo;{data.recentPhrase}&rdquo;
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

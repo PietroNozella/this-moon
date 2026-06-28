@@ -163,6 +163,33 @@ export async function createEntry(input: {
   return entry.id;
 }
 
+export async function quickCapture(input: {
+  text: string;
+  context?: string;
+  source?: string;
+  note?: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autorizado.");
+
+  const { classify } = await import("@/lib/classify");
+  const entryType = classify(input.text);
+
+  return createEntry({
+    original_phrase: input.text,
+    source_type: input.source ?? "other",
+    context_note: input.context ?? "Quero usar essa frase no meu dia a dia.",
+    difficulty: "unknown",
+    entry_type: entryType === "base_verb" ? "base_verb" : entryType,
+    tags: [],
+    grammar_note: input.note ?? undefined,
+  });
+}
+
 export async function createVerb(input: {
   verb: string;
   meaning: string;

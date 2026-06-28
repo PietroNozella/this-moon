@@ -15,6 +15,16 @@ export const sourceTypes = [
 
 export const difficulties = ["easy", "medium", "hard", "unknown"] as const;
 
+export const entryTypes = [
+  "chunk",
+  "verb",
+  "phrasal_verb",
+  "pattern",
+  "word",
+  "expression",
+  "base_verb",
+] as const;
+
 export const entryStatuses = [
   "new",
   "learning",
@@ -51,7 +61,17 @@ export const createEntrySchema = z.object({
   confidence_level: z.coerce.number().min(1).max(5).optional(),
   verb_patterns: z.array(z.string().min(1)).optional(),
   tags: z.array(z.string().min(1)).default([]),
-  entry_type: z.enum(["chunk", "verb"]).default("chunk"),
+  entry_type: z.enum(entryTypes).default("chunk"),
+});
+
+export const quickCaptureSchema = z.object({
+  text: z
+    .string()
+    .min(2, "Digite ou cole uma frase.")
+    .trim(),
+  context: z.string().trim().optional(),
+  source: z.enum(sourceTypes).optional(),
+  note: z.string().trim().optional(),
 });
 
 export const createVerbSchema = z.object({

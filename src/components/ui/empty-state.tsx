@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 import { ButtonLink } from "@/components/ui/button";
 
 type Props = {
