@@ -348,7 +348,6 @@ export default function PracticePage() {
               id="personal-sentence"
               value={personalSentence}
               onChange={(e) => setPersonalSentence(e.target.value)}
-              placeholder="Ex: I need better gear to beat this boss."
             />
           </div>
         </div>

@@ -178,7 +178,6 @@ export default function LibraryPage() {
             onChange={(e) =>
               setFiltersAndReset({ ...filters, q: e.target.value || undefined })
             }
-            placeholder="Buscar..."
           />
         </div>
         <button

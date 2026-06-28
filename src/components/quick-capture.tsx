@@ -73,7 +73,6 @@ export function QuickCapture() {
           <Textarea
             id="text"
             name="text"
-            placeholder="Ex: I gotta get this, look for, What would you say?"
             className="min-h-28"
             required
           />
@@ -106,11 +105,11 @@ export function QuickCapture() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="context">Onde você usaria isso? (opcional)</Label>
-                <Input id="context" name="context" placeholder="Ex: Em jogos, conversas casuais..." />
+                <Input id="context" name="context" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="note">Observação pessoal (opcional)</Label>
-                <Textarea id="note" name="note" className="min-h-20" placeholder="Ex: Phrasal verb útil pra pedir comida..." />
+                <Textarea id="note" name="note" className="min-h-20" />
               </div>
             </div>
           </div>

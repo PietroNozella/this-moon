@@ -157,7 +157,6 @@ export function AIChat() {
                 void handleSend(input);
               }
             }}
-            placeholder="Pergunte algo..."
             className="min-h-[44px] w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200"
             rows={1}
           />
