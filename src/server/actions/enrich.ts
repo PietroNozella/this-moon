@@ -13,6 +13,7 @@ Analise a frase em inglês fornecida e extraia:
    - past: versão no passado
    - negative: versão negativa
    - question: versão em pergunta
+4. verb_details: para CADA verbo encontrado, forneça as conjugações em presente, passado e futuro (simple, continuous e perfect) e exemplos de uso. Inclua o verbo principal como sujeito "I" nas conjugações.
 
 Formato EXATO do JSON:
 {
@@ -22,12 +23,49 @@ Formato EXATO do JSON:
     "past": "I had been trying",
     "negative": "I haven't been trying",
     "question": "Have I been trying?"
-  }
+  },
+  "verb_details": [
+    {
+      "base": "try",
+      "tense": "present perfect continuous",
+      "form": "have been trying",
+      "conjugations": {
+        "present": { "simple": "I try", "continuous": "I am trying", "perfect": "I have tried" },
+        "past": { "simple": "I tried", "continuous": "I was trying", "perfect": "I had tried" },
+        "future": { "simple": "I will try", "continuous": "I will be trying", "perfect": "I will have tried" }
+      },
+      "common_tenses": ["present simple", "present continuous", "present perfect"],
+      "examples": [
+        { "tense": "present simple", "example": "I try to exercise every morning." },
+        { "tense": "present continuous", "example": "I am trying to focus on my work." },
+        { "tense": "past simple", "example": "I tried calling you last night." }
+      ]
+    }
+  ]
 }
 
-Se não encontrar verbos, retorne verbs como array vazio.
+Se não encontrar verbos, retorne verbs como array vazio e verb_details como array vazio.
 Se não conseguir determinar contexto, retorne contexts como array vazio.
 Se não conseguir variar a frase, retorne variations como objeto vazio.`;
+
+export type VerbConjugationSet = {
+  simple: string;
+  continuous: string;
+  perfect: string;
+};
+
+export type VerbDetail = {
+  base: string;
+  tense: string;
+  form: string;
+  conjugations: {
+    present: VerbConjugationSet;
+    past: VerbConjugationSet;
+    future: VerbConjugationSet;
+  };
+  common_tenses: string[];
+  examples: Array<{ tense: string; example: string }>;
+};
 
 export type EnrichmentData = {
   verbs: Array<{ base: string; tense: string; form: string }>;
@@ -37,6 +75,7 @@ export type EnrichmentData = {
     negative: string;
     question: string;
   };
+  verb_details?: VerbDetail[];
 };
 
 export async function enrichEntry(entryId: string, phrase: string) {
