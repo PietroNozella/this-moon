@@ -184,14 +184,14 @@ export async function quickCapture(input: {
     source_type: input.source ?? "other",
     context_note: input.context ?? "Quero usar essa frase no meu dia a dia.",
     difficulty: "unknown",
-    entry_type: entryType === "base_verb" ? "base_verb" : entryType,
+    entry_type: entryType === "chunk" ? "chunk" : "verb",
     tags: [],
     grammar_note: input.note ?? undefined,
   });
 
   // enriquecimento silencioso com IA em background
   const { enrichEntry } = await import("@/server/actions/enrich");
-  void enrichEntry(entryId, input.text);
+  enrichEntry(entryId, input.text).catch(() => {});
 
   return entryId;
 }
