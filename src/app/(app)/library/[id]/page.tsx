@@ -11,6 +11,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/form";
 import { SourcePill } from "@/components/ui/source-pill";
+import { EntryEnrichment } from "@/components/entry-enrichment";
 import { createClient } from "@/lib/supabase/client";
 import { completeVerbPatternPractice, deleteEntry } from "@/server/actions/learning";
 import { formatDate } from "@/lib/utils";
@@ -249,6 +250,8 @@ function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; on
             </div>
           ) : null}
 
+          <EntryEnrichment entryId={entry.id} />
+
           {mainChunk ? (
             <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Chunk</p>
@@ -447,6 +450,8 @@ function VerbDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onD
               </div>
             ) : null}
           </div>
+
+          <EntryEnrichment entryId={entry.id} />
 
           {/* ── Padrões ── */}
           {patterns.length > 0 ? (

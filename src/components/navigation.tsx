@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Headphones,
   Library,
-  Bot,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -15,7 +14,7 @@ const navItems = [
   { href: "/dashboard", label: "Hoje", icon: LayoutDashboard },
   { href: "/practice", label: "Treinar", icon: Headphones },
   { href: "/library", label: "Biblioteca", icon: Library },
-  { href: "/coach", label: "Coach", icon: Bot },
+
 ];
 
 export function Navigation() {

@@ -35,8 +35,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/dashboard") ||
     request.nextUrl.pathname.startsWith("/practice") ||
     request.nextUrl.pathname.startsWith("/library") ||
-    request.nextUrl.pathname.startsWith("/review") ||
-    request.nextUrl.pathname.startsWith("/coach");
+    request.nextUrl.pathname.startsWith("/review");
 
   if (!user && isAppPage) {
     const url = request.nextUrl.clone();

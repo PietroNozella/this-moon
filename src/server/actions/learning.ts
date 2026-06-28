@@ -179,7 +179,7 @@ export async function quickCapture(input: {
   const { classify } = await import("@/lib/classify");
   const entryType = classify(input.text);
 
-  return createEntry({
+  const entryId = await createEntry({
     original_phrase: input.text,
     source_type: input.source ?? "other",
     context_note: input.context ?? "Quero usar essa frase no meu dia a dia.",
@@ -188,6 +188,12 @@ export async function quickCapture(input: {
     tags: [],
     grammar_note: input.note ?? undefined,
   });
+
+  // enriquecimento silencioso com IA em background
+  const { enrichEntry } = await import("@/server/actions/enrich");
+  void enrichEntry(entryId, input.text);
+
+  return entryId;
 }
 
 export async function createVerb(input: {
