@@ -314,7 +314,7 @@ function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; on
           <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ações rápidas</p>
             <div className="mt-4 space-y-3">
-              <ButtonLink href="/practice" variant="primary" className="w-full">Praticar (escuta + fala)</ButtonLink>
+              <ButtonLink href={`/practice?entryId=${entry.id}`} variant="primary" className="w-full">Praticar (escuta + fala)</ButtonLink>
             </div>
           </div>
 
@@ -554,7 +554,7 @@ function VerbDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onD
           <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ações rápidas</p>
             <div className="mt-4 space-y-3">
-              <ButtonLink href={`/library/${entry.id}`} variant="primary" className="w-full">Treinar padrões</ButtonLink>
+              <ButtonLink href={`/practice?entryId=${entry.id}`} variant="primary" className="w-full">Treinar padrões</ButtonLink>
               <ButtonLink href="/library" variant="secondary" className="w-full">Usar com conectores</ButtonLink>
             </div>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Copy, ExternalLink, Eye, EyeOff } from "lucide-react";
 
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -51,6 +52,18 @@ function buildPrompt(entry: EntryRow) {
 }
 
 export default function PracticePage() {
+  return (
+    <Suspense>
+      <PracticeContent />
+    </Suspense>
+  );
+}
+
+function PracticeContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const entryId = searchParams.get("entryId");
+
   const [entries, setEntries] = useState<EntryRow[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -62,10 +75,24 @@ export default function PracticePage() {
   const [personalSentence, setPersonalSentence] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const isSingle = !!entryId;
+
   useEffect(() => {
     const supabase = createClient();
 
     async function load() {
+      if (entryId) {
+        const { data } = await supabase
+          .from("learning_entries")
+          .select("id, original_phrase, translation, source_type, source_title, source_url, source_timestamp, natural_phrase, pronunciation_note, context_note, difficulty, status, entry_type, last_practiced_at")
+          .eq("id", entryId)
+          .single();
+
+        setEntries(data ? [data as EntryRow] : []);
+        setLoading(false);
+        return;
+      }
+
       const cutoff = getCycleStartISO();
 
       const { data } = await supabase
@@ -80,7 +107,7 @@ export default function PracticePage() {
     }
 
     void load();
-  }, []);
+  }, [entryId]);
 
   async function handleCopy(entry: EntryRow) {
     const prompt = buildPrompt(entry);
@@ -104,6 +131,11 @@ export default function PracticePage() {
         personalSentence: personalSentence || undefined,
       });
 
+      if (isSingle) {
+        router.push(`/library/${entry.id}`);
+        return;
+      }
+
       if (currentIndex < entries.length - 1) {
         setCurrentIndex((i) => i + 1);
         setShowTranslation(false);
@@ -119,6 +151,11 @@ export default function PracticePage() {
   }
 
   function handleSkip() {
+    if (isSingle) {
+      router.push(`/library/${entryId}`);
+      return;
+    }
+
     if (currentIndex < entries.length - 1) {
       setCurrentIndex((i) => i + 1);
       setShowTranslation(false);
@@ -174,10 +211,10 @@ export default function PracticePage() {
           subtitle="Repita frases reais até soar natural."
         />
         <EmptyState
-          title="Você já treinou todos os itens desta leva!"
-          description="Volte amanhã para continuar praticando ou vá para a Biblioteca."
-          actionLabel="Ir para Biblioteca"
-          actionHref="/library"
+          title={isSingle ? "Prática concluída!" : "Você já treinou todos os itens desta leva!"}
+          description={isSingle ? "Volte para a Biblioteca para ver mais frases." : "Volte amanhã para continuar praticando ou vá para a Biblioteca."}
+          actionLabel={isSingle ? "Voltar para Biblioteca" : "Ir para Biblioteca"}
+          actionHref={isSingle ? `/library/${entryId}` : "/library"}
         />
       </div>
     );
@@ -195,9 +232,11 @@ export default function PracticePage() {
         subtitle="Repita frases reais até soar natural."
       />
 
-      <p className="text-sm text-slate-500">
-        {currentIndex + 1} de {entries.length}
-      </p>
+      {!isSingle ? (
+        <p className="text-sm text-slate-500">
+          {currentIndex + 1} de {entries.length}
+        </p>
+      ) : null}
 
       <Card className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70" important>
         {/* Cabeçalho com badges */}
@@ -356,7 +395,7 @@ export default function PracticePage() {
       {/* Botões de navegação */}
       <div className="flex items-center justify-between gap-3">
         <Button type="button" variant="ghost" onClick={handleSkip}>
-          Pular
+          {isSingle ? "Voltar" : "Pular"}
         </Button>
         <Button
           type="button"
