@@ -11,7 +11,7 @@ import { Label, Textarea } from "@/components/ui/form";
 import { PageHeader } from "@/components/ui/page-header";
 import { PhraseBlock } from "@/components/ui/phrase-block";
 import { SourcePill } from "@/components/ui/source-pill";
-import { cn } from "@/lib/utils";
+import { cn, getCycleStartISO } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { completePractice } from "@/server/actions/learning";
 import type { EntryRow } from "@/types/database";
@@ -66,10 +66,13 @@ export default function PracticePage() {
     const supabase = createClient();
 
     async function load() {
+      const cutoff = getCycleStartISO();
+
       const { data } = await supabase
         .from("learning_entries")
-        .select("id, original_phrase, translation, source_type, source_title, source_url, source_timestamp, natural_phrase, pronunciation_note, context_note, difficulty, status, entry_type")
-        .order("created_at", { ascending: false })
+        .select("id, original_phrase, translation, source_type, source_title, source_url, source_timestamp, natural_phrase, pronunciation_note, context_note, difficulty, status, entry_type, last_practiced_at")
+        .or(`last_practiced_at.is.null,last_practiced_at.lt.${cutoff}`)
+        .order("last_practiced_at", { ascending: true, nullsFirst: true })
         .limit(20);
 
       setEntries((data ?? []) as EntryRow[]);
@@ -143,12 +146,22 @@ export default function PracticePage() {
           title="Treinar"
           subtitle="Repita frases reais até soar natural."
         />
-        <EmptyState
-          title="Você ainda não tem nada para treinar."
-          description="Capture uma frase real no painel Hoje para começar."
-          actionLabel="Ir para Hoje"
-          actionHref="/dashboard"
-        />
+        <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-base font-semibold text-slate-950">
+            Você já treinou tudo hoje!
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            Volte amanhã às 6h para continuar praticando.
+          </p>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <ButtonLink href="/dashboard" variant="secondary">
+              Ir para Hoje
+            </ButtonLink>
+            <ButtonLink href="/library" variant="secondary">
+              Biblioteca
+            </ButtonLink>
+          </div>
+        </div>
       </div>
     );
   }
@@ -160,17 +173,12 @@ export default function PracticePage() {
           title="Treinar"
           subtitle="Repita frases reais até soar natural."
         />
-        <Card important className="border-candy-blue-500/30 bg-candy-blue-500/10 text-center">
-          <p className="text-base font-semibold text-candy-blue-950">
-            Treino de hoje concluído!
-          </p>
-          <p className="mt-2 text-sm text-slate-600">
-            Volte amanhã para mais prática.
-          </p>
-        </Card>
-        <ButtonLink href="/practice" variant="secondary" className="w-full">
-          Recomeçar
-        </ButtonLink>
+        <EmptyState
+          title="Você já treinou todos os itens desta leva!"
+          description="Volte amanhã para continuar praticando ou vá para a Biblioteca."
+          actionLabel="Ir para Biblioteca"
+          actionHref="/library"
+        />
       </div>
     );
   }

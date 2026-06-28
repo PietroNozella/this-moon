@@ -36,6 +36,22 @@ export function formatDate(value: string | null | undefined) {
   }).format(new Date(value));
 }
 
+export function getCycleStartISO(): string {
+  const today = todayISO();
+  // Descobre o offset UTC de SP ao meio-dia UTC na data do ciclo
+  const noonCheck = new Date(`${today}T12:00:00Z`);
+  const spHour = parseInt(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      hour: "2-digit",
+      hour12: false,
+    }).format(noonCheck),
+  );
+  const offset = Math.abs(12 - spHour);
+  const utcHour = 6 + offset;
+  return `${today}T${String(utcHour).padStart(2, "0")}:00:00Z`;
+}
+
 export function todayISO() {
   const d = new Date();
   d.setTime(d.getTime() - 6 * 60 * 60 * 1000);
