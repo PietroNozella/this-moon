@@ -1,8 +1,8 @@
 const sourceLabels: Record<string, string> = {
-  music: "Musica",
-  video: "Video",
+  music: "Música",
+  video: "Vídeo",
   game: "Jogo",
-  programming: "Programacao",
+  programming: "Programação",
   conversation: "Conversa",
   social_media: "Social media",
   course: "Curso",

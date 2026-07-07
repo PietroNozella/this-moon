@@ -74,7 +74,7 @@ export function PersonalSentenceForm({ entryId, chunkId, compact, onCreated }: P
 
       <details className="group rounded-xl border border-slate-200 bg-slate-50/70">
         <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-slate-500 transition hover:text-slate-900 [&::-webkit-details-marker]:hidden">
-          Traducao opcional
+          Tradução opcional
         </summary>
         <div className="border-t border-slate-200 p-3">
           <Input id="translation" name="translation" />

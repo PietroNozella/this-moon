@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ChunkFlow",
-  description: "Sistema pessoal de aprendizado de ingles por chunks.",
+  description: "Sistema pessoal de aprendizado de inglês por chunks.",
 };
 
 export default function RootLayout({

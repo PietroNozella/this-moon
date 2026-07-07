@@ -45,10 +45,10 @@ export const createEntrySchema = z.object({
   meaning_explanation: z.string().trim().optional(),
   source_type: z.enum(sourceTypes),
   source_title: z.string().trim().optional(),
-  source_url: z.string().url("Use uma URL valida.").trim().optional().or(z.literal("")),
+  source_url: z.string().url("Use uma URL válida.").trim().optional().or(z.literal("")),
   context_note: z
     .string()
-    .min(3, "Explique rapidamente onde voce usaria isso.")
+    .min(3, "Explique rapidamente onde você usaria isso.")
     .trim(),
   difficulty: z.enum(difficulties).default("unknown"),
   chunk_text: z.string().trim().optional(),

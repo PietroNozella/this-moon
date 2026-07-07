@@ -13,7 +13,7 @@ type FeedbackRow = AiFeedbackRow & {
 
 const tenseLabel: Record<string, string> = {
   simple: "Simple",
-  continuous: "Continuo",
+  continuous: "Contínuo",
   perfect: "Perfect",
 };
 
@@ -58,8 +58,8 @@ export function EntryEnrichment({ entryId }: { entryId: string }) {
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Analise da IA</p>
-          <h2 className="mt-1 text-base font-semibold text-slate-950">Uso, verbos e variacoes</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Análise da IA</p>
+          <h2 className="mt-1 text-base font-semibold text-slate-950">Uso, verbos e variações</h2>
         </div>
         {hasVerbs ? (
           <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-500">
@@ -69,10 +69,10 @@ export function EntryEnrichment({ entryId }: { entryId: string }) {
       </div>
 
       {loading ? (
-        <p className="mt-4 text-sm text-slate-500">Carregando analise...</p>
+        <p className="mt-4 text-sm text-slate-500">Carregando análise...</p>
       ) : !hasAnyData ? (
         <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-500">
-          Analise ainda nao disponivel.
+          Análise ainda não disponível.
         </p>
       ) : (
         <div className="mt-4 space-y-4">
@@ -175,7 +175,7 @@ function Variations({ variations }: { variations: EnrichmentData["variations"] }
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Variacoes uteis</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Variações úteis</p>
       <div className="mt-2 grid gap-2 sm:grid-cols-3">
         {items.map((item) => (
           <div key={item.label} className="rounded-xl border border-slate-200 bg-white px-3 py-2">

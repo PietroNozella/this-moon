@@ -6,12 +6,12 @@ const base =
   "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium";
 
 const statusStyles: Record<string, string> = {
-  new: "bg-slate-50 text-slate-600 border-slate-200",
-  learning: "bg-amber-50 text-amber-700 border-amber-200",
-  practicing: "bg-blue-50 text-blue-700 border-blue-200",
-  almost_natural: "bg-candy-blue-500/25 text-candy-blue-950 border-candy-blue-500/50",
-  mastered: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  archived: "bg-slate-100 text-slate-400 border-slate-200",
+  new: "border-slate-200 bg-slate-50 text-slate-600",
+  learning: "border-amber-200 bg-amber-50 text-amber-700",
+  practicing: "border-sky-200 bg-sky-50 text-sky-700",
+  almost_natural: "border-teal-200 bg-teal-50 text-teal-700",
+  mastered: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  archived: "border-slate-200 bg-slate-100 text-slate-400",
 };
 
 const statusLabels: Record<string, string> = {
@@ -23,15 +23,6 @@ const statusLabels: Record<string, string> = {
   archived: "Arquivado",
 };
 
-const typeStyles: Record<string, string> = {
-  chunk: "bg-candy-blue-500/25 text-candy-blue-950 border-candy-blue-500/50",
-  verb: "bg-candy-blue-500/25 text-candy-blue-950 border-candy-blue-500/50",
-};
-
-const typeLabels: Record<string, string> = {
-  chunk: "Chunk",
-  verb: "Chunk",
-};
 
 export function Badge({
   className,
@@ -52,9 +43,4 @@ export function StatusBadge({ value }: { value: string | null | undefined }) {
   return <span className={cn(base, style)}>{label}</span>;
 }
 
-export function TypeBadge({ value }: { value: string | null | undefined }) {
-  const label = typeLabels[value ?? ""] ?? "Chunk";
-  const style = typeStyles[value ?? ""] ?? typeStyles.chunk;
 
-  return <span className={cn(base, style)}>{label}</span>;
-}

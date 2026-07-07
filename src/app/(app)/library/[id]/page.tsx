@@ -28,10 +28,10 @@ type EntryDetailData = EntryRow & {
 };
 
 const difficultyLabels: Record<string, string> = {
-  easy: "Facil",
-  medium: "Medio",
-  hard: "Dificil",
-  unknown: "Nao sei",
+  easy: "Fácil",
+  medium: "Médio",
+  hard: "Difícil",
+  unknown: "Não sei",
 };
 
 
@@ -39,7 +39,7 @@ const practiceLabels: Record<string, string> = {
   listening: "Escuta",
   speaking: "Fala",
   shadowing: "Shadowing",
-  review: "Revisao",
+  review: "Revisão",
 };
 
 export default function EntryDetailPage() {
@@ -106,9 +106,9 @@ export default function EntryDetailPage() {
     return (
       <div className="mx-auto w-full max-w-4xl px-6 py-10">
         <Card className="space-y-4 border-dashed p-8 text-center">
-          <p className="text-base font-semibold text-slate-900">Entrada nao encontrada.</p>
+          <p className="text-base font-semibold text-slate-900">Entrada não encontrada.</p>
           <ButtonLink href="/library" variant="secondary">
-            Voltar para biblioteca
+            Voltar para a Biblioteca
           </ButtonLink>
         </Card>
       </div>
@@ -189,18 +189,16 @@ function ChunkDetail({
             <h1 className="mt-3 text-2xl font-semibold leading-snug tracking-tight text-slate-950 md:text-3xl">
               {chunkText}
             </h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-3">
               <StatusBadge value={entry.status} />
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
-                {difficultyLabels[entry.difficulty ?? "unknown"]}
-              </span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
-                Entendimento {entry.confidence_level ? `${entry.confidence_level}/5` : "sem nota"}
-              </span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
-                {entry.times_practiced ? `${entry.times_practiced}x praticado` : "Nao praticado"}
-              </span>
             </div>
+            <p className="mt-3 text-sm text-slate-500">
+              {`Dificuldade: ${difficultyLabels[entry.difficulty ?? "unknown"]} • Entendimento: ${
+                entry.confidence_level ? `${entry.confidence_level}/5` : "sem nota"
+              } • Prática: ${
+                entry.times_practiced ? `${entry.times_practiced}x` : "não praticado"
+              }`}
+            </p>
           </div>
           <div className="flex shrink-0 gap-2">
             <ButtonLink href={`/practice?entryId=${entry.id}`} size="sm">
@@ -279,8 +277,8 @@ function ChunkNotes({ entry, mainChunk }: { entry: EntryDetailData; mainChunk?: 
         {entry.context_note ? <NoteItem label="Meu contexto" value={entry.context_note} /> : null}
         {entry.natural_phrase || mainChunk?.natural_version ? <NoteItem label="Natural" value={entry.natural_phrase ?? mainChunk?.natural_version ?? ""} /> : null}
         {mainChunk?.casual_version ? <NoteItem label="Casual" value={mainChunk.casual_version} /> : null}
-        {entry.pronunciation_note ? <NoteItem label="Pronuncia" value={entry.pronunciation_note} /> : null}
-        {entry.grammar_note ? <NoteItem label="Observacao" value={entry.grammar_note} /> : null}
+        {entry.pronunciation_note ? <NoteItem label="Pronúncia" value={entry.pronunciation_note} /> : null}
+        {entry.grammar_note ? <NoteItem label="Observação" value={entry.grammar_note} /> : null}
       </div>
     </details>
   );
@@ -327,7 +325,7 @@ function PracticeHistory({ sessions }: { sessions: PracticeSessionRow[] }) {
   return (
     <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
       <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 [&::-webkit-details-marker]:hidden">
-        <span>Historico de pratica</span>
+        <span>Histórico de prática</span>
         <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
       </summary>
       <div className="border-t border-slate-100 p-3">
@@ -344,7 +342,7 @@ function PracticeHistory({ sessions }: { sessions: PracticeSessionRow[] }) {
             ))}
           </div>
         ) : (
-          <p className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-500">Nenhuma pratica registrada.</p>
+          <p className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-500">Nenhuma prática registrada.</p>
         )}
       </div>
     </details>

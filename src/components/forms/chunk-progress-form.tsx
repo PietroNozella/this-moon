@@ -30,10 +30,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const difficultyLabels: Record<string, string> = {
-  easy: "Facil",
-  medium: "Medio",
-  hard: "Dificil",
-  unknown: "Nao sei",
+  easy: "Fácil",
+  medium: "Médio",
+  hard: "Difícil",
+  unknown: "Não sei",
 };
 
 export function ChunkProgressForm({ entryId, value, onSaved }: Props) {
