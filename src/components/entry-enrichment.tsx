@@ -77,7 +77,7 @@ export function EntryEnrichment({ entryId }: { entryId: string }) {
         attemptedMissingTranslation.current = true;
         setBackfilling(true);
 
-        const result: EnsureEnrichmentResult = await ensureEntryEnrichment(entryId);
+        const result: EnsureEnrichmentResult = await ensureEntryEnrichment(entryId, true);
         if (!active) return;
 
         if (result === "created" || result === "existing") {

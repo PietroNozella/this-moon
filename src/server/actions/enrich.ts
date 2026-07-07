@@ -130,7 +130,7 @@ export async function enrichEntry(entryId: string, phrase: string) {
   }
 }
 
-export async function ensureEntryEnrichment(entryId: string): Promise<EnsureEnrichmentResult> {
+export async function ensureEntryEnrichment(entryId: string, force = false): Promise<EnsureEnrichmentResult> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -146,7 +146,7 @@ export async function ensureEntryEnrichment(entryId: string): Promise<EnsureEnri
     .limit(1)
     .maybeSingle();
 
-  if (existing) return "existing";
+  if (!force && existing) return "existing";
 
   const { data: entry } = await supabase
     .from("learning_entries")
