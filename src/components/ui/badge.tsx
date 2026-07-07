@@ -25,12 +25,12 @@ const statusLabels: Record<string, string> = {
 
 const typeStyles: Record<string, string> = {
   chunk: "bg-candy-blue-500/25 text-candy-blue-950 border-candy-blue-500/50",
-  verb: "bg-violet-50 text-violet-700 border-violet-200",
+  verb: "bg-candy-blue-500/25 text-candy-blue-950 border-candy-blue-500/50",
 };
 
 const typeLabels: Record<string, string> = {
   chunk: "Chunk",
-  verb: "Verbo",
+  verb: "Chunk",
 };
 
 export function Badge({
@@ -53,7 +53,7 @@ export function StatusBadge({ value }: { value: string | null | undefined }) {
 }
 
 export function TypeBadge({ value }: { value: string | null | undefined }) {
-  const label = typeLabels[value ?? ""] ?? value ?? "Chunk";
+  const label = typeLabels[value ?? ""] ?? "Chunk";
   const style = typeStyles[value ?? ""] ?? typeStyles.chunk;
 
   return <span className={cn(base, style)}>{label}</span>;

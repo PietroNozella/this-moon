@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { Filter, Trash2 } from "lucide-react";
@@ -56,7 +56,6 @@ export default function LibraryPage() {
   const [filters, setFilters] = useState<{
     q?: string;
     status?: string;
-    type?: string;
     source?: string;
     difficulty?: string;
   }>({});
@@ -84,9 +83,6 @@ export default function LibraryPage() {
       }
       if (filters.status) {
         query = query.eq("status", filters.status);
-      }
-      if (filters.type) {
-        query = query.eq("entry_type", filters.type);
       }
       if (filters.source) {
         query = query.eq("source_type", filters.source);
@@ -120,9 +116,6 @@ export default function LibraryPage() {
       if (filters.status) {
         dataQuery = dataQuery.eq("status", filters.status);
       }
-      if (filters.type) {
-        dataQuery = dataQuery.eq("entry_type", filters.type);
-      }
       if (filters.source) {
         dataQuery = dataQuery.eq("source_type", filters.source);
       }
@@ -155,7 +148,7 @@ export default function LibraryPage() {
     }
   }, []);
 
-  const hasFilters = filters.q || filters.status || filters.type || filters.source || filters.difficulty;
+  const hasFilters = filters.q || filters.status || filters.source || filters.difficulty;
 
   return (
     <div className="space-y-8">
@@ -206,7 +199,7 @@ export default function LibraryPage() {
       </div>
 
       {showFilters ? (
-        <div className="grid gap-3 md:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-3">
           <div className="space-y-1">
             <Label htmlFor="filter-status">Status</Label>
             <Select
@@ -222,20 +215,6 @@ export default function LibraryPage() {
                   {statusLabels[s]}
                 </option>
               ))}
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="filter-type">Tipo</Label>
-            <Select
-              id="filter-type"
-              value={filters.type ?? ""}
-              onChange={(e) =>
-                setFiltersAndReset({ ...filters, type: e.target.value || undefined })
-              }
-            >
-              <option value="">Todos</option>
-              <option value="chunk">Chunk</option>
-              <option value="verb">Verbo</option>
             </Select>
           </div>
           <div className="space-y-1">
@@ -292,7 +271,7 @@ export default function LibraryPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge value={entry.status} />
                 <TypeBadge value={entry.entry_type} />
-                {entry.entry_type === "chunk" && entry.source_type ? (
+                {entry.source_type ? (
                   <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
                     {sourceLabels[entry.source_type]}
                   </span>
@@ -301,42 +280,16 @@ export default function LibraryPage() {
               <p className="mt-2 text-lg font-semibold tracking-tight text-onyx">
                 {entry.original_phrase}
               </p>
-              {entry.entry_type === "chunk" ? (
-                <>
-                  {(entry.translation || entry.natural_phrase) ? (
-                    <p className="mt-0.5 text-sm text-slate-500 italic">
-                      {entry.natural_phrase ?? entry.translation}
-                    </p>
-                  ) : null}
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <ButtonLink href={`/library/${entry.id}`} variant="ghost" size="sm">
-                      Ver detalhe
-                    </ButtonLink>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {entry.translation ? (
-                    <p className="mt-0.5 text-sm text-slate-500">
-                      {entry.translation}
-                    </p>
-                  ) : null}
-                  {entry.verb_patterns && Array.isArray(entry.verb_patterns) && entry.verb_patterns.length > 0 ? (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {(entry.verb_patterns as string[]).slice(0, 4).map((pattern, i) => (
-                        <span key={i} className="rounded-lg border border-candy-blue-500/40 bg-candy-blue-500/15 px-2 py-0.5 text-xs text-candy-blue-950">
-                          {pattern}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <ButtonLink href={`/library/${entry.id}`} variant="ghost" size="sm">
-                      Treinar padrões
-                    </ButtonLink>
-                  </div>
-                </>
-              )}
+              {(entry.translation || entry.natural_phrase) ? (
+                <p className="mt-0.5 text-sm text-slate-500 italic">
+                  {entry.natural_phrase ?? entry.translation}
+                </p>
+              ) : null}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <ButtonLink href={`/library/${entry.id}`} variant="ghost" size="sm">
+                  Ver detalhe
+                </ButtonLink>
+              </div>
               <div className="mt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
                 <div className="flex flex-wrap items-center gap-3">
                   {entry.last_practiced_at ? (

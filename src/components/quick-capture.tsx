@@ -15,10 +15,10 @@ import {
 import { quickCapture } from "@/server/actions/learning";
 
 const sourceLabels: Record<string, string> = {
-  music: "Música",
-  video: "Vídeo",
+  music: "Musica",
+  video: "Video",
   game: "Jogo",
-  programming: "Programação",
+  programming: "Programacao",
   conversation: "Conversa",
   social_media: "Social media",
   course: "Curso",
@@ -69,7 +69,7 @@ export function QuickCapture() {
     <form ref={formRef} onSubmit={handleSubmit} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="text">Digite ou cole uma frase em inglês</Label>
+          <Label htmlFor="text">Digite ou cole um chunk/frase curta em ingles</Label>
           <Textarea
             id="text"
             name="text"
@@ -87,7 +87,7 @@ export function QuickCapture() {
 
         <details className="group rounded-2xl border border-slate-200 bg-slate-50/50">
           <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium text-slate-600 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
-            <span>Mais opções</span>
+            <span>Mais opcoes</span>
             <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
           </summary>
           <div className="border-t border-slate-200 px-4 py-4">
@@ -104,11 +104,11 @@ export function QuickCapture() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="context">Onde você usaria isso? (opcional)</Label>
+                <Label htmlFor="context">Onde voce usaria isso? (opcional)</Label>
                 <Input id="context" name="context" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="note">Observação pessoal (opcional)</Label>
+                <Label htmlFor="note">Observacao pessoal (opcional)</Label>
                 <Textarea id="note" name="note" className="min-h-20" />
               </div>
             </div>
@@ -123,7 +123,7 @@ export function QuickCapture() {
       ) : null}
 
       <p className={cn("mt-4 text-xs leading-5 text-slate-400", state.message && "mt-2")}>
-        O sistema classifica automaticamente entre chunk, phrasal verb, pattern, palavra ou expressão.
+        Salve um chunk. A IA identifica os verbos, explica onde usar e sugere variacoes depois.
       </p>
     </form>
   );

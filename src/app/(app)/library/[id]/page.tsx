@@ -1,19 +1,18 @@
-﻿"use client";
+"use client";
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ChevronDown, Trash2 } from "lucide-react";
 
+import { ChunkProgressForm } from "@/components/forms/chunk-progress-form";
 import { PersonalSentenceForm } from "@/components/forms/personal-sentence-form";
-import { StatusForm } from "@/components/forms/status-form";
-import { StatusBadge, TypeBadge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/form";
 import { SourcePill } from "@/components/ui/source-pill";
 import { EntryEnrichment } from "@/components/entry-enrichment";
 import { createClient } from "@/lib/supabase/client";
-import { completeVerbPatternPractice, deleteEntry } from "@/server/actions/learning";
+import { deleteEntry } from "@/server/actions/learning";
 import { formatDate } from "@/lib/utils";
 import type {
   ChunkRow,
@@ -29,10 +28,18 @@ type EntryDetailData = EntryRow & {
 };
 
 const difficultyLabels: Record<string, string> = {
-  easy: "Fácil",
-  medium: "Médio",
-  hard: "Difícil",
-  unknown: "Não sei",
+  easy: "Facil",
+  medium: "Medio",
+  hard: "Dificil",
+  unknown: "Nao sei",
+};
+
+
+const practiceLabels: Record<string, string> = {
+  listening: "Escuta",
+  speaking: "Fala",
+  shadowing: "Shadowing",
+  review: "Revisao",
 };
 
 export default function EntryDetailPage() {
@@ -41,6 +48,7 @@ export default function EntryDetailPage() {
   const [entry, setEntry] = useState<EntryDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     const supabase = createClient();
 
@@ -56,27 +64,25 @@ export default function EntryDetailPage() {
         return;
       }
 
-      const [chunksResult, sentencesResult, sessionsResult] =
-        await Promise.all([
-          supabase.from("chunks").select("*").eq("entry_id", params.id),
-          supabase
-            .from("personal_sentences")
-            .select("*")
-            .eq("entry_id", params.id),
-          supabase
-            .from("practice_sessions")
-            .select("*")
-            .eq("entry_id", params.id)
-            .order("created_at", { ascending: false }),
-        ]);
+      const [chunksResult, sentencesResult, sessionsResult] = await Promise.all([
+        supabase.from("chunks").select("*").eq("entry_id", params.id),
+        supabase
+          .from("personal_sentences")
+          .select("*")
+          .eq("entry_id", params.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("practice_sessions")
+          .select("*")
+          .eq("entry_id", params.id)
+          .order("created_at", { ascending: false }),
+      ]);
 
       setEntry({
         ...(entryData as EntryRow),
         chunks: (chunksResult.data as ChunkRow[]) ?? [],
-        personal_sentences:
-          (sentencesResult.data as PersonalSentenceRow[]) ?? [],
-        practice_sessions:
-          (sessionsResult.data as PracticeSessionRow[]) ?? [],
+        personal_sentences: (sentencesResult.data as PersonalSentenceRow[]) ?? [],
+        practice_sessions: (sessionsResult.data as PracticeSessionRow[]) ?? [],
       });
       setLoading(false);
     }
@@ -86,11 +92,11 @@ export default function EntryDetailPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-7xl space-y-6 px-6 py-10 lg:px-10">
-        <div className="h-24 animate-pulse rounded-3xl bg-slate-200" />
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="h-96 animate-pulse rounded-3xl bg-slate-200" />
-          <div className="h-96 animate-pulse rounded-3xl bg-slate-200" />
+      <div className="mx-auto w-full max-w-6xl space-y-4 px-4 py-6 lg:px-8">
+        <div className="h-28 animate-pulse rounded-2xl bg-slate-200" />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="h-80 animate-pulse rounded-2xl bg-slate-200" />
+          <div className="h-80 animate-pulse rounded-2xl bg-slate-200" />
         </div>
       </div>
     );
@@ -100,9 +106,7 @@ export default function EntryDetailPage() {
     return (
       <div className="mx-auto w-full max-w-4xl px-6 py-10">
         <Card className="space-y-4 border-dashed p-8 text-center">
-          <p className="text-base font-semibold text-slate-900">
-            Entrada não encontrada.
-          </p>
+          <p className="text-base font-semibold text-slate-900">Entrada nao encontrada.</p>
           <ButtonLink href="/library" variant="secondary">
             Voltar para biblioteca
           </ButtonLink>
@@ -125,500 +129,224 @@ export default function EntryDetailPage() {
     }
   }
 
-  if (entry.entry_type === "verb") {
-    return <VerbDetail entry={entry} onDelete={handleDelete} deleting={deleting} />;
+  function updateEntryProgress(progress: Pick<EntryRow, "status" | "difficulty" | "confidence_level">) {
+    setEntry((current) => (current ? { ...current, ...progress } : current));
   }
 
-  return <ChunkDetail entry={entry} onDelete={handleDelete} deleting={deleting} />;
-}
-function ChunkHeader({ entry }: { entry: EntryDetailData }) {
+  function addPersonalSentence(sentence: PersonalSentenceRow) {
+    setEntry((current) => (
+      current
+        ? { ...current, personal_sentences: [sentence, ...current.personal_sentences] }
+        : current
+    ));
+  }
+
   return (
-    <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-slate-500">
-          Criado em {formatDate(entry.created_at)}
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-          {entry.original_phrase}
-        </h1>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <TypeBadge value={entry.entry_type} />
-          <StatusBadge value={entry.status} />
-          {entry.difficulty ? (
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-              {difficultyLabels[entry.difficulty] ?? entry.difficulty}
-            </span>
-          ) : null}
-          {entry.source_type ? (
-            <SourcePill
-              type={entry.source_type}
-              title={entry.source_title}
-              timestamp={entry.source_timestamp}
-            />
-          ) : null}
-        </div>
-      </div>
-      <ButtonLink
-        href="/library"
-        variant="secondary"
-        size="sm"
-        className="shrink-0"
-      >
-        Voltar
-      </ButtonLink>
-    </div>
+    <ChunkDetail
+      entry={entry}
+      onDelete={handleDelete}
+      deleting={deleting}
+      onProgressSaved={updateEntryProgress}
+      onSentenceCreated={addPersonalSentence}
+    />
   );
 }
 
-function VerbHeader({ entry }: { entry: EntryDetailData }) {
-  return (
-    <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-slate-500">
-          Criado em {formatDate(entry.created_at)}
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-          {entry.original_phrase}
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">Verbo para construir frases</p>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <TypeBadge value={entry.entry_type} />
-          <StatusBadge value={entry.status} />
-          {entry.difficulty ? (
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-              {difficultyLabels[entry.difficulty] ?? entry.difficulty}
-            </span>
-          ) : null}
-        </div>
-      </div>
-      <ButtonLink
-        href="/library"
-        variant="secondary"
-        size="sm"
-        className="shrink-0"
-      >
-        Voltar
-      </ButtonLink>
-    </div>
-  );
-}
-
-/* ── Chunk Detail ── */
-
-function ChunkDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onDelete: () => Promise<void>; deleting: boolean }) {
+function ChunkDetail({
+  entry,
+  onDelete,
+  deleting,
+  onProgressSaved,
+  onSentenceCreated,
+}: {
+  entry: EntryDetailData;
+  onDelete: () => Promise<void>;
+  deleting: boolean;
+  onProgressSaved: (progress: Pick<EntryRow, "status" | "difficulty" | "confidence_level">) => void;
+  onSentenceCreated: (sentence: PersonalSentenceRow) => void;
+}) {
   const mainChunk = entry.chunks[0];
+  const chunkText = mainChunk?.chunk_text || entry.original_phrase;
+  const hasNotes = !!(
+    entry.translation ||
+    entry.natural_phrase ||
+    entry.context_note ||
+    entry.pronunciation_note ||
+    entry.grammar_note ||
+    mainChunk?.natural_version ||
+    mainChunk?.casual_version
+  );
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-6 py-10 lg:px-10">
-      <ChunkHeader entry={entry} />
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
-        <div className="space-y-6">
-          {/* ── Frase ── */}
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Frase</p>
-            <p className="mt-4 text-2xl font-semibold leading-10 tracking-tight text-slate-950">
-              {entry.original_phrase}
-            </p>
-            {entry.translation ? (
-              <p className="mt-3 text-base italic leading-7 text-slate-500">{entry.translation}</p>
-            ) : null}
-            {entry.natural_phrase ? (
-              <div className="mt-5 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200/70">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Versão natural</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{entry.natural_phrase}</p>
-              </div>
-            ) : null}
-            {entry.pronunciation_note ? (
-              <div className="mt-4 rounded-2xl border border-candy-blue-500/40 bg-candy-blue-500/20 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-candy-blue-950">Pronúncia</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{entry.pronunciation_note}</p>
-              </div>
-            ) : null}
-            {entry.grammar_note ? (
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Observação</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{entry.grammar_note}</p>
-              </div>
-            ) : null}
-          </div>
-
-          {entry.context_note ? (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-lg font-semibold tracking-tight text-slate-950">Onde usar?</p>
-              <p className="mt-3 leading-7 text-slate-600">{entry.context_note}</p>
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8">
+      <header className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span>Criado em {formatDate(entry.created_at)}</span>
+              {entry.source_type ? <SourcePill type={entry.source_type} title={entry.source_title} timestamp={entry.source_timestamp} /> : null}
             </div>
-          ) : null}
+            <h1 className="mt-3 text-2xl font-semibold leading-snug tracking-tight text-slate-950 md:text-3xl">
+              {chunkText}
+            </h1>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <StatusBadge value={entry.status} />
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+                {difficultyLabels[entry.difficulty ?? "unknown"]}
+              </span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+                Entendimento {entry.confidence_level ? `${entry.confidence_level}/5` : "sem nota"}
+              </span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600">
+                {entry.times_practiced ? `${entry.times_practiced}x praticado` : "Nao praticado"}
+              </span>
+            </div>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <ButtonLink href={`/practice?entryId=${entry.id}`} size="sm">
+              Praticar
+            </ButtonLink>
+            <ButtonLink href="/library" variant="secondary" size="sm">
+              Voltar
+            </ButtonLink>
+          </div>
+        </div>
+      </header>
 
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <main className="space-y-4">
+          {hasNotes ? <ChunkNotes entry={entry} mainChunk={mainChunk} /> : null}
           <EntryEnrichment entryId={entry.id} />
+          <PracticeHistory sessions={entry.practice_sessions} />
+        </main>
 
-          {mainChunk ? (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Chunk</p>
-              <p className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">{mainChunk.chunk_text}</p>
-              {mainChunk.natural_version ? (
-                <p className="mt-2 text-sm text-slate-500"><span className="font-medium text-slate-600">Natural: </span>{mainChunk.natural_version}</p>
-              ) : null}
-            </div>
-          ) : null}
-
-          {entry.personal_sentences.length > 0 ? (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Frases próprias</p>
-              <div className="mt-4 space-y-3">
-                {entry.personal_sentences.map((sentence) => (
-                  <div key={sentence.id} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-sm font-medium text-slate-900">{sentence.sentence}</p>
-                    {sentence.corrected_sentence ? (
-                      <p className="mt-1 text-sm text-emerald-600">✓ {sentence.corrected_sentence}</p>
-                    ) : null}
-                  </div>
-                ))}
+        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Progresso</p>
+                <h2 className="mt-1 text-base font-semibold text-slate-950">Como estou neste chunk</h2>
               </div>
             </div>
-          ) : null}
+            <ChunkProgressForm
+              entryId={entry.id}
+              value={{
+                status: entry.status,
+                difficulty: entry.difficulty,
+                confidence_level: entry.confidence_level,
+              }}
+              onSaved={onProgressSaved}
+            />
+          </section>
 
-          <details className="group rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
-            <summary className="flex cursor-pointer items-center justify-between px-6 py-5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
-              <span>Histórico de prática</span>
-              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Treino ativo</p>
+              <h2 className="mt-1 text-base font-semibold text-slate-950">Criar frase com o chunk</h2>
+            </div>
+            <PersonalSentenceForm entryId={entry.id} chunkId={mainChunk?.id} compact onCreated={onSentenceCreated} />
+          </section>
+
+          <PersonalSentencesList sentences={entry.personal_sentences} />
+
+          <details className="group rounded-2xl border border-red-100 bg-white shadow-sm">
+            <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-red-500 [&::-webkit-details-marker]:hidden">
+              <span>Excluir entrada</span>
+              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
             </summary>
-            <div className="border-t border-slate-100 px-6 pb-6 pt-4">
-              {entry.practice_sessions.length > 0 ? (
-                <div className="space-y-3">
-                  {entry.practice_sessions.slice(0, 5).map((session) => (
-                    <div key={session.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="font-medium">
-                          {session.mode === "listening" ? "Escuta Guiada" : session.mode === "speaking" ? "Speaking" : session.mode === "shadowing" ? "Shadowing" : session.mode}
-                        </span>
-                        <span>{formatDate(session.created_at)}</span>
-                      </div>
-                      {session.notes ? (
-                        <p className="mt-1 text-sm leading-6 text-slate-600 line-clamp-2">{session.notes}</p>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-2xl bg-slate-50 p-6 text-center">
-                  <p className="text-sm font-medium text-slate-700">Nenhuma prática registrada.</p>
-                </div>
-              )}
+            <div className="border-t border-red-100 p-4">
+              <Button variant="danger" size="sm" className="w-full" disabled={deleting} onClick={onDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                {deleting ? "Excluindo..." : "Excluir definitivamente"}
+              </Button>
             </div>
           </details>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-5">
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ações rápidas</p>
-            <div className="mt-4 space-y-3">
-              <ButtonLink href={`/practice?entryId=${entry.id}`} variant="primary" className="w-full">Praticar (escuta + fala)</ButtonLink>
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Status do chunk</p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
-              <StatusForm entryId={entry.id} currentStatus={entry.status} />
-            </div>
-          </div>
-
-          <details className="group rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
-            <summary className="flex cursor-pointer items-center justify-between px-4 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
-              <span>Evolução</span>
-              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="border-t border-slate-100 px-4 pb-4">
-              <div className="mt-4 divide-y divide-slate-100 text-sm">
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-500">Status</span>
-                  <span className="font-medium text-slate-950">{entry.status === "new" ? "Novo" : entry.status === "learning" ? "Aprendendo" : entry.status === "practicing" ? "Praticando" : entry.status === "almost_natural" ? "Quase natural" : entry.status === "mastered" ? "Dominado" : entry.status === "archived" ? "Arquivado" : entry.status ?? "—"}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-500">Dificuldade</span>
-                  <span className="font-medium text-slate-950">{difficultyLabels[entry.difficulty ?? "unknown"]}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-500">Confiança</span>
-                  <span className="font-medium text-slate-950">{entry.confidence_level ? `${entry.confidence_level}/5` : "—"}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-500">Praticado</span>
-                  <span className="font-medium text-slate-950">{entry.times_practiced ? `${entry.times_practiced}x` : "0 vezes"}</span>
-                </div>
-                <div className="flex items-center justify-between py-2 last:pb-0">
-                  <span className="text-slate-500">Última prática</span>
-                  <span className="font-medium text-slate-950">{entry.last_practiced_at ? formatDate(entry.last_practiced_at) : "—"}</span>
-                </div>
-              </div>
-            </div>
-          </details>
-
-          {entry.source_type || entry.source_title || entry.source_url ? (
-            <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Fonte</p>
-              <div className="mt-4 space-y-3">
-                <SourcePill type={entry.source_type} title={entry.source_title} timestamp={entry.source_timestamp} />
-                {entry.source_url ? (
-                  <a href={entry.source_url} target="_blank" rel="noopener noreferrer" className="block truncate text-sm text-candy-blue-700 transition-colors hover:text-candy-blue-950 hover:underline">Abrir link</a>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Sua frase usando este chunk</p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Crie uma frase sua para transformar este chunk em fala real.</p>
-            <div className="mt-4">
-              <PersonalSentenceForm entryId={entry.id} chunkId={mainChunk?.id} />
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Perigo</p>
-            <Button
-              variant="danger"
-              className="mt-4 w-full"
-              disabled={deleting}
-              onClick={onDelete}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {deleting ? "Excluindo..." : "Excluir entrada"}
-            </Button>
-          </div>
-        </div>
+        </aside>
       </div>
     </div>
   );
 }
 
-/* ── Verb Detail ── */
+function ChunkNotes({ entry, mainChunk }: { entry: EntryDetailData; mainChunk?: ChunkRow }) {
+  return (
+    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm" open>
+      <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 [&::-webkit-details-marker]:hidden">
+        <span>Notas do chunk</span>
+        <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="grid gap-3 border-t border-slate-100 p-4 text-sm leading-6 text-slate-600 md:grid-cols-2">
+        {entry.translation ? <NoteItem label="Significado" value={entry.translation} /> : null}
+        {entry.context_note ? <NoteItem label="Meu contexto" value={entry.context_note} /> : null}
+        {entry.natural_phrase || mainChunk?.natural_version ? <NoteItem label="Natural" value={entry.natural_phrase ?? mainChunk?.natural_version ?? ""} /> : null}
+        {mainChunk?.casual_version ? <NoteItem label="Casual" value={mainChunk.casual_version} /> : null}
+        {entry.pronunciation_note ? <NoteItem label="Pronuncia" value={entry.pronunciation_note} /> : null}
+        {entry.grammar_note ? <NoteItem label="Observacao" value={entry.grammar_note} /> : null}
+      </div>
+    </details>
+  );
+}
 
-function VerbDetail({ entry, onDelete, deleting }: { entry: EntryDetailData; onDelete: () => Promise<void>; deleting: boolean }) {
-  const [sentences, setSentences] = useState<string[]>([""]);
-  const [pending, setPending] = useState(false);
+function NoteItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{label}</p>
+      <p className="mt-1 text-slate-700">{value}</p>
+    </div>
+  );
+}
 
-  const patterns = (entry.verb_patterns as string[]) ?? [];
-
-  function addSentence() {
-    setSentences((prev) => [...prev, ""]);
-  }
-
-  function updateSentence(index: number, value: string) {
-    setSentences((prev) => {
-      const next = [...prev];
-      next[index] = value;
-      return next;
-    });
-  }
-
-  function removeSentence(index: number) {
-    setSentences((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  async function handlePractice() {
-    const filled = sentences.filter((s) => s.trim().length >= 2);
-    if (filled.length === 0) return;
-    setPending(true);
-    try {
-      await completeVerbPatternPractice({ entryId: entry.id, sentences: filled });
-      setSentences([""]);
-    } finally {
-      setPending(false);
-    }
+function PersonalSentencesList({ sentences }: { sentences: PersonalSentenceRow[] }) {
+  if (!sentences.length) {
+    return (
+      <section className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500">
+        Nenhuma frase criada ainda.
+      </section>
+    );
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-6 py-10 lg:px-10">
-      <VerbHeader entry={entry} />
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
-        <div className="space-y-6">
-          {/* ── Verbo ── */}
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Verbo</p>
-            <p className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">{entry.original_phrase}</p>
-            {entry.translation ? (
-              <p className="mt-2 text-base italic leading-7 text-slate-500">{entry.translation}</p>
-            ) : null}
-            {entry.context_note ? (
-              <div className="mt-5 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200/70">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Quando usar</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{entry.context_note}</p>
-              </div>
-            ) : null}
+    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm" open={sentences.length <= 3}>
+      <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 [&::-webkit-details-marker]:hidden">
+        <span>Minhas frases ({sentences.length})</span>
+        <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="max-h-72 space-y-2 overflow-y-auto border-t border-slate-100 p-3">
+        {sentences.map((sentence) => (
+          <div key={sentence.id} className="rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+            <p className="text-sm font-medium text-slate-900">{sentence.sentence}</p>
+            {sentence.translation ? <p className="mt-1 text-xs text-slate-500">{sentence.translation}</p> : null}
+            {sentence.corrected_sentence ? <p className="mt-1 text-xs text-emerald-700">Corrigida: {sentence.corrected_sentence}</p> : null}
           </div>
-
-          <EntryEnrichment entryId={entry.id} />
-
-          {/* ── Padrões ── */}
-          {patterns.length > 0 ? (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Padrões</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {patterns.map((pattern, i) => (
-                  <span key={i} className="rounded-xl border border-candy-blue-500/50 bg-candy-blue-500/20 px-3 py-1 text-sm text-candy-blue-950">{pattern}</span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {/* ── Treinar padrões ── */}
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Treinar padrões</p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Crie frases usando este verbo com padrões diferentes.</p>
-
-            {patterns.length > 0 ? (
-              <div className="mt-4 space-y-3">
-                {patterns.slice(0, 6).map((pattern, i) => (
-                  <div key={i} className="rounded-xl border border-candy-blue-500/30 bg-candy-blue-500/10 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-candy-blue-950">{pattern}</p>
-                    <p className="mt-1 text-sm text-slate-500">Ex: {pattern.replace("...", entry.original_phrase.replace("to ", "") + " [something]")}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            <div className="mt-5 space-y-3">
-              {sentences.map((s, i) => (
-                <div key={i} className="flex items-start gap-2">
-                    <Textarea
-                    value={s}
-                    onChange={(e) => updateSentence(i, e.target.value)}
-                    className="min-h-20 flex-1"
-                  />
-                  {sentences.length > 1 ? (
-                    <button type="button" onClick={() => removeSentence(i)} className="mt-2 text-xs text-red-500 hover:underline shrink-0">Remover</button>
-                  ) : null}
-                </div>
-              ))}
-              <button type="button" onClick={addSentence} className="text-sm font-medium text-candy-blue-700 hover:underline">+ Adicionar mais uma frase</button>
-            </div>
-
-            <Button type="button" className="mt-5 w-full" disabled={pending || sentences.every((s) => s.trim().length < 2)} onClick={handlePractice}>
-              {pending ? "Salvando..." : "Salvar frases"}
-            </Button>
-          </div>
-
-          {/* ── Frases criadas ── */}
-          {entry.personal_sentences.length > 0 ? (
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Frases criadas</p>
-              <div className="mt-4 space-y-3">
-                {entry.personal_sentences.map((sentence) => (
-                  <div key={sentence.id} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-sm font-medium text-slate-900">{sentence.sentence}</p>
-                    {sentence.corrected_sentence ? (
-                      <p className="mt-1 text-sm text-emerald-600">✓ {sentence.corrected_sentence}</p>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {/* ── Histórico ── */}
-          <details className="group rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
-            <summary className="flex cursor-pointer items-center justify-between px-6 py-5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
-              <span>Histórico</span>
-              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="border-t border-slate-100 px-6 pb-6 pt-4">
-              {entry.practice_sessions.length > 0 ? (
-                <div className="space-y-3">
-                  {entry.practice_sessions.slice(0, 5).map((session) => (
-                    <div key={session.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="font-medium">{session.mode === "review" ? "Treino de verbo" : session.mode}</span>
-                        <span>{formatDate(session.created_at)}</span>
-                      </div>
-                      {session.notes ? (
-                        <p className="mt-1 text-sm leading-6 text-slate-600 line-clamp-2">{session.notes}</p>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-2xl bg-slate-50 p-6 text-center">
-                  <p className="text-sm font-medium text-slate-700">Nenhuma prática registrada.</p>
-                </div>
-              )}
-            </div>
-          </details>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-5">
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ações rápidas</p>
-            <div className="mt-4 space-y-3">
-              <ButtonLink href={`/practice?entryId=${entry.id}`} variant="primary" className="w-full">Treinar padrões</ButtonLink>
-              <ButtonLink href="/library" variant="secondary" className="w-full">Usar com conectores</ButtonLink>
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Status</p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
-              <StatusForm entryId={entry.id} currentStatus={entry.status} />
-            </div>
-          </div>
-
-          <details className="group rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
-            <summary className="flex cursor-pointer items-center justify-between px-4 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
-              <span>Evolução</span>
-              <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className="border-t border-slate-100 px-4 pb-4">
-              <div className="mt-4 divide-y divide-slate-100 text-sm">
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-500">Status</span>
-                  <span className="font-medium text-slate-950">{entry.status === "new" ? "Novo" : entry.status === "learning" ? "Aprendendo" : entry.status === "practicing" ? "Praticando" : entry.status === "almost_natural" ? "Quase natural" : entry.status === "mastered" ? "Dominado" : entry.status === "archived" ? "Arquivado" : entry.status ?? "—"}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-500">Dificuldade</span>
-                  <span className="font-medium text-slate-950">{difficultyLabels[entry.difficulty ?? "unknown"]}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-500">Frases criadas</span>
-                  <span className="font-medium text-slate-950">{entry.personal_sentences.length}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-500">Praticado</span>
-                  <span className="font-medium text-slate-950">{entry.times_practiced ? `${entry.times_practiced}x` : "0 vezes"}</span>
-                </div>
-                <div className="flex items-center justify-between py-2 last:pb-0">
-                  <span className="text-slate-500">Última prática</span>
-                  <span className="font-medium text-slate-950">{entry.last_practiced_at ? formatDate(entry.last_practiced_at) : "—"}</span>
-                </div>
-              </div>
-            </div>
-          </details>
-
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Sua frase com este verbo</p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Crie uma frase sua usando este verbo.</p>
-            <div className="mt-4">
-              <PersonalSentenceForm entryId={entry.id} />
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Perigo</p>
-            <Button
-              variant="danger"
-              className="mt-4 w-full"
-              disabled={deleting}
-              onClick={onDelete}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {deleting ? "Excluindo..." : "Excluir entrada"}
-            </Button>
-          </div>
-        </div>
+        ))}
       </div>
-    </div>
+    </details>
+  );
+}
+
+function PracticeHistory({ sessions }: { sessions: PracticeSessionRow[] }) {
+  return (
+    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 [&::-webkit-details-marker]:hidden">
+        <span>Historico de pratica</span>
+        <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="border-t border-slate-100 p-3">
+        {sessions.length ? (
+          <div className="grid gap-2 md:grid-cols-2">
+            {sessions.slice(0, 6).map((session) => (
+              <div key={session.id} className="rounded-xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200">
+                <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+                  <span className="font-medium">{practiceLabels[session.mode] ?? session.mode}</span>
+                  <span>{formatDate(session.created_at)}</span>
+                </div>
+                {session.notes ? <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">{session.notes}</p> : null}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-500">Nenhuma pratica registrada.</p>
+        )}
+      </div>
+    </details>
   );
 }

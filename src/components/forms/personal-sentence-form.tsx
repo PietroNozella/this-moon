@@ -10,14 +10,16 @@ import {
   type LearningActionState,
 } from "@/lib/validators/learning";
 import { createPersonalSentence } from "@/server/actions/learning";
+import type { PersonalSentenceRow } from "@/types/database";
 
-export function PersonalSentenceForm({
-  entryId,
-  chunkId,
-}: {
+type Props = {
   entryId: string;
   chunkId?: string | null;
-}) {
+  compact?: boolean;
+  onCreated?: (sentence: PersonalSentenceRow) => void;
+};
+
+export function PersonalSentenceForm({ entryId, chunkId, compact, onCreated }: Props) {
   const [state, setState] = useState<LearningActionState>({});
   const [pending, setPending] = useState(false);
 
@@ -41,9 +43,10 @@ export function PersonalSentenceForm({
     }
 
     try {
-      await createPersonalSentence(parsed.data);
+      const created = await createPersonalSentence(parsed.data);
       form.reset();
       setState({});
+      onCreated?.(created as PersonalSentenceRow);
       setPending(false);
     } catch (error) {
       setState({
@@ -55,25 +58,28 @@ export function PersonalSentenceForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="sentence">Frase</Label>
+    <form onSubmit={handleSubmit} className={compact ? "space-y-3" : "space-y-4"}>
+      <div className="space-y-1.5">
+        <Label htmlFor="sentence" className={compact ? "text-xs uppercase tracking-[0.12em] text-slate-500" : undefined}>
+          Sua frase
+        </Label>
         <Textarea
           id="sentence"
           name="sentence"
-          className="min-h-20"
+          className={compact ? "min-h-16" : "min-h-20"}
           required
         />
         <FieldError errors={state.errors?.sentence} />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="translation">Tradução (opcional)</Label>
-        <Input
-          id="translation"
-          name="translation"
-        />
-      </div>
+      <details className="group rounded-xl border border-slate-200 bg-slate-50/70">
+        <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-slate-500 transition hover:text-slate-900 [&::-webkit-details-marker]:hidden">
+          Traducao opcional
+        </summary>
+        <div className="border-t border-slate-200 p-3">
+          <Input id="translation" name="translation" />
+        </div>
+      </details>
 
       {state.message ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -81,12 +87,8 @@ export function PersonalSentenceForm({
         </p>
       ) : null}
 
-      <Button
-        type="submit"
-        disabled={pending}
-        className="w-full"
-      >
-        Salvar frase
+      <Button type="submit" disabled={pending} className="w-full" size={compact ? "sm" : "md"}>
+        {pending ? "Salvando..." : "Salvar frase"}
       </Button>
     </form>
   );

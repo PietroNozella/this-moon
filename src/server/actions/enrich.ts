@@ -3,26 +3,28 @@
 import { createClient } from "@/lib/supabase/server";
 import { generateAIResponse } from "@/lib/ai/provider";
 
-const ENRICH_PROMPT = `Você é um analista de inglês. Retorne APENAS um JSON válido sem formatação extra.
+const ENRICH_PROMPT = `Voce e um analista de ingles focado em aprendizado por chunks. Retorne APENAS um JSON valido sem formatacao extra.
 
-Analise a frase em inglês fornecida e extraia:
+O texto recebido e sempre um chunk salvo pelo usuario. Analise o chunk como unidade de uso, mesmo que ele contenha apenas uma palavra ou um verbo isolado.
 
-1. verbs: lista de verbos na frase com seus tempos verbais. Inclua verbos auxiliares.
-2. usage_contexts: lista de 2-3 ocasiões ou contextos onde essa frase é usada naturalmente (em português).
-3. variations: 3 variações úteis da frase original em inglês:
-   - past: versão no passado
-   - negative: versão negativa
-   - question: versão em pergunta
-4. verb_details: para CADA verbo encontrado, forneça as conjugações em presente, passado e futuro (simple, continuous e perfect) e exemplos de uso. Inclua o verbo principal como sujeito "I" nas conjugações.
+Extraia:
+
+1. verbs: verbos encontrados dentro do chunk, incluindo auxiliares e modais quando existirem. Para cada verbo, informe base, tempo verbal e forma exata usada no chunk.
+2. usage_contexts: 2-3 situacoes naturais, em portugues, explicando onde esse chunk e usado e com que intencao comunicativa.
+3. variations: 3 variacoes uteis do chunk em ingles:
+   - past: uma versao natural no passado, quando fizer sentido.
+   - negative: uma versao negativa natural, quando fizer sentido.
+   - question: uma versao em pergunta natural, quando fizer sentido.
+4. verb_details: para CADA verbo relevante encontrado, mostre conjugacoes em presente, passado e futuro (simple, continuous e perfect) e exemplos de uso. Use sujeito "I" nas conjugacoes quando isso for natural.
 
 Formato EXATO do JSON:
 {
   "verbs": [{ "base": "try", "tense": "present perfect continuous", "form": "have been trying" }],
-  "usage_contexts": ["conversas casuais", "explicar algo que estava tentando"],
+  "usage_contexts": ["quando voce explica uma tentativa em andamento", "para falar de algo que ainda nao conseguiu resolver"],
   "variations": {
-    "past": "I had been trying",
-    "negative": "I haven't been trying",
-    "question": "Have I been trying?"
+    "past": "I had been trying to fix this",
+    "negative": "I haven't been trying to fix this",
+    "question": "Have I been trying to fix this?"
   },
   "verb_details": [
     {
@@ -44,9 +46,10 @@ Formato EXATO do JSON:
   ]
 }
 
-Se não encontrar verbos, retorne verbs como array vazio e verb_details como array vazio.
-Se não conseguir determinar contexto, retorne contexts como array vazio.
-Se não conseguir variar a frase, retorne variations como objeto vazio.`;
+Se nao encontrar verbos, retorne verbs como array vazio e verb_details como array vazio.
+Se nao conseguir determinar contexto, retorne usage_contexts como array vazio.
+Se alguma variacao nao soar natural para o chunk, retorne essa chave como string vazia.
+Nao invente verbos que nao estejam no chunk original.`;
 
 export type VerbConjugationSet = {
   simple: string;
@@ -109,6 +112,6 @@ export async function enrichEntry(entryId: string, phrase: string) {
       output_json: data as unknown as Record<string, unknown>,
     });
   } catch {
-    // enrichment falhou silenciosamente — não bloquear o usuário
+    // enrichment falhou silenciosamente - nao bloquear o usuario
   }
 }

@@ -43,7 +43,6 @@ async function ensureTag(
 
 type DailyGoalField =
   | "captured_entries"
-  | "captured_verbs"
   | "reviews_completed"
   | "personal_sentences_created"
   | "speaking_practices"
@@ -106,7 +105,7 @@ export async function createEntry(input: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   const { data: entry, error: entryError } = await supabase
     .from("learning_entries")
@@ -133,11 +132,13 @@ export async function createEntry(input: {
 
   if (entryError || !entry) throw entryError ?? new Error("Falha ao criar entrada.");
 
-  if (input.entry_type === "chunk" && input.chunk_text) {
+  if (input.entry_type === "chunk") {
+    const chunkText = input.chunk_text?.trim() || input.original_phrase;
+
     const { error: chunkError } = await supabase.from("chunks").insert({
       user_id: user.id,
       entry_id: entry.id,
-      chunk_text: input.chunk_text,
+      chunk_text: chunkText,
       natural_version: input.natural_version ?? null,
       casual_version: input.casual_version ?? null,
       translation: input.translation ?? null,
@@ -154,11 +155,7 @@ export async function createEntry(input: {
     }
   }
 
-  await incrementDailyGoal(
-    supabase,
-    user.id,
-    input.entry_type === "verb" ? "captured_verbs" : "captured_entries",
-  );
+  await incrementDailyGoal(supabase, user.id, "captured_entries");
 
   return entry.id;
 }
@@ -174,17 +171,15 @@ export async function quickCapture(input: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
-
-  const { classify } = await import("@/lib/classify");
-  const entryType = classify(input.text);
+  if (!user) throw new Error("Nao autorizado.");
 
   const entryId = await createEntry({
     original_phrase: input.text,
     source_type: input.source ?? "other",
     context_note: input.context ?? "Quero usar essa frase no meu dia a dia.",
     difficulty: "unknown",
-    entry_type: entryType === "chunk" ? "chunk" : "verb",
+    entry_type: "chunk",
+    chunk_text: input.text,
     tags: [],
     grammar_note: input.note ?? undefined,
   });
@@ -194,66 +189,6 @@ export async function quickCapture(input: {
   enrichEntry(entryId, input.text).catch(() => {});
 
   return entryId;
-}
-
-export async function createVerb(input: {
-  verb: string;
-  meaning: string;
-  context: string;
-  verb_patterns?: string[];
-  difficulty?: string;
-  usageContexts?: string[];
-}) {
-  return createEntry({
-    original_phrase: input.verb,
-    translation: input.meaning,
-    meaning_explanation: input.context,
-    source_type: "other",
-    context_note: input.context,
-    difficulty: input.difficulty ?? "unknown",
-    entry_type: "verb",
-    tags: [],
-    verb_patterns: input.verb_patterns,
-  });
-}
-
-export async function completeVerbPatternPractice(input: {
-  entryId: string;
-  sentences: string[];
-  confidenceLevel?: number;
-}) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Não autorizado.");
-
-  const { data: entry } = await supabase
-    .from("learning_entries")
-    .select("entry_type, original_phrase")
-    .eq("id", input.entryId)
-    .single();
-
-  if (!entry) throw new Error("Entrada não encontrada.");
-  if (entry.entry_type !== "verb") throw new Error("Esta entrada não é um verbo.");
-
-  for (const sentence of input.sentences) {
-    await supabase.from("personal_sentences").insert({
-      user_id: user.id,
-      entry_id: input.entryId,
-      sentence,
-    });
-  }
-
-  await createPracticeSession({
-    entry_id: input.entryId,
-    practice_type: "review",
-    self_rating: input.confidenceLevel,
-    note: `Treino de verbo/padrões com "${entry.original_phrase}"`,
-  });
-
-  await incrementDailyGoal(supabase, user.id, "personal_sentences_created");
 }
 
 export async function createPracticeSession(input: {
@@ -268,7 +203,7 @@ export async function createPracticeSession(input: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   const { data: session } = await supabase
     .from("practice_sessions")
@@ -282,7 +217,7 @@ export async function createPracticeSession(input: {
     .select("id")
     .maybeSingle();
 
-  if (!session) throw new Error("Falha ao criar sessão.");
+  if (!session) throw new Error("Falha ao criar sessao.");
 
   const { data: entry } = await supabase
     .from("learning_entries")
@@ -314,11 +249,11 @@ export async function completeListeningPractice(input: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   const noteParts: string[] = [];
-  if (input.notes) noteParts.push(`Experiência ouvindo: ${input.notes}`);
-  if (input.listeningRepetitions) noteParts.push(`Repetições: ${input.listeningRepetitions}`);
+  if (input.notes) noteParts.push(`Experiencia ouvindo: ${input.notes}`);
+  if (input.listeningRepetitions) noteParts.push(`Repeticoes: ${input.listeningRepetitions}`);
 
   await createPracticeSession({
     entry_id: input.entryId,
@@ -345,7 +280,7 @@ export async function completeShadowingPractice(entryId: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   await createPracticeSession({ entry_id: entryId, practice_type: "shadowing" });
   await incrementDailyGoal(supabase, user.id, "shadowing_practices");
@@ -362,15 +297,23 @@ export async function createPersonalSentence(input: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
-  await supabase.from("personal_sentences").insert({
-    user_id: user.id,
-    entry_id: input.entry_id,
-    chunk_id: input.chunk_id ?? null,
-    sentence: input.sentence,
-    translation: input.translation ?? null,
-  });
+  const { data: sentence, error: sentenceError } = await supabase
+    .from("personal_sentences")
+    .insert({
+      user_id: user.id,
+      entry_id: input.entry_id,
+      chunk_id: input.chunk_id ?? null,
+      sentence: input.sentence,
+      translation: input.translation ?? null,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (sentenceError || !sentence) {
+    throw sentenceError ?? new Error("Falha ao criar frase.");
+  }
 
   if (input.chunk_id) {
     const { data: chunk } = await supabase
@@ -386,6 +329,8 @@ export async function createPersonalSentence(input: {
   }
 
   await incrementDailyGoal(supabase, user.id, "personal_sentences_created");
+
+  return sentence;
 }
 
 export async function updateEntryStatus(entryId: string, status: string) {
@@ -394,13 +339,48 @@ export async function updateEntryStatus(entryId: string, status: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   await supabase
     .from("learning_entries")
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", entryId)
     .eq("user_id", user.id);
+}
+
+export async function updateEntryProgress(input: {
+  entryId: string;
+  status: string;
+  difficulty: string;
+  confidenceLevel?: number | null;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Nao autorizado.");
+
+  const confidence = input.confidenceLevel ?? null;
+
+  const { error } = await supabase
+    .from("learning_entries")
+    .update({
+      status: input.status,
+      difficulty: input.difficulty,
+      confidence_level: confidence,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.entryId)
+    .eq("user_id", user.id);
+
+  if (error) throw new Error("Falha ao atualizar progresso.");
+
+  return {
+    status: input.status,
+    difficulty: input.difficulty,
+    confidence_level: confidence,
+  };
 }
 
 export async function completeReview(
@@ -413,7 +393,7 @@ export async function completeReview(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   const { data: review } = await supabase
     .from("reviews")
@@ -421,7 +401,7 @@ export async function completeReview(
     .eq("id", reviewId)
     .maybeSingle();
 
-  if (!review) throw new Error("Revisão não encontrada.");
+  if (!review) throw new Error("Revisao nao encontrada.");
 
   const intervalDays = nextIntervalDays(review.interval_days ?? 0, rating);
   const now = new Date();
@@ -456,11 +436,11 @@ export async function completePractice(input: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   const noteParts: string[] = [];
-  if (input.listeningNotes) noteParts.push(`Experiência ouvindo: ${input.listeningNotes}`);
-  if (input.listeningRepetitions) noteParts.push(`Repetições: ${input.listeningRepetitions}`);
+  if (input.listeningNotes) noteParts.push(`Experiencia ouvindo: ${input.listeningNotes}`);
+  if (input.listeningRepetitions) noteParts.push(`Repeticoes: ${input.listeningRepetitions}`);
 
   await createPracticeSession({
     entry_id: input.entryId,
@@ -488,7 +468,7 @@ export async function completeSpeakingPractice(entryId?: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   if (entryId) {
     await createPracticeSession({ entry_id: entryId, practice_type: "speaking" });
@@ -503,7 +483,7 @@ export async function deleteEntry(entryId: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   const { error } = await supabase
     .from("learning_entries")
@@ -524,7 +504,7 @@ export async function completeDailyTraining(input: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Não autorizado.");
+  if (!user) throw new Error("Nao autorizado.");
 
   if (input.connectorSentence && input.connectorEntryId) {
     await supabase.from("personal_sentences").insert({

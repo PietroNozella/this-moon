@@ -1,8 +1,8 @@
 const sourceLabels: Record<string, string> = {
-  music: "Música",
-  video: "Vídeo",
+  music: "Musica",
+  video: "Video",
   game: "Jogo",
-  programming: "Programação",
+  programming: "Programacao",
   conversation: "Conversa",
   social_media: "Social media",
   course: "Curso",
@@ -21,12 +21,10 @@ export function SourcePill({ type, title, timestamp }: Props) {
   const label = sourceLabels[type] ?? type;
 
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs text-slate-600">
-      <span className="font-medium">{label}</span>
-      {title ? <span className="text-slate-400">• {title}</span> : null}
-      {timestamp ? (
-        <span className="text-slate-400">• {timestamp}</span>
-      ) : null}
+    <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
+      <span className="shrink-0 font-medium">{label}</span>
+      {title ? <span className="truncate text-slate-400">- {title}</span> : null}
+      {timestamp ? <span className="shrink-0 text-slate-400">- {timestamp}</span> : null}
     </span>
   );
 }

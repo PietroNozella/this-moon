@@ -7,18 +7,19 @@ const levels = [
   { value: 2, label: "Palavras soltas" },
   { value: 3, label: "Ideia geral" },
   { value: 4, label: "Quase tudo" },
-  { value: 5, label: "Entendi e consigo repetir" },
+  { value: 5, label: "Consigo usar" },
 ];
 
 type Props = {
   value: number | null;
   onChange: (value: number) => void;
   disabled?: boolean;
+  compact?: boolean;
 };
 
-export function ConfidenceScale({ value, onChange, disabled }: Props) {
+export function ConfidenceScale({ value, onChange, disabled, compact }: Props) {
   return (
-    <div className="grid grid-cols-5 gap-2">
+    <div className="grid grid-cols-5 gap-1.5">
       {levels.map((level) => (
         <button
           key={level.value}
@@ -26,15 +27,16 @@ export function ConfidenceScale({ value, onChange, disabled }: Props) {
           disabled={disabled}
           onClick={() => onChange(level.value)}
           className={cn(
-            "rounded-xl border p-3 text-center text-xs transition-all duration-200",
+            "rounded-xl border text-center text-xs transition-all duration-200",
+            compact ? "px-1.5 py-2" : "p-3",
             value === level.value
               ? "border-onyx bg-onyx text-white shadow-sm"
               : "border-slate-200 bg-white text-slate-500 hover:border-slate-400",
-            disabled && "opacity-50 pointer-events-none",
+            disabled && "pointer-events-none opacity-50",
           )}
         >
-          <span className="block text-base font-semibold">{level.value}</span>
-          <span className="mt-1 block leading-tight">{level.label}</span>
+          <span className={cn("block font-semibold", compact ? "text-sm" : "text-base")}>{level.value}</span>
+          {!compact ? <span className="mt-1 block leading-tight">{level.label}</span> : null}
         </button>
       ))}
     </div>
