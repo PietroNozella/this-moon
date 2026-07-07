@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { FieldError, Input, Label, Select, Textarea } from "@/components/ui/form";
-import { cn, compactText } from "@/lib/utils";
+import { compactText } from "@/lib/utils";
 import {
   quickCaptureSchema,
   sourceTypes,
@@ -122,9 +122,6 @@ export function QuickCapture() {
         </p>
       ) : null}
 
-      <p className={cn("mt-4 text-xs leading-5 text-slate-400", state.message && "mt-2")}>
-        Salve um chunk. A IA identifica os verbos, explica onde usar e sugere variações depois.
-      </p>
     </form>
   );
 }
