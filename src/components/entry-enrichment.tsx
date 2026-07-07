@@ -33,11 +33,13 @@ export function EntryEnrichment({ entryId }: { entryId: string }) {
   const [loading, setLoading] = useState(true);
   const [backfilling, setBackfilling] = useState(false);
   const attemptedBackfill = useRef(false);
+  const attemptedMissingTranslation = useRef(false);
 
   useEffect(() => {
     const supabase = createClient();
     let active = true;
     attemptedBackfill.current = false;
+    attemptedMissingTranslation.current = false;
 
     async function fetchLatest() {
       const { data: feedback } = await supabase
@@ -59,8 +61,35 @@ export function EntryEnrichment({ entryId }: { entryId: string }) {
       const latest = await fetchLatest();
       if (!active) return;
 
-      if (latest) {
+      if (latest?.translation) {
         setData(latest);
+        setLoading(false);
+        return;
+      }
+
+      if (latest && !latest.translation) {
+        if (attemptedMissingTranslation.current) {
+          setData(latest);
+          setLoading(false);
+          return;
+        }
+
+        attemptedMissingTranslation.current = true;
+        setBackfilling(true);
+
+        const result: EnsureEnrichmentResult = await ensureEntryEnrichment(entryId);
+        if (!active) return;
+
+        if (result === "created" || result === "existing") {
+          const refreshed = await fetchLatest();
+          if (!active) return;
+
+          setData(refreshed);
+        } else {
+          setData(latest);
+        }
+
+        setBackfilling(false);
         setLoading(false);
         return;
       }
