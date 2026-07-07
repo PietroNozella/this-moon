@@ -9,6 +9,7 @@ O texto recebido é sempre um chunk salvo pelo usuário. Analise o chunk como un
 
 Extraia:
 
+0. translation: uma tradução natural e idiomática do chunk para o português brasileiro. Não traduza palavra por palavra — busque uma equivalência natural que um brasileiro diria na mesma situação.
 1. verbs: verbos encontrados dentro do chunk, incluindo auxiliares e modais quando existirem. Para cada verbo, informe base, tempo verbal e forma exata usada no chunk.
 2. usage_contexts: 2-3 situações naturais, em português, explicando onde esse chunk é usado e com que intenção comunicativa.
 3. variations: 3 variações úteis do chunk em inglês:
@@ -19,6 +20,7 @@ Extraia:
 
 Formato EXATO do JSON:
 {
+  "translation": "Eu estou tentando consertar isso",
   "verbs": [{ "base": "try", "tense": "present perfect continuous", "form": "have been trying" }],
   "usage_contexts": ["quando você explica uma tentativa em andamento", "para falar de algo que ainda não conseguiu resolver"],
   "variations": {
@@ -71,6 +73,7 @@ export type VerbDetail = {
 };
 
 export type EnrichmentData = {
+  translation?: string;
   verbs: Array<{ base: string; tense: string; form: string }>;
   usage_contexts: string[];
   variations: {
