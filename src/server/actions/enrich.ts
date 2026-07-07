@@ -81,13 +81,19 @@ export type EnrichmentData = {
   verb_details?: VerbDetail[];
 };
 
+export type EnsureEnrichmentResult =
+  | "existing"
+  | "created"
+  | "unavailable"
+  | "error";
+
 export async function enrichEntry(entryId: string, phrase: string) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return;
+  if (!user) return false;
 
   try {
     const response = await generateAIResponse([
@@ -102,16 +108,53 @@ export async function enrichEntry(entryId: string, phrase: string) {
 
     const data = JSON.parse(raw) as EnrichmentData;
 
-    if (!data.verbs && !data.usage_contexts && !data.variations) return;
+    if (!data.verbs && !data.usage_contexts && !data.variations) return false;
 
-    await supabase.from("ai_feedbacks").insert({
+    const { error } = await supabase.from("ai_feedbacks").insert({
       user_id: user.id,
       entry_id: entryId,
       feedback_type: "enrichment",
       input_text: phrase,
       output_json: data as unknown as Record<string, unknown>,
     });
+
+    if (error) return false;
+
+    return true;
   } catch {
     // enrichment falhou silenciosamente - não bloquear o usuário
+    return false;
   }
+}
+
+export async function ensureEntryEnrichment(entryId: string): Promise<EnsureEnrichmentResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return "unavailable";
+
+  const { data: existing } = await supabase
+    .from("ai_feedbacks")
+    .select("id")
+    .eq("entry_id", entryId)
+    .eq("feedback_type", "enrichment")
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) return "existing";
+
+  const { data: entry } = await supabase
+    .from("learning_entries")
+    .select("original_phrase")
+    .eq("id", entryId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const phrase = entry?.original_phrase?.trim();
+  if (!phrase) return "unavailable";
+
+  const created = await enrichEntry(entryId, phrase);
+  return created ? "created" : "error";
 }
