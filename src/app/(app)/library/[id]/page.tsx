@@ -167,16 +167,6 @@ function ChunkDetail({
 }) {
   const mainChunk = entry.chunks[0];
   const chunkText = mainChunk?.chunk_text || entry.original_phrase;
-  const hasNotes = !!(
-    entry.translation ||
-    entry.natural_phrase ||
-    entry.context_note ||
-    entry.pronunciation_note ||
-    entry.grammar_note ||
-    mainChunk?.natural_version ||
-    mainChunk?.casual_version
-  );
-
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8">
       <header className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -213,7 +203,6 @@ function ChunkDetail({
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <main className="space-y-4">
-          {hasNotes ? <ChunkNotes entry={entry} mainChunk={mainChunk} /> : null}
           <EntryEnrichment entryId={entry.id} />
           <PracticeHistory sessions={entry.practice_sessions} />
         </main>
@@ -261,34 +250,6 @@ function ChunkDetail({
           </details>
         </aside>
       </div>
-    </div>
-  );
-}
-
-function ChunkNotes({ entry, mainChunk }: { entry: EntryDetailData; mainChunk?: ChunkRow }) {
-  return (
-    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm" open>
-      <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 [&::-webkit-details-marker]:hidden">
-        <span>Notas do chunk</span>
-        <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
-      </summary>
-      <div className="grid gap-3 border-t border-slate-100 p-4 text-sm leading-6 text-slate-600 md:grid-cols-2">
-        {entry.translation ? <NoteItem label="Significado" value={entry.translation} /> : null}
-        {entry.context_note ? <NoteItem label="Meu contexto" value={entry.context_note} /> : null}
-        {entry.natural_phrase || mainChunk?.natural_version ? <NoteItem label="Natural" value={entry.natural_phrase ?? mainChunk?.natural_version ?? ""} /> : null}
-        {mainChunk?.casual_version ? <NoteItem label="Casual" value={mainChunk.casual_version} /> : null}
-        {entry.pronunciation_note ? <NoteItem label="Pronúncia" value={entry.pronunciation_note} /> : null}
-        {entry.grammar_note ? <NoteItem label="Observação" value={entry.grammar_note} /> : null}
-      </div>
-    </details>
-  );
-}
-
-function NoteItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{label}</p>
-      <p className="mt-1 text-slate-700">{value}</p>
     </div>
   );
 }
