@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ChunkFlow",
+  title: "SonetFlow",
   description: "Sistema pessoal de aprendizado de inglês por chunks.",
 };
 

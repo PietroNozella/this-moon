@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6 md:py-4">
           <div>
-            <p className="text-lg font-semibold tracking-tight text-onyx">ChunkFlow</p>
+            <p className="text-lg font-semibold tracking-tight text-onyx">SonetFlow</p>
             <p className="text-xs text-slate-500">
               {user?.email ?? "Conectado"}
             </p>
