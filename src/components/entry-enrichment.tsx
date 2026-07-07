@@ -246,7 +246,7 @@ function VerbConjugations({ details }: { details: VerbDetail[] }) {
           <div className="border-t border-slate-200 p-3">
             <div className="grid gap-2 md:grid-cols-3">
               {(["present", "past", "future"] as const).map((period) => {
-                const conjugation = detail.conjugations[period];
+                const conjugation = detail.conjugations?.[period];
                 return (
                   <div key={period} className="rounded-lg bg-white p-3 ring-1 ring-slate-200">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
@@ -257,7 +257,7 @@ function VerbConjugations({ details }: { details: VerbDetail[] }) {
                         <p key={type} className="text-xs text-slate-600">
                           <span className="text-slate-400">{tenseLabel[type]}: </span>
                           <span className="font-medium text-slate-900">
-                            {conjugation[type] || "-"}
+                            {conjugation?.[type] || "-"}
                           </span>
                         </p>
                       ))}
